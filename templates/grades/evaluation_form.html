@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="max-w-lg mx-auto space-y-6">
+	<div class="flex items-center justify-between">
+		<div>
+			<h1 class="text-xl font-bold text-gray-800">{{ title }}</h1>
+			<p class="text-sm text-gray-500">
+				{{ section.course.name }} — {{ section.form }} — Term {{ section.term_number }}
+			</p>
+		</div>
+		<a href="{% url 'grades:section_table' section.pk %}"
+		   class="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 text-gray-600 hover:bg-gray-50 transition">
+			Cancel
+		</a>
+	</div>
+
+	<div class="bg-white rounded-xl shadow p-6">
+		<form method="post" novalidate>
+			{% csrf_token %}
+			<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+				{% for field in form %}
+				<div class="{% if field.name == 'title' %}col-span-2{% endif %}">
+					<label class="block text-xs font-medium text-gray-600 mb-1">
+						{{ field.label }}
+						{% if field.field.required %}<span class="text-red-500">*</span>{% endif %}
+					</label>
+					{{ field }}
+					{% if field.errors %}
+						<p class="text-red-500 text-xs mt-1">{{ field.errors.0 }}</p>
+					{% endif %}
+					{% if field.name == 'category' %}
+						<p class="text-xs text-gray-400 mt-1">
+							Coursework = tests, quizzes, assignments etc. Exam = final/mock/midterm.
+						</p>
+					{% endif %}
+					{% if field.name == 'weight' %}
+						<p class="text-xs text-gray-400 mt-1">
+							Higher weight = more impact on the average. Default is 1.
+						</p>
+					{% endif %}
+				</div>
+				{% endfor %}
+			</div>
+			<div class="flex gap-3 mt-6">
+				<button type="submit"
+						class="btn-primary px-5 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition">
+					{% if ev %}Save Changes{% else %}Create Evaluation{% endif %}
+				</button>
+				{% if ev %}
+				<a href="{% url 'grades:evaluation_delete' ev.pk %}"
+				   class="px-5 py-2 rounded-lg text-sm font-medium border border-red-300 text-red-600 hover:bg-red-50 transition">
+					Delete
+				</a>
+				{% endif %}
+			</div>
+		</form>
+	</div>
+</div>
+{% endblock %}

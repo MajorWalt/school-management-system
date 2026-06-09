@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block title %}Grade Windows — {{ school.name }}{% endblock %}
+{% block page_title %}Grade Windows{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto space-y-6">
+
+	<div class="flex items-center justify-between">
+		<div>
+			<h1 class="text-xl font-bold text-gray-800">Grade Entry Windows</h1>
+			<p class="text-sm text-gray-500">
+				Control which forms and terms teachers can enter grades for.
+			</p>
+		</div>
+		<a href="{% url 'grades:home' %}"
+		   class="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 text-gray-600 hover:bg-gray-50 transition">
+			Back
+		</a>
+	</div>
+
+	<!-- Year selector -->
+	<form method="get" class="flex gap-3">
+		<select name="year" class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+			{% for y in years %}
+			<option value="{{ y.pk }}" {% if year and y.pk == year.pk %}selected{% endif %}>
+				{{ y.name }}
+			</option>
+			{% endfor %}
+		</select>
+		<button type="submit" class="btn-primary px-4 py-2 rounded-lg text-sm font-medium">Select</button>
+	</form>
+
+	{% if year and term_configs %}
+	<form method="post">
+		{% csrf_token %}
+		<div class="bg-white rounded-xl shadow overflow-hidden">
+			<div class="px-5 py-4 border-b bg-gray-50 flex items-center justify-between">
+				<h2 class="font-semibold text-gray-700">{{ year.name }} — Toggle Windows</h2>
+				<p class="text-xs text-gray-400">
+					Green = open (teachers can enter grades). Grey = closed.
+				</p>
+			</div>
+
+			<table class="min-w-full text-sm">
+				<thead class="bg-gray-50 text-gray-500 uppercase text-xs tracking-wide">
+					<tr>
+						<th class="px-4 py-3 text-left">Form</th>
+						{% for tc in term_configs %}
+						<th class="px-4 py-3 text-center">{{ tc.name }}</th>
+						{% endfor %}
+					</tr>
+				</thead>
+				<tbody class="divide-y divide-gray-100">
+					{% for form_obj in forms %}
+					<tr class="hover:bg-gray-50">
+						<td class="px-4 py-3 font-medium text-gray-800">{{ form_obj.name }}</td>
+						{% for tc in term_configs %}
+						{% with wkey=form_obj.pk %}
+						<td class="px-4 py-3 text-center">
+							{% with window=windows|get_item:form_obj.pk %}
+							<label class="relative inline-flex items-center cursor-pointer">
+								<input type="checkbox"
+									   name="window_{{ form_obj.pk }}_{{ tc.term_number }}"
+									   class="sr-only peer"
+									   {% for w_key, w_val in windows.items %}
+										   {% if w_key.0 == form_obj.pk and w_key.1 == tc.term_number %}
+											   {% if w_val.is_open %}checked{% endif %}
+										   {% endif %}
+									   {% endfor %} />
+								<div class="w-11 h-6 bg-gray-200 rounded-full peer
+											peer-checked:bg-green-500
+											after:content-[''] after:absolute after:top-[2px] after:left-[2px]
+											after:bg-white after:rounded-full after:h-5 after:w-5
+											after:transition-all peer-checked:after:translate-x-full">
+								</div>
+							</label>
+							{% endwith %}
+						</td>
+						{% endwith %}
+						{% endfor %}
+					</tr>
+					{% empty %}
+					<tr>
+						<td colspan="{{ term_configs|length|add:1 }}" class="px-4 py-6 text-center text-gray-400">
+							No forms found.
+						</td>
+					</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>
+
+		<div class="mt-4">
+			<button type="submit"
+					class="btn-primary px-6 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition">
+				Save Windows
+			</button>
+		</div>
+	</form>
+	{% elif year %}
+	<div class="bg-white rounded-xl shadow p-8 text-center text-gray-400">
+		No term configs found for {{ year.name }}. Set up terms in Scheduling first.
+	</div>
+	{% endif %}
+
+</div>
+{% endblock %}

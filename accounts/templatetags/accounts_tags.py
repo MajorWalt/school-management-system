@@ -15,3 +15,7 @@ def get_roles(user, school):
 @register.filter
 def split(value, delimiter=","):
     return value.split(delimiter)
+
+@register.filter
+def get_item(dictionary, key):
+    return dictionary.get(key)

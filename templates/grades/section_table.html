@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+{% load accounts_tags %}
+{% block title %}Gradebook — {{ section.course.name }}{% endblock %}
+{% block page_title %}Gradebook{% endblock %}
+
+{% block content %}
+
+<!-- Header -->
+<div class="flex items-center justify-between mb-4">
+	<div>
+		<h1 class="text-xl font-bold text-gray-800">
+			{{ section.course.name }} — {{ section.form }}
+		</h1>
+		<p class="text-sm text-gray-500">
+			{{ section.academic_year.name }}
+			{% if section.teacher %}&bull; {{ section.teacher.get_full_name }}{% endif %}
+		</p>
+	</div>
+	<div class="flex gap-2">
+		{% if can_edit %}
+		<a href="{% url 'grades:evaluation_create' section.pk %}"
+		   class="btn-primary px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition">
+			+ Add Evaluation
+		</a>
+		<a href="{% url 'grades:bulk_upload' section.pk %}"
+		   class="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 text-gray-600 hover:bg-gray-50 transition">
+			Bulk Upload
+		</a>
+		{% endif %}
+		<a href="{% url 'grades:home' %}"
+		   class="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 text-gray-600 hover:bg-gray-50 transition">
+			Back
+		</a>
+	</div>
+</div>
+
+<!-- Grade window status -->
+{% if not window_open and not is_admin %}
+<div class="bg-yellow-50 border border-yellow-200 rounded-xl px-5 py-3 mb-4 text-sm text-yellow-800 flex items-center gap-2">
+	<svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+	Grade window is closed. Contact admin to enable grade entry.
+</div>
+{% endif %}
+
+<!-- Term tabs -->
+<div class="flex gap-1 mb-4 bg-white rounded-xl shadow p-2 w-fit">
+	{% for sec in all_sections %}
+	<a href="{% url 'grades:section_table' sec.pk %}?term={{ sec.term_number }}"
+	   class="px-4 py-1.5 rounded-lg text-sm font-medium transition
+			  {% if sec.pk == section.pk %}btn-primary{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+		Term {{ sec.term_number }}
+	</a>
+	{% endfor %}
+</div>
+
+{% if not evaluations %}
+<div class="bg-white rounded-xl shadow p-10 text-center text-gray-400">
+	<p class="text-lg font-medium text-gray-600 mb-1">No evaluations yet</p>
+	<p class="text-sm mb-4">Create an evaluation before entering grades.</p>
+	{% if can_edit %}
+	<a href="{% url 'grades:evaluation_create' section.pk %}"
+	   class="btn-primary px-5 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition">
+		+ Create First Evaluation
+	</a>
+	{% endif %}
+</div>
+
+{% else %}
+
+<form method="post" action="{% url 'grades:grades_save' section.pk %}">
+{% csrf_token %}
+
+<div class="bg-white rounded-xl shadow overflow-x-auto">
+	<table class="text-sm border-collapse w-full">
+
+		<!-- Evaluation headers -->
+		<thead>
+			<tr class="bg-gray-800 text-white">
+				<th class="px-4 py-3 text-left font-semibold text-xs uppercase tracking-wide sticky left-0 bg-gray-800 z-10 min-w-48">
+					Student
+				</th>
+				{% for ev in evaluations %}
+				<th class="px-3 py-2 text-center font-medium text-xs min-w-28 border-l border-gray-700">
+					<div class="truncate max-w-24 mx-auto" title="{{ ev.title }}">{{ ev.title }}</div>
+					<div class="flex items-center justify-center gap-1 mt-0.5">
+						<span class="text-gray-400 font-normal">/{{ ev.max_marks }}</span>
+						<span class="text-xs px-1 rounded
+							{% if ev.category == 'exam' %}bg-purple-700 text-purple-200
+							{% else %}bg-blue-700 text-blue-200{% endif %}">
+							{{ ev.get_subcategory_display }}
+						</span>
+					</div>
+					{% if can_edit %}
+					<div class="flex items-center justify-center gap-2 mt-1">
+						<a href="{% url 'grades:evaluation_edit' ev.pk %}"
+						   class="text-gray-400 hover:text-white text-xs">edit</a>
+						<a href="{% url 'grades:evaluation_delete' ev.pk %}"
+						   class="text-red-400 hover:text-red-300 text-xs">del</a>
+					</div>
+					{% endif %}
+				</th>
+				{% endfor %}
+				<th class="px-4 py-3 text-center font-semibold text-xs uppercase tracking-wide border-l border-gray-700 min-w-20 bg-gray-900">
+					Avg %
+				</th>
+			</tr>
+		</thead>
+
+		<!-- Student rows -->
+		<tbody class="divide-y divide-gray-100">
+			{% for row in rows %}
+			<tr class="hover:bg-gray-50 transition {% if forloop.counter|divisibleby:2 %}bg-slate-50{% endif %}">
+				<td class="px-4 py-2 font-medium text-gray-800 sticky left-0 {% if forloop.counter|divisibleby:2 %}bg-slate-50{% else %}bg-white{% endif %} z-10 border-r border-gray-100">
+					<a href="{% url 'students:detail' row.student.pk %}" class="hover:underline text-sm">
+						{{ row.student.get_full_name }}
+					</a>
+					<span class="block text-xs text-gray-400 font-mono">{{ row.student.student_id }}</span>
+				</td>
+
+				{% for cell in row.cells %}
+				<td class="px-2 py-1.5 text-center border-l border-gray-100">
+					{% if can_edit %}
+					<div class="flex flex-col items-center gap-1">
+						<input type="number"
+							   name="grade_{{ cell.ev.pk }}_{{ row.student.pk }}"
+							   value="{% if cell.entry and not cell.absent %}{{ cell.entry.marks_earned }}{% endif %}"
+							   min="0" max="{{ cell.ev.max_marks }}" step="0.5"
+							   placeholder="—"
+							   {% if cell.absent %}disabled{% endif %}
+							   class="w-20 text-center rounded border px-1.5 py-1 text-sm
+									  focus:outline-none focus:ring-1 focus:ring-blue-500
+									  {% if cell.pct is not None and cell.pct < 55 %}border-red-300 bg-red-50 text-red-700
+									  {% else %}border-gray-300{% endif %}
+									  {% if cell.absent %}bg-gray-100 text-gray-400{% endif %}" />
+						<label class="flex items-center gap-1 text-xs text-gray-400 cursor-pointer">
+							<input type="checkbox"
+								   name="absent_{{ cell.ev.pk }}_{{ row.student.pk }}"
+								   {% if cell.absent %}checked{% endif %}
+								   class="rounded" />
+							ABS
+						</label>
+					</div>
+					{% else %}
+						{% if cell.absent %}
+							<span class="text-xs text-gray-400 italic">ABS</span>
+						{% elif cell.pct is not None %}
+							<span class="font-medium text-sm
+								{% if cell.pct < 55 %}text-red-600{% else %}text-gray-800{% endif %}">
+								{{ cell.entry.marks_earned }}
+							</span>
+							<span class="block text-xs
+								{% if cell.pct < 55 %}text-red-400{% else %}text-gray-400{% endif %}">
+								{{ cell.pct }}%
+							</span>
+						{% else %}
+							<span class="text-gray-300">—</span>
+						{% endif %}
+					{% endif %}
+				</td>
+				{% endfor %}
+
+				<!-- Average -->
+				<td class="px-4 py-2 text-center border-l border-gray-200 bg-gray-50">
+					{% if row.avg is not None %}
+					<span class="font-bold text-sm
+						{% if row.avg < 55 %}text-red-600
+						{% elif row.avg < 70 %}text-yellow-600
+						{% else %}text-green-600{% endif %}">
+						{{ row.avg }}%
+					</span>
+					{% else %}
+					<span class="text-gray-300 text-xs">—</span>
+					{% endif %}
+				</td>
+			</tr>
+			{% empty %}
+			<tr>
+				<td colspan="{{ evaluations|length|add:2 }}" class="px-4 py-8 text-center text-gray-400">
+					No students enrolled in this section.
+				</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+</div>
+
+{% if can_edit %}
+<div class="mt-4 flex gap-3">
+	<button type="submit"
+			class="btn-primary px-6 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition">
+		Save Grades
+	</button>
+</div>
+{% endif %}
+</form>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Toggle absent checkbox disables the grade input
+document.querySelectorAll('input[name^="absent_"]').forEach(function(checkbox) {
+	checkbox.addEventListener('change', function() {
+		const parts    = this.name.split('_');
+		const evPk     = parts[1];
+		const studentPk = parts[2];
+		const input    = document.querySelector(`input[name="grade_${evPk}_${studentPk}"]`);
+		if (input) {
+			input.disabled = this.checked;
+			input.value    = '';
+			if (this.checked) {
+				input.classList.add('bg-gray-100', 'text-gray-400');
+			} else {
+				input.classList.remove('bg-gray-100', 'text-gray-400');
+			}
+		}
+	});
+});
+</script>
+{% endblock %}

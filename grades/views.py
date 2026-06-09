@@ -1,82 +1,599 @@
+import io
+from decimal import Decimal, InvalidOperation
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
+from django.http import HttpResponse
 from core.decorators import tenant_required
+from accounts.models import UserRole
 from scheduling.models import AcademicYear, Enrolment, Section
 from students.models import Student
-from .forms import GradeEntryForm, GradeVisibilityForm
-from .models import GradeEntry, GradeVisibilityRule, ReportCard
-from .utils import compute_term_grade, grades_visible_for_student
+from .forms import BulkGradeUploadForm, EvaluationForm, GradeVisibilityForm
+from .models import Evaluation, GradeEntry, GradeWindow, ReportCard
+from .utils import compute_student_average, grade_window_is_open, grades_visible_for_student
 
+
+def is_admin(user, school):
+	return UserRole.objects.filter(user=user, school=school, role="admin").exists() or user.is_superuser
+
+
+def get_teacher_staff(user):
+	try:
+		return user.staff_profile
+	except Exception:
+		return None
+
+
+# ── Grades Home — select section ──────────────────────────────────────────────
 
 @login_required
 @tenant_required
-def grade_section_select(request):
-	"""Pick a section to enter grades for."""
-	sections = Section.objects.filter(
-		school=request.school
-	).select_related("course", "form", "academic_year")
-	return render(request, "grades/section_select.html", {"sections": sections})
+def grades_home(request):
+	school  = request.school
+	admin   = is_admin(request.user, school)
+	staff   = get_teacher_staff(request.user)
 
+	if admin:
+		sections = Section.objects.filter(school=school).select_related(
+			"course", "form", "academic_year", "teacher"
+		)
+	elif staff:
+		sections = Section.objects.filter(school=school, teacher=staff).select_related(
+			"course", "form", "academic_year"
+		)
+	else:
+		messages.error(request, "Access denied.")
+		return redirect("portals:dashboard")
+
+	# Group by academic year
+	years    = AcademicYear.objects.filter(school=school).order_by("-name")
+	year_pk  = request.GET.get("year")
+	term     = request.GET.get("term")
+
+	if year_pk:
+		sections = sections.filter(academic_year_id=year_pk)
+	if term:
+		sections = sections.filter(term_number=term)
+
+	return render(request, "grades/home.html", {
+		"sections":      sections,
+		"years":         years,
+		"selected_year": year_pk,
+		"selected_term": term,
+		"is_admin":      admin,
+	})
+
+
+# ── Section Grade Table ───────────────────────────────────────────────────────
 
 @login_required
 @tenant_required
-def grade_section_overview(request, section_pk):
-	"""Overview of all enrolled students and their term grade summary."""
-	section    = get_object_or_404(Section, pk=section_pk, school=request.school)
-	enrolments = section.enrolments.select_related("student")
+def section_grade_table(request, section_pk):
+	section = get_object_or_404(Section, pk=section_pk, school=request.school)
+	school  = request.school
+	admin   = is_admin(request.user, school)
+	staff   = get_teacher_staff(request.user)
 
+	if not admin and (not staff or section.teacher != staff):
+		messages.error(request, "Access denied.")
+		return redirect("grades:home")
+
+	# Term filter
+	term_filter = request.GET.get("term", str(section.term_number))
+	try:
+		term_filter = int(term_filter)
+	except ValueError:
+		term_filter = section.term_number
+
+	# Get all sections for this course+form+year to allow cross-term view
+	all_sections = Section.objects.filter(
+		school=school,
+		course=section.course,
+		form=section.form,
+		academic_year=section.academic_year,
+	).order_by("term_number")
+
+	active_section = all_sections.filter(term_number=term_filter).first() or section
+
+	# Check grade window
+	window_open = grade_window_is_open(
+		school, active_section.academic_year,
+		active_section.term_number, active_section.form
+	)
+	can_edit = admin or window_open
+
+	# Evaluations for this section
+	evaluations = Evaluation.objects.filter(
+		school=school, section=active_section
+	).order_by("date", "created_at")
+
+	# Students enrolled
+	enrolments = active_section.enrolments.select_related("student").order_by(
+		"student__last_name", "student__first_name"
+	)
+	students = [e.student for e in enrolments]
+
+	# All grade entries keyed by (eval_pk, student_pk)
+	entries = GradeEntry.objects.filter(
+		school=school,
+		evaluation__section=active_section,
+	).select_related("evaluation", "student")
+
+	grade_map = {(e.evaluation_id, e.student_id): e for e in entries}
+
+	# Build rows
 	rows = []
-	for enrolment in enrolments:
-		result = compute_term_grade(enrolment)
+	for student in students:
+		cells = []
+		for ev in evaluations:
+			entry = grade_map.get((ev.pk, student.pk))
+			cells.append({
+				"ev":     ev,
+				"entry":  entry,
+				"pct":    entry.percentage if entry else None,
+				"absent": entry.is_absent if entry else False,
+			})
+		avg = compute_student_average(student, evaluations, grade_map)
 		rows.append({
-			"enrolment": enrolment,
-			"student":   enrolment.student,
-			"result":    result,
+			"student": student,
+			"cells":   cells,
+			"avg":     avg,
 		})
 
-	return render(request, "grades/section_overview.html", {
-		"section": section,
-		"rows":    rows,
+	# Term configs for the academic year
+	from scheduling.models import TermConfig
+	term_configs = TermConfig.objects.filter(academic_year=active_section.academic_year)
+
+	return render(request, "grades/section_table.html", {
+		"section":        active_section,
+		"all_sections":   all_sections,
+		"term_filter":    term_filter,
+		"evaluations":    evaluations,
+		"rows":           rows,
+		"students":       students,
+		"can_edit":       can_edit,
+		"window_open":    window_open,
+		"is_admin":       admin,
+		"term_configs":   term_configs,
 	})
 
 
+# ── Create Evaluation ─────────────────────────────────────────────────────────
+
 @login_required
 @tenant_required
-def grade_enrolment_detail(request, enrolment_pk):
-	"""View and add grade entries for a single student enrolment."""
-	enrolment = get_object_or_404(
-		Enrolment, pk=enrolment_pk, section__school=request.school
+def evaluation_create(request, section_pk):
+	section = get_object_or_404(Section, pk=section_pk, school=request.school)
+	school  = request.school
+	admin   = is_admin(request.user, school)
+	staff   = get_teacher_staff(request.user)
+
+	if not admin and (not staff or section.teacher != staff):
+		messages.error(request, "Access denied.")
+		return redirect("grades:home")
+
+	window_open = grade_window_is_open(
+		school, section.academic_year, section.term_number, section.form
 	)
-	entries = enrolment.grade_entries.all()
-	result  = compute_term_grade(enrolment)
-	form    = GradeEntryForm(request.POST or None)
+	if not admin and not window_open:
+		messages.error(request, "Grade window is closed. Contact admin to open it.")
+		return redirect("grades:section_table", section_pk=section_pk)
+
+	form = EvaluationForm(request.POST or None)
+	if request.method == "POST" and form.is_valid():
+		ev             = form.save(commit=False)
+		ev.school      = school
+		ev.section     = section
+		ev.created_by  = request.user
+		ev.save()
+		messages.success(request, f"Evaluation '{ev.title}' created.")
+		return redirect("grades:section_table", section_pk=section_pk)
+
+	return render(request, "grades/evaluation_form.html", {
+		"form":    form,
+		"section": section,
+		"title":   "Create Evaluation",
+	})
+
+
+# ── Edit Evaluation ───────────────────────────────────────────────────────────
+
+@login_required
+@tenant_required
+def evaluation_edit(request, pk):
+	ev      = get_object_or_404(Evaluation, pk=pk, school=request.school)
+	school  = request.school
+	admin   = is_admin(request.user, school)
+	staff   = get_teacher_staff(request.user)
+
+	if not admin and (not staff or ev.section.teacher != staff):
+		messages.error(request, "Access denied.")
+		return redirect("grades:home")
+
+	form = EvaluationForm(request.POST or None, instance=ev)
+	if request.method == "POST" and form.is_valid():
+		form.save()
+		messages.success(request, f"Evaluation '{ev.title}' updated.")
+		return redirect("grades:section_table", section_pk=ev.section.pk)
+
+	return render(request, "grades/evaluation_form.html", {
+		"form":    form,
+		"section": ev.section,
+		"title":   f"Edit — {ev.title}",
+		"ev":      ev,
+	})
+
+
+# ── Delete Evaluation ─────────────────────────────────────────────────────────
+
+@login_required
+@tenant_required
+def evaluation_delete(request, pk):
+	ev    = get_object_or_404(Evaluation, pk=pk, school=request.school)
+	admin = is_admin(request.user, request.school)
+	staff = get_teacher_staff(request.user)
+
+	if not admin and (not staff or ev.section.teacher != staff):
+		messages.error(request, "Access denied.")
+		return redirect("grades:home")
+
+	section_pk = ev.section.pk
+	title      = ev.title
+
+	if request.method == "POST":
+		ev.delete()
+		messages.warning(request, f"Evaluation '{title}' and all its grades deleted.")
+		return redirect("grades:section_table", section_pk=section_pk)
+
+	return render(request, "grades/evaluation_confirm_delete.html", {"ev": ev})
+
+
+# ── Save Grades (inline table POST) ──────────────────────────────────────────
+
+@login_required
+@tenant_required
+def grades_save(request, section_pk):
+	section = get_object_or_404(Section, pk=section_pk, school=request.school)
+	school  = request.school
+	admin   = is_admin(request.user, school)
+	staff   = get_teacher_staff(request.user)
+
+	if not admin and (not staff or section.teacher != staff):
+		messages.error(request, "Access denied.")
+		return redirect("grades:home")
+
+	window_open = grade_window_is_open(
+		school, section.academic_year, section.term_number, section.form
+	)
+	if not admin and not window_open:
+		messages.error(request, "Grade window is closed.")
+		return redirect("grades:section_table", section_pk=section_pk)
+
+	if request.method != "POST":
+		return redirect("grades:section_table", section_pk=section_pk)
+
+	evaluations = Evaluation.objects.filter(school=school, section=section)
+	enrolments  = section.enrolments.select_related("student")
+	students    = [e.student for e in enrolments]
+	saved       = 0
+
+	for student in students:
+		for ev in evaluations:
+			field_key   = f"grade_{ev.pk}_{student.pk}"
+			absent_key  = f"absent_{ev.pk}_{student.pk}"
+			raw         = request.POST.get(field_key, "").strip()
+			is_absent   = request.POST.get(absent_key) == "on"
+
+			marks = None
+			if not is_absent and raw not in ("", "*", "null", "-"):
+				try:
+					marks = Decimal(raw)
+					if marks < 0:
+						marks = Decimal("0")
+					if marks > ev.max_marks:
+						marks = ev.max_marks
+				except InvalidOperation:
+					continue
+
+			GradeEntry.objects.update_or_create(
+				evaluation = ev,
+				student    = student,
+				defaults   = {
+					"school":      school,
+					"marks_earned": marks,
+					"is_absent":   is_absent,
+					"entered_by":  request.user,
+				}
+			)
+			saved += 1
+
+	messages.success(request, f"Grades saved.")
+	return redirect("grades:section_table", section_pk=section_pk)
+
+
+# ── Bulk Grade Upload ─────────────────────────────────────────────────────────
+
+@login_required
+@tenant_required
+def bulk_grade_upload(request, section_pk):
+	section = get_object_or_404(Section, pk=section_pk, school=request.school)
+	school  = request.school
+	admin   = is_admin(request.user, school)
+	staff   = get_teacher_staff(request.user)
+
+	if not admin and (not staff or section.teacher != staff):
+		messages.error(request, "Access denied.")
+		return redirect("grades:home")
+
+	window_open = grade_window_is_open(
+		school, section.academic_year, section.term_number, section.form
+	)
+	if not admin and not window_open:
+		messages.error(request, "Grade window is closed.")
+		return redirect("grades:section_table", section_pk=section_pk)
+
+	evaluations = Evaluation.objects.filter(school=school, section=section)
+	form        = BulkGradeUploadForm(request.POST or None, request.FILES or None)
+	results     = []
+	errors      = []
+
+	if request.method == "POST" and "download_template" in request.POST:
+		return _generate_grade_template(section, evaluations)
 
 	if request.method == "POST" and form.is_valid():
-		entry = form.save(commit=False)
-		entry.school     = request.school
-		entry.enrolment  = enrolment
-		entry.entered_by = request.user
-		entry.save()
-		messages.success(request, f"Grade entry '{entry.title}' saved.")
-		return redirect("grades:enrolment_detail", enrolment_pk=enrolment_pk)
+		import openpyxl
+		try:
+			wb = openpyxl.load_workbook(request.FILES["excel_file"])
+			ws = wb.active
+		except Exception as e:
+			messages.error(request, f"Could not read file: {e}")
+			return render(request, "grades/bulk_upload.html", {
+				"form": form, "section": section,
+				"evaluations": evaluations, "results": [], "errors": [],
+			})
 
-	return render(request, "grades/enrolment_detail.html", {
-		"enrolment": enrolment,
-		"entries":   entries,
-		"result":    result,
-		"form":      form,
+		# Map header row to evaluation pks
+		headers = [ws.cell(row=1, column=c).value for c in range(1, ws.max_column + 1)]
+
+		# Parse ev_pk from headers like "EV_123"
+		ev_map = {}
+		for i, h in enumerate(headers):
+			if h and str(h).startswith("EV_"):
+				try:
+					ev_pk = int(str(h).replace("EV_", ""))
+					ev_obj = evaluations.filter(pk=ev_pk).first()
+					if ev_obj:
+						ev_map[i] = ev_obj
+				except ValueError:
+					pass
+
+		# Validate and collect
+		row_data = []
+		for row_num in range(2, ws.max_row + 1):
+			student_id = ws.cell(row=row_num, column=1).value
+			if not student_id:
+				continue
+			student = Student.objects.filter(
+				school=school, student_id=str(student_id).strip()
+			).first()
+			if not student:
+				errors.append(f"Row {row_num}: Student ID '{student_id}' not found.")
+				continue
+
+			grades_row = {}
+			for col_idx, ev in ev_map.items():
+				val = ws.cell(row=row_num, column=col_idx + 1).value
+				if val is None or str(val).strip() in ("*", "", "null", "-", "ABS"):
+					grades_row[ev.pk] = ("absent", None)
+				else:
+					try:
+						marks = Decimal(str(val).strip())
+						if marks < 0:
+							marks = Decimal("0")
+						if marks > ev.max_marks:
+							marks = ev.max_marks
+						grades_row[ev.pk] = ("present", marks)
+					except InvalidOperation:
+						errors.append(
+							f"Row {row_num}, {ev.title}: invalid value '{val}'."
+						)
+						grades_row[ev.pk] = ("skip", None)
+
+			row_data.append((student, grades_row))
+
+		if errors:
+			messages.error(request, f"Upload rejected — {len(errors)} error(s). Fix and re-upload.")
+		else:
+			for student, grades_row in row_data:
+				for ev_pk, (status, marks) in grades_row.items():
+					if status == "skip":
+						continue
+					ev = evaluations.filter(pk=ev_pk).first()
+					if not ev:
+						continue
+					GradeEntry.objects.update_or_create(
+						evaluation=ev, student=student,
+						defaults={
+							"school":       school,
+							"marks_earned": marks,
+							"is_absent":    status == "absent",
+							"entered_by":   request.user,
+						}
+					)
+				results.append(student.get_full_name())
+			messages.success(request, f"{len(results)} students updated.")
+
+	return render(request, "grades/bulk_upload.html", {
+		"form":        form,
+		"section":     section,
+		"evaluations": evaluations,
+		"results":     results,
+		"errors":      errors,
 	})
 
 
+def _generate_grade_template(section, evaluations):
+	"""Generate and return an Excel template for grade bulk upload."""
+	import openpyxl
+	from openpyxl.styles import Font, PatternFill, Alignment
+	from openpyxl.utils import get_column_letter
+
+	wb = openpyxl.Workbook()
+	ws = wb.active
+	ws.title = "Grades"
+
+	header_font = Font(name="Arial", bold=True, color="FFFFFF", size=10)
+	header_fill = PatternFill("solid", start_color="1e40af")
+	sub_fill    = PatternFill("solid", start_color="374151")
+	sub_font    = Font(name="Arial", size=8, color="FFFFFF")
+	normal_font = Font(name="Arial", size=10)
+
+	# Row 1: headers
+	ws.cell(row=1, column=1, value="student_id").font    = header_font
+	ws.cell(row=1, column=1).fill                        = header_fill
+	ws.cell(row=1, column=2, value="student_name").font  = header_font
+	ws.cell(row=1, column=2).fill                        = header_fill
+
+	ws.column_dimensions["A"].width = 16
+	ws.column_dimensions["B"].width = 28
+
+	for i, ev in enumerate(evaluations, start=3):
+		col    = get_column_letter(i)
+		# Header: EV_{pk} so we can parse it back
+		c = ws.cell(row=1, column=i, value=f"EV_{ev.pk}")
+		c.font = header_font
+		c.fill = header_fill
+		c.alignment = Alignment(horizontal="center")
+
+		# Row 2: human-readable label
+		label = ws.cell(row=2, column=i, value=f"{ev.title} (/{ev.max_marks})")
+		label.font      = sub_font
+		label.fill      = sub_fill
+		label.alignment = Alignment(horizontal="center", wrap_text=True)
+
+		ws.column_dimensions[col].width = 18
+		ws.row_dimensions[2].height     = 28
+
+	# Row 2 for fixed cols
+	ws.cell(row=2, column=1, value="Do not edit").font = sub_font
+	ws.cell(row=2, column=1).fill = sub_fill
+	ws.cell(row=2, column=2, value="Do not edit").font = sub_font
+	ws.cell(row=2, column=2).fill = sub_fill
+
+	# Student rows
+	enrolments = section.enrolments.select_related("student").order_by(
+		"student__last_name", "student__first_name"
+	)
+	alt_fill = PatternFill("solid", start_color="F9FAFB")
+
+	for row_num, enrolment in enumerate(enrolments, start=3):
+		student = enrolment.student
+		fill    = alt_fill if row_num % 2 == 0 else None
+
+		c1 = ws.cell(row=row_num, column=1, value=student.student_id)
+		c1.font = Font(name="Arial", size=9)
+		if fill:
+			c1.fill = fill
+
+		c2 = ws.cell(row=row_num, column=2, value=student.get_full_name())
+		c2.font = Font(name="Arial", size=10)
+		if fill:
+			c2.fill = fill
+
+		for i, ev in enumerate(evaluations, start=3):
+			c = ws.cell(row=row_num, column=i, value="")
+			c.font = normal_font
+			c.alignment = Alignment(horizontal="center")
+			if fill:
+				c.fill = fill
+
+	ws.freeze_panes = "C3"
+
+	# Instructions sheet
+	inst        = wb.create_sheet("Instructions")
+	inst["A1"]  = "Grade Upload Instructions"
+	inst["A1"].font = Font(name="Arial", bold=True, size=12)
+	notes = [
+		"1. Fill in grades in the white cells only (columns C onwards).",
+		"2. Leave a cell blank, type *, ABS, or null to mark as ABSENT.",
+		"   Absent students are excluded from average calculations.",
+		"3. Do NOT edit columns A (student_id) or B (student_name).",
+		"4. Do NOT change column header row 1.",
+		"5. Marks are automatically capped at the maximum shown in row 2.",
+		"6. Save as .xlsx before uploading.",
+	]
+	for i, note in enumerate(notes, start=3):
+		c = inst.cell(row=i, column=1, value=note)
+		c.font = Font(name="Arial", size=10)
+	inst.column_dimensions["A"].width = 70
+
+	buf = io.BytesIO()
+	wb.save(buf)
+	buf.seek(0)
+
+	response = HttpResponse(
+		buf.read(),
+		content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+	)
+	response["Content-Disposition"] = (
+		f'attachment; filename="grades_{section.course.code or section.course.name}'
+		f'_term{section.term_number}.xlsx"'
+	)
+	return response
+
+
+# ── Grade Window Management ───────────────────────────────────────────────────
+
 @login_required
 @tenant_required
-def grade_entry_delete(request, pk):
-	entry      = get_object_or_404(GradeEntry, pk=pk, school=request.school)
-	enrolment_pk = entry.enrolment.pk
-	entry.delete()
-	messages.warning(request, "Grade entry deleted.")
-	return redirect("grades:enrolment_detail", enrolment_pk=enrolment_pk)
+def grade_window_manage(request):
+	if not is_admin(request.user, request.school):
+		messages.error(request, "Access denied.")
+		return redirect("portals:dashboard")
+
+	school = request.school
+	years  = AcademicYear.objects.filter(school=school).order_by("-name")
+	forms  = school.forms.all()
+
+	year_pk    = request.GET.get("year") or (years.first().pk if years.exists() else None)
+	year_pk    = int(year_pk) if year_pk else None
+	year       = AcademicYear.objects.filter(pk=year_pk, school=school).first()
+
+	from scheduling.models import TermConfig
+	term_configs = TermConfig.objects.filter(academic_year=year) if year else []
+
+	# Build window matrix: form × term
+	windows = {}
+	if year:
+		for w in GradeWindow.objects.filter(school=school, academic_year=year):
+			windows[(w.form_id, w.term_number)] = w
+
+	if request.method == "POST" and year:
+		for form_obj in forms:
+			for tc in term_configs:
+				key       = f"window_{form_obj.pk}_{tc.term_number}"
+				is_open   = request.POST.get(key) == "on"
+				obj, _    = GradeWindow.objects.get_or_create(
+					school=school, academic_year=year,
+					term_number=tc.term_number, form=form_obj,
+					defaults={"is_open": is_open, "updated_by": request.user}
+				)
+				if obj.is_open != is_open:
+					obj.is_open    = is_open
+					obj.updated_by = request.user
+					obj.save()
+
+		messages.success(request, "Grade windows updated.")
+		return redirect(f"{request.path}?year={year_pk}")
+
+	return render(request, "grades/grade_window.html", {
+		"years":        years,
+		"year":         year,
+		"forms":        forms,
+		"term_configs": term_configs,
+		"windows":      windows,
+		"is_admin":     True,
+	})
 
 
 # ── Visibility ────────────────────────────────────────────────────────────────
@@ -84,34 +601,31 @@ def grade_entry_delete(request, pk):
 @login_required
 @tenant_required
 def visibility_overview(request):
-	"""School-wide and per-student grade visibility controls."""
+	from .models import GradeVisibilityRule
 	students    = Student.objects.filter(school=request.school)
 	school_rule = GradeVisibilityRule.objects.filter(
 		school=request.school, student__isnull=True
 	).order_by("-updated_at").first()
-
 	student_rules = GradeVisibilityRule.objects.filter(
 		school=request.school, student__isnull=False
 	).select_related("student").order_by("student__last_name")
-
 	return render(request, "grades/visibility_overview.html", {
-		"school_rule":    school_rule,
-		"student_rules":  student_rules,
-		"students":       students,
+		"school_rule":   school_rule,
+		"student_rules": student_rules,
+		"students":      students,
 	})
 
 
 @login_required
 @tenant_required
 def visibility_set_school(request):
-	"""Set school-wide visibility rule."""
+	from .models import GradeVisibilityRule
 	existing = GradeVisibilityRule.objects.filter(
 		school=request.school, student__isnull=True
 	).order_by("-updated_at").first()
-
 	form = GradeVisibilityForm(request.POST or None, instance=existing)
 	if request.method == "POST" and form.is_valid():
-		rule = form.save(commit=False)
+		rule         = form.save(commit=False)
 		rule.school  = request.school
 		rule.student = None
 		rule.set_by  = request.user
@@ -125,23 +639,21 @@ def visibility_set_school(request):
 		messages.success(request, "School-wide visibility updated.")
 		return redirect("grades:visibility")
 	return render(request, "grades/visibility_form.html", {
-		"form":  form,
-		"title": "School-wide Grade Visibility",
+		"form": form, "title": "School-wide Grade Visibility",
 	})
 
 
 @login_required
 @tenant_required
 def visibility_set_student(request, student_pk):
-	"""Set per-student visibility override."""
+	from .models import GradeVisibilityRule
 	student  = get_object_or_404(Student, pk=student_pk, school=request.school)
 	existing = GradeVisibilityRule.objects.filter(
 		school=request.school, student=student
 	).order_by("-updated_at").first()
-
 	form = GradeVisibilityForm(request.POST or None, instance=existing)
 	if request.method == "POST" and form.is_valid():
-		rule = form.save(commit=False)
+		rule         = form.save(commit=False)
 		rule.school  = request.school
 		rule.student = student
 		rule.set_by  = request.user
@@ -155,8 +667,7 @@ def visibility_set_student(request, student_pk):
 		messages.success(request, f"Visibility updated for {student.get_full_name()}.")
 		return redirect("grades:visibility")
 	return render(request, "grades/visibility_form.html", {
-		"form":    form,
-		"title":   f"Grade Visibility — {student.get_full_name()}",
+		"form": form, "title": f"Grade Visibility — {student.get_full_name()}",
 		"student": student,
 	})
 
@@ -171,13 +682,11 @@ def report_card_list(request):
 	report_cards = ReportCard.objects.filter(
 		school=request.school
 	).select_related("student", "academic_year")
-	years        = AcademicYear.objects.filter(school=request.school)
-
+	years = AcademicYear.objects.filter(school=request.school)
 	if year_pk:
 		report_cards = report_cards.filter(academic_year_id=year_pk)
 	if term:
 		report_cards = report_cards.filter(term_number=term)
-
 	return render(request, "grades/report_card_list.html", {
 		"report_cards":  report_cards,
 		"years":         years,
@@ -188,38 +697,8 @@ def report_card_list(request):
 
 @login_required
 @tenant_required
-def report_card_generate(request, section_pk):
-	"""Generate report cards for all students in a section."""
-	section    = get_object_or_404(Section, pk=section_pk, school=request.school)
-	enrolments = section.enrolments.select_related("student")
-	created    = 0
-
-	for enrolment in enrolments:
-		result = compute_term_grade(enrolment)
-		if result is None:
-			continue
-
-		obj, _ = ReportCard.objects.update_or_create(
-			school        = request.school,
-			student       = enrolment.student,
-			academic_year = section.academic_year,
-			term_number   = section.term_number,
-			defaults={
-				"gpa":          result["term_grade"],
-				"status":       "draft",
-				"generated_by": request.user,
-			}
-		)
-		created += 1
-
-	messages.success(request, f"{created} report card(s) generated as draft.")
-	return redirect("grades:report_card_list")
-
-
-@login_required
-@tenant_required
 def report_card_publish(request, pk):
-	rc = get_object_or_404(ReportCard, pk=pk, school=request.school)
+	rc        = get_object_or_404(ReportCard, pk=pk, school=request.school)
 	rc.status = "published"
 	rc.save()
 	messages.success(request, f"Report card published for {rc.student.get_full_name()}.")
@@ -229,6 +708,7 @@ def report_card_publish(request, pk):
 @login_required
 @tenant_required
 def report_card_detail(request, pk):
+	from .utils import compute_student_average
 	rc         = get_object_or_404(ReportCard, pk=pk, school=request.school)
 	enrolments = Enrolment.objects.filter(
 		student=rc.student,
@@ -239,13 +719,10 @@ def report_card_detail(request, pk):
 
 	rows = []
 	for enrolment in enrolments:
-		result = compute_term_grade(enrolment)
-		rows.append({
-			"course": enrolment.section.course,
-			"result": result,
-		})
+		evs   = Evaluation.objects.filter(school=request.school, section=enrolment.section)
+		ents  = GradeEntry.objects.filter(evaluation__section=enrolment.section, student=rc.student)
+		gmap  = {(e.evaluation_id, e.student_id): e for e in ents}
+		avg   = compute_student_average(rc.student, evs, gmap)
+		rows.append({"course": enrolment.section.course, "avg": avg})
 
-	return render(request, "grades/report_card_detail.html", {
-		"rc":   rc,
-		"rows": rows,
-	})
+	return render(request, "grades/report_card_detail.html", {"rc": rc, "rows": rows})

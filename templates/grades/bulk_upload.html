@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% block title %}Bulk Grade Upload — {{ section.course.name }}{% endblock %}
+{% block page_title %}Bulk Grade Upload{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto space-y-6">
+
+	<div class="flex items-center justify-between">
+		<div>
+			<h1 class="text-xl font-bold text-gray-800">Bulk Grade Upload</h1>
+			<p class="text-sm text-gray-500">
+				{{ section.course.name }} — {{ section.form }} — Term {{ section.term_number }}
+			</p>
+		</div>
+		<a href="{% url 'grades:section_table' section.pk %}"
+		class="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 text-gray-600 hover:bg-gray-50 transition">
+			Back to Gradebook
+		</a>
+	</div>
+
+	{% if not evaluations %}
+	<div class="bg-yellow-50 border border-yellow-200 rounded-xl p-6 text-center text-yellow-700">
+		<p class="font-semibold mb-1">No evaluations created yet.</p>
+		<p class="text-sm mb-3">You must create at least one evaluation before uploading grades.</p>
+		<a href="{% url 'grades:evaluation_create' section.pk %}"
+		class="btn-primary px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition">
+			+ Create Evaluation
+		</a>
+	</div>
+
+	{% else %}
+
+	<!-- Step 1 — Download template -->
+	<div class="bg-white rounded-xl shadow p-6">
+		<div class="flex items-start gap-4">
+			<div class="bg-blue-100 text-blue-700 rounded-lg p-3 text-xl flex-shrink-0">📥</div>
+			<div class="flex-1">
+				<h2 class="font-semibold text-gray-700 mb-1">Step 1 — Download Template</h2>
+				<p class="text-sm text-gray-500 mb-3">
+					The template is pre-filled with student names and evaluation columns.
+					Use <code class="bg-gray-100 px-1 rounded">*</code>, <code class="bg-gray-100 px-1 rounded">ABS</code>,
+					or leave blank to mark a student as absent for that evaluation.
+				</p>
+				<form method="post">
+					{% csrf_token %}
+					<button type="submit" name="download_template"
+							class="btn-primary px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition">
+						Download Grade Template
+					</button>
+				</form>
+
+				<!-- Evaluations summary -->
+				<div class="mt-4 flex flex-wrap gap-2">
+					{% for ev in evaluations %}
+					<span class="text-xs px-2 py-1 rounded-full border
+						{% if ev.category == 'exam' %}border-purple-300 text-purple-700 bg-purple-50
+						{% else %}border-blue-300 text-blue-700 bg-blue-50{% endif %}">
+						{{ ev.title }} /{{ ev.max_marks }}
+					</span>
+					{% endfor %}
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Step 2 — Upload -->
+	<div class="bg-white rounded-xl shadow p-6">
+		<div class="flex items-start gap-4">
+			<div class="bg-green-100 text-green-700 rounded-lg p-3 text-xl flex-shrink-0">📤</div>
+			<div class="flex-1">
+				<h2 class="font-semibold text-gray-700 mb-1">Step 2 — Upload Completed File</h2>
+				<p class="text-sm text-gray-500 mb-4">
+					If any cell has an invalid value, the entire upload is rejected.
+					Absent markers (<code>*</code>, <code>ABS</code>, blank) are accepted and excluded from averages.
+				</p>
+				<form method="post" enctype="multipart/form-data" novalidate>
+					{% csrf_token %}
+					<div class="mb-4">
+						<label class="block text-xs font-medium text-gray-600 mb-1">Excel File (.xlsx)</label>
+						{{ form.excel_file }}
+						{% if form.excel_file.errors %}
+							<p class="text-red-500 text-xs mt-1">{{ form.excel_file.errors.0 }}</p>
+						{% endif %}
+					</div>
+					<button type="submit"
+							class="btn-primary px-5 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition">
+						Upload Grades
+					</button>
+				</form>
+			</div>
+		</div>
+	</div>
+
+	{% endif %}
+
+	<!-- Errors -->
+	{% if errors %}
+	<div class="bg-red-50 border border-red-200 rounded-xl overflow-hidden">
+		<div class="px-5 py-4 bg-red-100 border-b border-red-200">
+			<h2 class="font-semibold text-red-800">Upload Rejected — {{ errors|length }} error{{ errors|length|pluralize }}</h2>
+		</div>
+		<ul class="p-5 space-y-1">
+			{% for err in errors %}
+			<li class="text-sm text-red-700">{{ err }}</li>
+			{% endfor %}
+		</ul>
+	</div>
+	{% endif %}
+
+	<!-- Success -->
+	{% if results %}
+	<div class="bg-green-50 border border-green-200 rounded-xl p-5">
+		<h2 class="font-semibold text-green-800 mb-3">
+			✅ {{ results|length }} student{{ results|length|pluralize }} updated
+		</h2>
+		<div class="flex flex-wrap gap-2">
+			{% for name in results %}
+			<span class="text-xs bg-white border border-green-200 text-green-700 px-2 py-1 rounded-full">
+				{{ name }}
+			</span>
+			{% endfor %}
+		</div>
+	</div>
+	{% endif %}
+
+</div>
+{% endblock %}
