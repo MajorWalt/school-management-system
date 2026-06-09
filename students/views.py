@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from core.decorators import tenant_required
+from core.activity import log_activity
 from accounts.models import UserRole
 from scheduling.models import Form, Homeroom
 from .forms import BulkEnrolForm, GuardianForm, StudentForm, StudentGuardianForm, StudentStatusForm
@@ -103,6 +104,7 @@ def student_add(request):
 			changed_by  = request.user,
 			reason      = "Initial enrolment",
 		)
+		log_activity(request, "student_add", f"Enrolled student {student.get_full_name()} ({student.student_id}).")
 		messages.success(request, f"{student.get_full_name()} added successfully.")
 		return redirect("students:detail", pk=student.pk)
 	return render(request, "students/student_form.html", {"form": form, "title": "Enrol Student"})
@@ -251,6 +253,7 @@ def student_bulk_enrol(request):
 			results.append({"name": student.get_full_name(), "sid": student.student_id})
 			created_count += 1
 
+		log_activity(request, "student_bulk_enrol", f"Bulk enrolled {created_count} students.")
 		messages.success(request, f"{created_count} students enrolled successfully.")
 
 	return render(request, "students/bulk_enrol.html", {
@@ -271,6 +274,7 @@ def student_edit(request, pk):
 	form    = StudentForm(request.POST or None, request.FILES or None, instance=student, school=request.school)
 	if request.method == "POST" and form.is_valid():
 		form.save()
+		log_activity(request, "student_edit", f"Edited student {student.get_full_name()} ({student.student_id}).")
 		messages.success(request, f"{student.get_full_name()} updated successfully.")
 		return redirect("students:detail", pk=pk)
 	return render(request, "students/student_form.html", {"form": form, "title": "Edit Student"})
@@ -286,6 +290,7 @@ def student_status_change(request, pk):
 		log.student    = student
 		log.changed_by = request.user
 		log.save()
+		log_activity(request, "student_status", f"Changed status of {student.get_full_name()} to {log.get_status_display()}.")
 		messages.success(request, f"Status updated to {log.get_status_display()}.")
 		return redirect("students:detail", pk=pk)
 	return render(request, "students/student_status_form.html", {
@@ -315,5 +320,45 @@ def guardian_add(request, student_pk):
 	return render(request, "students/guardian_form.html", {
 		"g_form":  g_form,
 		"sg_form": sg_form,
+		"student": student,
+	})
+
+from .forms import BulkEnrolForm, GuardianForm, StudentForm, StudentGuardianForm, StudentStatusForm, WithdrawForm
+
+
+@login_required
+@tenant_required
+def student_withdraw(request, pk):
+	if not is_admin(request.user, request.school):
+		messages.error(request, "Access denied.")
+		return redirect("students:list")
+
+	student = get_object_or_404(Student, pk=pk, school=request.school)
+
+	# Already withdrawn
+	if student.current_status() == "withdrawn":
+		messages.warning(request, f"{student.get_full_name()} is already withdrawn.")
+		return redirect("students:detail", pk=pk)
+
+	import datetime
+	form = WithdrawForm(
+		request.POST or None,
+		initial={"withdraw_date": datetime.date.today().isoformat()}
+	)
+
+	if request.method == "POST" and form.is_valid():
+		StudentStatusLog.objects.create(
+			student     = student,
+			status      = "withdrawn",
+			change_date = form.cleaned_data["withdraw_date"],
+			reason      = form.cleaned_data["reason"],
+			description = form.cleaned_data["description"],
+			changed_by  = request.user,
+		)
+		messages.success(request, f"{student.get_full_name()} has been withdrawn.")
+		return redirect("students:detail", pk=pk)
+
+	return render(request, "students/withdraw.html", {
+		"form":    form,
 		"student": student,
 	})

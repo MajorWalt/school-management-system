@@ -108,8 +108,8 @@
 			</svg>
 		</div>
 		<div>
-			<p class="text-xl font-bold text-emerald-600 tracking-tight">+{{ stats.merits_this_month }}</p>
-			<p class="text-xs text-slate-400 font-medium">Merit Points — This Month</p>
+			<p class="text-xl font-bold text-emerald-600 tracking-tight">{{ stats.merits_this_month }}</p>
+			<p class="text-xs text-slate-400 font-medium">Merits — This Month</p>
 		</div>
 	</a>
 
@@ -121,8 +121,8 @@
 			</svg>
 		</div>
 		<div>
-			<p class="text-xl font-bold text-rose-600 tracking-tight">{{ stats.demerits_this_month }} pts</p>
-			<p class="text-xs text-slate-400 font-medium">Demerit Points — This Month</p>
+			<p class="text-xl font-bold text-rose-600 tracking-tight">{{ stats.demerits_this_month }}</p>
+			<p class="text-xs text-slate-400 font-medium">Demerits — This Month</p>
 		</div>
 	</a>
 
@@ -147,7 +147,7 @@
 
 </div>
 
-<!-- Bottom row: recent absences + quick links -->
+<!-- Bottom row: recent absences + right column -->
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
 	<!-- Recent absences -->
@@ -196,97 +196,130 @@
 		{% endif %}
 	</div>
 
-	<!-- Quick access panel -->
-	<div class="bg-white rounded-lg border border-slate-200 overflow-hidden">
-		<div class="px-4 py-3 border-b border-slate-100">
-			<h2 class="text-sm font-semibold text-slate-700">Quick Access</h2>
+	<!-- Right column: quick access + recent logins -->
+	<div class="flex flex-col gap-4">
+
+		<!-- Quick access panel -->
+		<div class="bg-white rounded-lg border border-slate-200 overflow-hidden">
+			<div class="px-4 py-3 border-b border-slate-100">
+				<h2 class="text-sm font-semibold text-slate-700">Quick Access</h2>
+			</div>
+			<div class="p-3 space-y-1">
+
+				<a href="{% url 'attendance:home' %}"
+				class="flex items-center justify-between px-3 py-2.5 rounded-md hover:bg-slate-50 transition-colors group">
+					<div class="flex items-center gap-2.5">
+						<div class="p-1.5 rounded bg-slate-100 group-hover:bg-blue-100 transition-colors">
+							<svg class="w-3.5 h-3.5 text-slate-500 group-hover:text-blue-600 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+						</div>
+						<span class="text-sm text-slate-700 font-medium">Attendance</span>
+					</div>
+					<svg class="w-3.5 h-3.5 text-slate-300 group-hover:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+				</a>
+
+				<a href="{% url 'scheduling:year_list' %}"
+				class="flex items-center justify-between px-3 py-2.5 rounded-md hover:bg-slate-50 transition-colors group">
+					<div class="flex items-center gap-2.5">
+						<div class="p-1.5 rounded bg-slate-100 group-hover:bg-blue-100 transition-colors">
+							<svg class="w-3.5 h-3.5 text-slate-500 group-hover:text-blue-600 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+						</div>
+						<span class="text-sm text-slate-700 font-medium">Academic Years</span>
+					</div>
+					<svg class="w-3.5 h-3.5 text-slate-300 group-hover:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+				</a>
+
+				<a href="{% url 'scheduling:course_list' %}"
+				class="flex items-center justify-between px-3 py-2.5 rounded-md hover:bg-slate-50 transition-colors group">
+					<div class="flex items-center gap-2.5">
+						<div class="p-1.5 rounded bg-slate-100 group-hover:bg-blue-100 transition-colors">
+							<svg class="w-3.5 h-3.5 text-slate-500 group-hover:text-blue-600 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+						</div>
+						<span class="text-sm text-slate-700 font-medium">Courses</span>
+					</div>
+					<svg class="w-3.5 h-3.5 text-slate-300 group-hover:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+				</a>
+
+				<a href="{% url 'grades:visibility' %}"
+				class="flex items-center justify-between px-3 py-2.5 rounded-md hover:bg-slate-50 transition-colors group">
+					<div class="flex items-center gap-2.5">
+						<div class="p-1.5 rounded bg-slate-100 group-hover:bg-blue-100 transition-colors">
+							<svg class="w-3.5 h-3.5 text-slate-500 group-hover:text-blue-600 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+						</div>
+						<span class="text-sm text-slate-700 font-medium">Access Control</span>
+					</div>
+					<svg class="w-3.5 h-3.5 text-slate-300 group-hover:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+				</a>
+
+				<a href="{% url 'merits:summary' %}"
+				class="flex items-center justify-between px-3 py-2.5 rounded-md hover:bg-slate-50 transition-colors group">
+					<div class="flex items-center gap-2.5">
+						<div class="p-1.5 rounded bg-slate-100 group-hover:bg-blue-100 transition-colors">
+							<svg class="w-3.5 h-3.5 text-slate-500 group-hover:text-blue-600 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+						</div>
+						<span class="text-sm text-slate-700 font-medium">Conduct Summary</span>
+					</div>
+					<svg class="w-3.5 h-3.5 text-slate-300 group-hover:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+				</a>
+
+				<a href="{% url 'grades:report_card_list' %}"
+				class="flex items-center justify-between px-3 py-2.5 rounded-md hover:bg-slate-50 transition-colors group">
+					<div class="flex items-center gap-2.5">
+						<div class="p-1.5 rounded bg-slate-100 group-hover:bg-blue-100 transition-colors">
+							<svg class="w-3.5 h-3.5 text-slate-500 group-hover:text-blue-600 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+						</div>
+						<span class="text-sm text-slate-700 font-medium">Report Cards</span>
+					</div>
+					{% if stats.report_cards > 0 %}
+						<span class="text-xs font-semibold bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full">
+							{{ stats.report_cards }}
+						</span>
+					{% else %}
+						<svg class="w-3.5 h-3.5 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+					{% endif %}
+				</a>
+
+				<a href="{% url 'backups:list' %}"
+				class="flex items-center justify-between px-3 py-2.5 rounded-md hover:bg-slate-50 transition-colors group">
+					<div class="flex items-center gap-2.5">
+						<div class="p-1.5 rounded bg-slate-100 group-hover:bg-blue-100 transition-colors">
+							<svg class="w-3.5 h-3.5 text-slate-500 group-hover:text-blue-600 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"/></svg>
+						</div>
+						<span class="text-sm text-slate-700 font-medium">Backups</span>
+					</div>
+					<svg class="w-3.5 h-3.5 text-slate-300 group-hover:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+				</a>
+
+			</div>
 		</div>
-		<div class="p-3 space-y-1">
 
-			<a href="{% url 'attendance:home' %}"
-			class="flex items-center justify-between px-3 py-2.5 rounded-md hover:bg-slate-50 transition-colors group">
-				<div class="flex items-center gap-2.5">
-					<div class="p-1.5 rounded bg-slate-100 group-hover:bg-blue-100 transition-colors">
-						<svg class="w-3.5 h-3.5 text-slate-500 group-hover:text-blue-600 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+		<!-- Recent logins -->
+		<div class="bg-white rounded-lg border border-slate-200 overflow-hidden">
+			<div class="px-4 py-3 border-b border-slate-100">
+				<h2 class="text-sm font-semibold text-slate-700">Recent Logins</h2>
+			</div>
+			{% if recent_logins %}
+			<ul class="divide-y divide-slate-50">
+				{% for entry in recent_logins %}
+				<li class="px-4 py-2.5 flex items-start justify-between gap-3">
+					<div class="min-w-0">
+						<p class="text-xs font-medium text-slate-700 truncate">
+							{{ entry.user.get_full_name }}
+						</p>
+						<p class="text-xs text-slate-400 truncate">{{ entry.ip_address|default:"—" }}</p>
 					</div>
-					<span class="text-sm text-slate-700 font-medium">Attendance</span>
-				</div>
-				<svg class="w-3.5 h-3.5 text-slate-300 group-hover:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-			</a>
-
-			<a href="{% url 'scheduling:year_list' %}"
-			class="flex items-center justify-between px-3 py-2.5 rounded-md hover:bg-slate-50 transition-colors group">
-				<div class="flex items-center gap-2.5">
-					<div class="p-1.5 rounded bg-slate-100 group-hover:bg-blue-100 transition-colors">
-						<svg class="w-3.5 h-3.5 text-slate-500 group-hover:text-blue-600 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-					</div>
-					<span class="text-sm text-slate-700 font-medium">Academic Years</span>
-				</div>
-				<svg class="w-3.5 h-3.5 text-slate-300 group-hover:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-			</a>
-
-			<a href="{% url 'scheduling:course_list' %}"
-			class="flex items-center justify-between px-3 py-2.5 rounded-md hover:bg-slate-50 transition-colors group">
-				<div class="flex items-center gap-2.5">
-					<div class="p-1.5 rounded bg-slate-100 group-hover:bg-blue-100 transition-colors">
-						<svg class="w-3.5 h-3.5 text-slate-500 group-hover:text-blue-600 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
-					</div>
-					<span class="text-sm text-slate-700 font-medium">Courses</span>
-				</div>
-				<svg class="w-3.5 h-3.5 text-slate-300 group-hover:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-			</a>
-
-			<a href="{% url 'grades:visibility' %}"
-			class="flex items-center justify-between px-3 py-2.5 rounded-md hover:bg-slate-50 transition-colors group">
-				<div class="flex items-center gap-2.5">
-					<div class="p-1.5 rounded bg-slate-100 group-hover:bg-blue-100 transition-colors">
-						<svg class="w-3.5 h-3.5 text-slate-500 group-hover:text-blue-600 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-					</div>
-					<span class="text-sm text-slate-700 font-medium">Grade Visibility</span>
-				</div>
-				<svg class="w-3.5 h-3.5 text-slate-300 group-hover:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-			</a>
-
-			<a href="{% url 'merits:summary' %}"
-			class="flex items-center justify-between px-3 py-2.5 rounded-md hover:bg-slate-50 transition-colors group">
-				<div class="flex items-center gap-2.5">
-					<div class="p-1.5 rounded bg-slate-100 group-hover:bg-blue-100 transition-colors">
-						<svg class="w-3.5 h-3.5 text-slate-500 group-hover:text-blue-600 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-					</div>
-					<span class="text-sm text-slate-700 font-medium">Conduct Summary</span>
-				</div>
-				<svg class="w-3.5 h-3.5 text-slate-300 group-hover:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-			</a>
-
-			<a href="{% url 'grades:report_card_list' %}"
-			class="flex items-center justify-between px-3 py-2.5 rounded-md hover:bg-slate-50 transition-colors group">
-				<div class="flex items-center gap-2.5">
-					<div class="p-1.5 rounded bg-slate-100 group-hover:bg-blue-100 transition-colors">
-						<svg class="w-3.5 h-3.5 text-slate-500 group-hover:text-blue-600 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-					</div>
-					<span class="text-sm text-slate-700 font-medium">Report Cards</span>
-				</div>
-				{% if stats.report_cards > 0 %}
-					<span class="text-xs font-semibold bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full">
-						{{ stats.report_cards }}
+					<span class="text-xs text-slate-400 whitespace-nowrap flex-shrink-0 font-mono">
+						{{ entry.created_at|date:"d M, H:i" }}
 					</span>
-				{% else %}
-					<svg class="w-3.5 h-3.5 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-				{% endif %}
-			</a>
-
-			<a href="{% url 'backups:list' %}"
-			class="flex items-center justify-between px-3 py-2.5 rounded-md hover:bg-slate-50 transition-colors group">
-				<div class="flex items-center gap-2.5">
-					<div class="p-1.5 rounded bg-slate-100 group-hover:bg-blue-100 transition-colors">
-						<svg class="w-3.5 h-3.5 text-slate-500 group-hover:text-blue-600 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"/></svg>
-					</div>
-					<span class="text-sm text-slate-700 font-medium">Backups</span>
-				</div>
-				<svg class="w-3.5 h-3.5 text-slate-300 group-hover:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-			</a>
-
+				</li>
+				{% endfor %}
+			</ul>
+			{% else %}
+			<div class="px-4 py-6 text-center">
+				<p class="text-xs text-slate-400">No login activity yet</p>
+			</div>
+			{% endif %}
 		</div>
+
 	</div>
 
 </div>

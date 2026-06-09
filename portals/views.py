@@ -11,6 +11,7 @@ from grades.models import ReportCard
 from grades.utils import grades_visible_for_student
 from merits.models import MeritRecord, DemeritRecord
 import datetime
+from core.models import ActivityLog
 
 
 def get_roles(user, school):
@@ -61,23 +62,28 @@ def admin_dashboard(request):
 			school=school,
 			date__month=today.month,
 			date__year=today.year,
-		).aggregate(total=Sum("points"))["total"] or 0,
+		).aggregate(total=Sum("count"))["total"] or 0,
 		"demerits_this_month": DemeritRecord.objects.filter(
 			school=school,
 			date__month=today.month,
 			date__year=today.year,
-		).aggregate(total=Sum("points"))["total"] or 0,
+		).aggregate(total=Sum("count"))["total"] or 0,
 	}
 
 	recent_absences = Attendance.objects.filter(
 		school=school, status="absent"
 	).select_related("student", "homeroom").order_by("-date")[:10]
 
+	recent_logins = ActivityLog.objects.filter(
+		school=school, action="login"
+	).order_by("-created_at")[:10]
+
 	return render(request, "portals/admin_dashboard.html", {
 		"stats":           stats,
 		"current_year":    current_year,
 		"recent_absences": recent_absences,
 		"today":           today,
+		"recent_logins":   recent_logins,
 	})
 
 
@@ -128,11 +134,16 @@ def teacher_dashboard(request):
 		teacher=staff_profile,
 	).select_related("course", "form", "academic_year") if staff_profile else []
 
+	recent_logins = ActivityLog.objects.filter(
+		school=school, user=request.user, action="login"
+	).order_by("-created_at")[:5]
+
 	return render(request, "portals/teacher_dashboard.html", {
 		"staff_profile":  staff_profile,
 		"homeroom_stats": homeroom_stats,
 		"sections":       sections,
 		"today":          today,
+		"recent_logins":  recent_logins,
 	})
 
 
@@ -166,10 +177,10 @@ def student_dashboard(request):
 	# Merits / demerits
 	merit_total = MeritRecord.objects.filter(
 		school=school, student=student
-	).aggregate(total=Sum("points"))["total"] or 0
+	).aggregate(total=Sum("count"))["total"] or 0
 	demerit_total = DemeritRecord.objects.filter(
 		school=school, student=student
-	).aggregate(total=Sum("points"))["total"] or 0
+	).aggregate(total=Sum("count"))["total"] or 0
 
 	# Recent attendance exceptions
 	recent_attendance = Attendance.objects.filter(

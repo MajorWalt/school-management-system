@@ -1,14 +1,37 @@
 {% extends "base.html" %}
-{% block title %}Courses — {{ school.name }}{% endblock %}
+{% block title %}Course Master — {{ school.name }}{% endblock %}
+{% block page_title %}Course Master{% endblock %}
 
 {% block content %}
-<div class="flex items-center justify-between mb-6">
-	<h1 class="text-2xl font-bold text-gray-800">Courses</h1>
+<div class="flex items-center justify-between mb-5 flex-wrap gap-3">
+	<h1 class="text-xl font-bold text-gray-800">Course Master</h1>
 	<a href="{% url 'scheduling:course_add' %}"
-	   class="btn-primary px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition">
+	class="btn-primary px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition">
 		+ Add Course
 	</a>
 </div>
+
+<!-- Search + filter -->
+<form method="get" class="flex flex-wrap gap-3 mb-5">
+	<input type="text" name="q" value="{{ query }}"
+		placeholder="Search by name, code or faculty..."
+		class="flex-1 min-w-48 rounded-lg border border-gray-300 px-3 py-2 text-sm
+				focus:outline-none focus:ring-2 focus:ring-blue-500" />
+	<select name="area"
+			class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+		<option value="">All Subject Areas</option>
+		{% for val, label in subject_areas %}
+		<option value="{{ val }}" {% if selected_area == val %}selected{% endif %}>{{ label }}</option>
+		{% endfor %}
+	</select>
+	<button type="submit" class="btn-primary px-4 py-2 rounded-lg text-sm font-medium">Search</button>
+	{% if query or selected_area %}
+	<a href="{% url 'scheduling:course_list' %}"
+	class="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 text-gray-600 hover:bg-gray-50 transition">
+		Clear
+	</a>
+	{% endif %}
+</form>
 
 <div class="bg-white rounded-xl shadow overflow-hidden">
 	<table class="min-w-full text-sm">
@@ -16,30 +39,62 @@
 			<tr>
 				<th class="px-4 py-3 text-left">Code</th>
 				<th class="px-4 py-3 text-left">Name</th>
-				<th class="px-4 py-3 text-left">Status</th>
+				<th class="px-4 py-3 text-left">Short Desc</th>
+				<th class="px-4 py-3 text-left">Subject Area</th>
+				<th class="px-4 py-3 text-left">Teacher</th>
+				<th class="px-4 py-3 text-center">Seq</th>
+				<th class="px-4 py-3 text-center">Web</th>
+				<th class="px-4 py-3 text-center">Avg</th>
+				<th class="px-4 py-3 text-center">Status</th>
 				<th class="px-4 py-3 text-left">Actions</th>
 			</tr>
 		</thead>
 		<tbody class="divide-y divide-gray-100">
 			{% for course in courses %}
-			<tr class="hover:bg-gray-50 transition">
-				<td class="px-4 py-3 font-mono text-gray-500">{{ course.code|default:"—" }}</td>
-				<td class="px-4 py-3 font-medium text-gray-800">{{ course.name }}</td>
-				<td class="px-4 py-3">
-					{% if course.active %}
-						<span class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full">Active</span>
+			<tr class="hover:bg-gray-50 transition {% if not course.active %}opacity-60{% endif %}">
+				<td class="px-4 py-3 font-mono text-gray-500 text-xs">{{ course.code|default:"—" }}</td>
+				<td class="px-4 py-3 font-medium text-gray-800">
+					<a href="{% url 'scheduling:course_detail' course.pk %}" class="hover:underline">
+						{{ course.name }}
+					</a>
+				</td>
+				<td class="px-4 py-3 text-gray-500 text-xs">{{ course.short_description|default:"—" }}</td>
+				<td class="px-4 py-3 text-gray-500 text-xs">{{ course.get_subject_area_display|default:"—" }}</td>
+				<td class="px-4 py-3 text-gray-500 text-xs">{{ course.teacher|default:"—" }}</td>
+				<td class="px-4 py-3 text-center text-gray-400 text-xs">{{ course.sequence }}</td>
+				<td class="px-4 py-3 text-center">
+					{% if course.web_visible %}
+						<span class="text-green-500 text-xs">✓</span>
 					{% else %}
-						<span class="bg-red-100 text-red-700 text-xs px-2 py-1 rounded-full">Inactive</span>
+						<span class="text-gray-300 text-xs">—</span>
 					{% endif %}
 				</td>
-				<td class="px-4 py-3">
+				<td class="px-4 py-3 text-center">
+					{% if course.calc_average %}
+						<span class="text-green-500 text-xs">✓</span>
+					{% else %}
+						<span class="text-gray-300 text-xs">—</span>
+					{% endif %}
+				</td>
+				<td class="px-4 py-3 text-center">
+					{% if course.active %}
+						<span class="bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full">Active</span>
+					{% else %}
+						<span class="bg-red-100 text-red-700 text-xs px-2 py-0.5 rounded-full">Inactive</span>
+					{% endif %}
+				</td>
+				<td class="px-4 py-3 flex gap-2">
 					<a href="{% url 'scheduling:course_edit' course.pk %}"
-					   class="text-blue-600 hover:underline text-xs">Edit</a>
+					class="text-blue-600 hover:underline text-xs">Edit</a>
+					<a href="{% url 'scheduling:course_delete' course.pk %}"
+					class="text-red-500 hover:underline text-xs">Delete</a>
 				</td>
 			</tr>
 			{% empty %}
 			<tr>
-				<td colspan="4" class="px-4 py-8 text-center text-gray-400">No courses yet.</td>
+				<td colspan="10" class="px-4 py-8 text-center text-gray-400">
+					No courses found.
+				</td>
 			</tr>
 			{% endfor %}
 		</tbody>

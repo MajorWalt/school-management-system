@@ -47,7 +47,7 @@
 				<tr>
 					<th class="px-4 py-2 text-left">Student</th>
 					<th class="px-4 py-2 text-left">Category</th>
-					<th class="px-4 py-2 text-right">Pts</th>
+					<th class="px-4 py-2 text-right">Merits</th>
 					<th class="px-4 py-2 text-left">Date</th>
 					<th class="px-4 py-2"></th>
 				</tr>
@@ -61,7 +61,7 @@
 						</a>
 					</td>
 					<td class="px-4 py-2 text-gray-500 text-xs">{{ merit.get_category_display }}</td>
-					<td class="px-4 py-2 text-right font-bold text-green-600">+{{ merit.points }}</td>
+					<td class="px-4 py-2 text-right font-bold text-green-600">{{ merit.count }}</td>
 					<td class="px-4 py-2 text-gray-400 text-xs">{{ merit.date }}</td>
 					<td class="px-4 py-2">
 						<a href="{% url 'merits:delete' merit.pk %}"
@@ -89,7 +89,7 @@
 				<tr>
 					<th class="px-4 py-2 text-left">Student</th>
 					<th class="px-4 py-2 text-left">Category</th>
-					<th class="px-4 py-2 text-right">Pts</th>
+					<th class="px-4 py-2 text-right">Demerits</th>
 					<th class="px-4 py-2 text-left">Date</th>
 					<th class="px-4 py-2"></th>
 				</tr>
@@ -103,7 +103,7 @@
 						</a>
 					</td>
 					<td class="px-4 py-2 text-gray-500 text-xs">{{ demerit.get_category_display }}</td>
-					<td class="px-4 py-2 text-right font-bold text-red-600">-{{ demerit.points }}</td>
+					<td class="px-4 py-2 text-right font-bold text-red-600">{{ demerit.count }}</td>
 					<td class="px-4 py-2 text-gray-400 text-xs">{{ demerit.date }}</td>
 					<td class="px-4 py-2">
 						<a href="{% url 'merits:demerit_delete' demerit.pk %}"

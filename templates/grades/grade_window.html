@@ -1,13 +1,14 @@
 {% extends "base.html" %}
-{% block title %}Grade Windows — {{ school.name }}{% endblock %}
-{% block page_title %}Grade Windows{% endblock %}
+{% load accounts_tags %}
+{% block title %}Mark Entry Window — {{ school.name }}{% endblock %}
+{% block page_title %}Mark Entry Window{% endblock %}
 
 {% block content %}
 <div class="max-w-3xl mx-auto space-y-6">
 
 	<div class="flex items-center justify-between">
 		<div>
-			<h1 class="text-xl font-bold text-gray-800">Grade Entry Windows</h1>
+			<h1 class="text-xl font-bold text-gray-800">Mark Entry Window</h1>
 			<p class="text-sm text-gray-500">
 				Control which forms and terms teachers can enter grades for.
 			</p>

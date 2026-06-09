@@ -76,14 +76,14 @@
 	<!-- Merits & Demerits -->
 	<div class="grid grid-cols-2 gap-4">
 		<div class="bg-green-50 border border-green-200 rounded-xl p-5 text-center">
-			<p class="text-xs text-green-600 font-medium uppercase mb-1">Merit Points</p>
-			<p class="text-3xl font-bold text-green-700">+{{ merit_total }}</p>
+			<p class="text-xs text-green-600 font-medium uppercase mb-1">Merits</p>
+			<p class="text-3xl font-bold text-green-700">{{ merit_total }}</p>
 			<a href="{% url 'merits:student_report' student.pk %}"
 			   class="text-xs text-green-600 hover:underline mt-2 block">View details</a>
 		</div>
 		<div class="bg-red-50 border border-red-200 rounded-xl p-5 text-center">
-			<p class="text-xs text-red-600 font-medium uppercase mb-1">Demerit Points</p>
-			<p class="text-3xl font-bold text-red-700">-{{ demerit_total }}</p>
+			<p class="text-xs text-red-600 font-medium uppercase mb-1">Demerits</p>
+			<p class="text-3xl font-bold text-red-700">{{ demerit_total }}</p>
 			<a href="{% url 'merits:student_report' student.pk %}"
 			   class="text-xs text-red-600 hover:underline mt-2 block">View details</a>
 		</div>

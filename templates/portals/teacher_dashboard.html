@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block title %}Teacher Dashboard — {{ school.name }}{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
 
 {% block content %}
 <div class="mb-6">
@@ -93,7 +94,7 @@
 				<td class="px-4 py-3 text-gray-600">Term {{ section.term_number }}</td>
 				<td class="px-4 py-3 text-gray-600">{{ section.academic_year.name }}</td>
 				<td class="px-4 py-3">
-					<a href="{% url 'grades:section_overview' section.pk %}"
+					<a href="{% url 'grades:section_table' section.pk %}"
 					class="text-blue-600 hover:underline text-xs">Grades</a>
 				</td>
 			</tr>
@@ -103,12 +104,12 @@
 </div>
 {% endif %}
 
-<div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+<div class="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6">
 	<a href="{% url 'attendance:home' %}"
 	class="btn-primary text-center px-4 py-3 rounded-xl text-sm font-medium hover:opacity-90 transition">
 		Mark Attendance
 	</a>
-	<a href="{% url 'grades:section_select' %}"
+	<a href="{% url 'grades:home' %}"
 	class="btn-primary text-center px-4 py-3 rounded-xl text-sm font-medium hover:opacity-90 transition">
 		Enter Grades
 	</a>
@@ -117,5 +118,21 @@
 		Award Merit
 	</a>
 </div>
+
+{% if recent_logins %}
+<div class="bg-white rounded-xl shadow overflow-hidden">
+	<div class="px-5 py-4 border-b bg-gray-50">
+		<h2 class="font-semibold text-gray-700 text-sm">Your Recent Logins</h2>
+	</div>
+	<ul class="divide-y divide-gray-100">
+		{% for entry in recent_logins %}
+		<li class="px-5 py-2.5 flex items-center justify-between">
+			<span class="text-xs text-gray-500">{{ entry.ip_address|default:"—" }}</span>
+			<span class="text-xs text-gray-400 font-mono">{{ entry.created_at|date:"d M Y, H:i" }}</span>
+		</li>
+		{% endfor %}
+	</ul>
+</div>
+{% endif %}
 
 {% endblock %}

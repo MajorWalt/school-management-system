@@ -5,6 +5,7 @@ from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.conf import settings
 from core.decorators import tenant_required
+from core.activity import log_activity
 from accounts.models import UserRole
 from .models import BackupLog
 from .utils import run_backup
@@ -54,6 +55,7 @@ def backup_run(request):
 			file_size_bytes = file_size,
 			status          = "success",
 		)
+		log_activity(request, "backup_run", f"Ran database backup: {filename}.")
 		messages.success(request, f"Backup created: {filename}")
 
 	return redirect("backups:list")

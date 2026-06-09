@@ -62,15 +62,15 @@ class StudentForm(forms.ModelForm):
 
 
 class BulkEnrolForm(forms.Form):
-    excel_file = forms.FileField(
-        label="Excel File (.xlsx)",
-        help_text="Download the template, fill it in, then upload here."
-    )
+	excel_file = forms.FileField(
+		label="Excel File (.xlsx)",
+		help_text="Download the template, fill it in, then upload here."
+	)
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields["excel_file"].widget.attrs["class"]  = FIELD_CLASS
-        self.fields["excel_file"].widget.attrs["accept"] = ".xlsx"
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+		self.fields["excel_file"].widget.attrs["class"]  = FIELD_CLASS
+		self.fields["excel_file"].widget.attrs["accept"] = ".xlsx"
 
 
 class GuardianForm(forms.ModelForm):
@@ -118,3 +118,19 @@ class StudentStatusForm(forms.ModelForm):
 		for field in self.fields.values():
 			existing = field.widget.attrs.get("class", "")
 			field.widget.attrs["class"] = FIELD_CLASS + " " + existing
+
+class WithdrawForm(forms.Form):
+	withdraw_date = forms.DateField(
+		label="Withdraw Date",
+		widget=forms.DateInput(attrs={"type": "date", "class": FIELD_CLASS})
+	)
+	reason = forms.CharField(
+		label="Withdraw Reason",
+		max_length=200,
+		widget=forms.TextInput(attrs={"class": FIELD_CLASS, "placeholder": "e.g. Relocated, Family decision..."})
+	)
+	description = forms.CharField(
+		label="Description",
+		required=False,
+		widget=forms.Textarea(attrs={"class": FIELD_CLASS, "rows": 3, "placeholder": "Additional details..."})
+	)

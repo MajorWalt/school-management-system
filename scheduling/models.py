@@ -129,20 +129,54 @@ class NonSchoolDay(models.Model):
 
 
 class Course(models.Model):
-	"""A subject offered by the school e.g. Mathematics, English"""
-	school  = models.ForeignKey(School, on_delete=models.CASCADE, related_name="courses")
-	name    = models.CharField(max_length=100)
-	code    = models.CharField(max_length=20, blank=True)
-	active  = models.BooleanField(default=True)
+
+	INSTRUCTIONAL_MODE_CHOICES = [
+		("lecture",  "Lecture"),
+		("lab",      "Laboratory"),
+		("online",   "Online"),
+		("hybrid",   "Hybrid"),
+		("practical","Practical"),
+		("other",    "Other"),
+	]
+
+	SUBJECT_AREA_CHOICES = [
+		("mathematics",   "Mathematics"),
+		("sciences",      "Sciences"),
+		("languages",     "Languages"),
+		("social_studies","Social Studies"),
+		("technology",    "Technology"),
+		("arts",          "Arts"),
+		("physical_ed",   "Physical Education"),
+		("other",         "Other"),
+	]
+
+	school             = models.ForeignKey(School, on_delete=models.CASCADE, related_name="courses")
+	name               = models.CharField(max_length=100)
+	code               = models.CharField(max_length=20, blank=True)
+	short_description  = models.CharField(max_length=8, blank=True)
+	description        = models.TextField(blank=True)
+	section_number     = models.CharField(max_length=10, default="1", blank=True)
+	form               = models.ForeignKey("Form", on_delete=models.SET_NULL, null=True, blank=True, related_name="course_masters")
+	start_term         = models.PositiveIntegerField(null=True, blank=True)
+	end_term           = models.PositiveIntegerField(null=True, blank=True)
+	teacher            = models.ForeignKey("staff.Staff", on_delete=models.SET_NULL, null=True, blank=True, related_name="primary_courses")
+	teacher_2          = models.ForeignKey("staff.Staff", on_delete=models.SET_NULL, null=True, blank=True, related_name="secondary_courses")
+	sequence           = models.PositiveIntegerField(default=100)
+	web_visible        = models.BooleanField(default=True)
+	instructional_mode = models.CharField(max_length=20, choices=INSTRUCTIONAL_MODE_CHOICES, blank=True)
+	faculty            = models.CharField(max_length=100, blank=True)
+	room               = models.CharField(max_length=50, blank=True)
+	subject_area       = models.CharField(max_length=30, choices=SUBJECT_AREA_CHOICES, blank=True)
+	calc_average       = models.BooleanField(default=True)
+	active             = models.BooleanField(default=True)
 
 	class Meta:
 		db_table        = "courses"
-		ordering        = ["name"]
+		ordering        = ["sequence", "name"]
 		unique_together = ("school", "name")
 
 	def __str__(self):
 		return f"{self.code} — {self.name}" if self.code else self.name
-
 
 class Section(models.Model):
 	"""

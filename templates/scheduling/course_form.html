@@ -1,26 +1,113 @@
 {% extends "base.html" %}
+{% load accounts_tags %}
 {% block title %}{{ title }} — {{ school.name }}{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
 
 {% block content %}
-<div class="max-w-md mx-auto">
-	<h1 class="text-2xl font-bold text-gray-800 mb-6">{{ title }}</h1>
-	<div class="bg-white rounded-xl shadow p-6">
-		<form method="post" novalidate>
-			{% csrf_token %}
-			<div class="space-y-4">
-				{% for field in form %}
+<div class="max-w-3xl mx-auto space-y-6">
+
+	<div class="flex items-center justify-between">
+		<h1 class="text-xl font-bold text-gray-800">{{ title }}</h1>
+		<a href="{% url 'scheduling:course_list' %}"
+		class="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 text-gray-600 hover:bg-gray-50 transition">
+			Cancel
+		</a>
+	</div>
+
+	<form method="post" novalidate>
+		{% csrf_token %}
+
+		<!-- Identity -->
+		<div class="bg-white rounded-xl shadow overflow-hidden mb-5">
+			<div class="px-5 py-3 bg-gray-50 border-b font-semibold text-gray-700 text-sm uppercase tracking-wide">
+				Course Identity
+			</div>
+			<div class="p-5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+				{% for fname in "code,section_number,name,short_description,description,subject_area,instructional_mode"|split:"," %}
+				{% for field in form %}{% if field.name == fname %}
+				<div class="{% if field.name == 'description' %}col-span-full{% endif %}">
+					<label class="block text-xs font-medium text-gray-600 mb-1">
+						{{ field.label }}{% if field.field.required %}<span class="text-red-500">*</span>{% endif %}
+					</label>
+					{{ field }}
+					{% if field.name == 'short_description' %}
+						<p class="text-xs text-gray-400 mt-1">Max 8 characters</p>
+					{% endif %}
+					{% if field.errors %}<p class="text-red-500 text-xs mt-1">{{ field.errors.0 }}</p>{% endif %}
+				</div>
+				{% endif %}{% endfor %}
+				{% endfor %}
+			</div>
+		</div>
+
+		<!-- Scheduling -->
+		<div class="bg-white rounded-xl shadow overflow-hidden mb-5">
+			<div class="px-5 py-3 bg-gray-50 border-b font-semibold text-gray-700 text-sm uppercase tracking-wide">
+				Scheduling
+			</div>
+			<div class="p-5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+				{% for fname in "form,start_term,end_term,teacher,teacher_2,sequence,faculty,room"|split:"," %}
+				{% for field in form %}{% if field.name == fname %}
 				<div>
-					<label class="block text-xs font-medium text-gray-600 mb-1">{{ field.label }}</label>
+					<label class="block text-xs font-medium text-gray-600 mb-1">
+						{{ field.label }}
+						{% if field.name == 'sequence' %}
+							<span class="text-gray-400 font-normal">(report card order)</span>
+						{% endif %}
+						{% if field.name == 'teacher_2' %}
+							<span class="text-gray-400 font-normal">(team teaching)</span>
+						{% endif %}
+					</label>
 					{{ field }}
 					{% if field.errors %}<p class="text-red-500 text-xs mt-1">{{ field.errors.0 }}</p>{% endif %}
 				</div>
+				{% endif %}{% endfor %}
 				{% endfor %}
 			</div>
-			<div class="flex gap-3 mt-6">
-				<button type="submit" class="btn-primary px-5 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition">Save</button>
-				<a href="{% url 'scheduling:course_list' %}" class="px-5 py-2 rounded-lg text-sm font-medium border border-gray-300 text-gray-600 hover:bg-gray-50 transition">Cancel</a>
+		</div>
+
+		<!-- Options -->
+		<div class="bg-white rounded-xl shadow overflow-hidden mb-5">
+			<div class="px-5 py-3 bg-gray-50 border-b font-semibold text-gray-700 text-sm uppercase tracking-wide">
+				Options
 			</div>
-		</form>
-	</div>
+			<div class="p-5 space-y-4">
+				{% for fname in "web_visible,calc_average,active"|split:"," %}
+				{% for field in form %}{% if field.name == fname %}
+				<label class="flex items-center gap-3 cursor-pointer group">
+					{{ field }}
+					<div>
+						<span class="text-sm font-medium text-gray-700">{{ field.label }}</span>
+						{% if field.name == 'web_visible' %}
+							<p class="text-xs text-gray-400">Allow gradebook scores visible in student portal</p>
+						{% elif field.name == 'calc_average' %}
+							<p class="text-xs text-gray-400">Include this course when calculating overall average</p>
+						{% elif field.name == 'active' %}
+							<p class="text-xs text-gray-400">Inactive courses are hidden from scheduling</p>
+						{% endif %}
+					</div>
+				</label>
+				{% endif %}{% endfor %}
+				{% endfor %}
+			</div>
+		</div>
+
+		<div class="flex gap-3">
+			<button type="submit"
+					class="btn-primary px-6 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition">
+				Save Course
+			</button>
+			{% if course %}
+			<a href="{% url 'scheduling:course_delete' course.pk %}"
+			class="px-5 py-2 rounded-lg text-sm font-medium border border-red-300 text-red-600 hover:bg-red-50 transition">
+				Delete
+			</a>
+			{% endif %}
+			<a href="{% url 'scheduling:course_list' %}"
+			class="px-5 py-2 rounded-lg text-sm font-medium border border-gray-300 text-gray-600 hover:bg-gray-50 transition">
+				Cancel
+			</a>
+		</div>
+	</form>
 </div>
 {% endblock %}

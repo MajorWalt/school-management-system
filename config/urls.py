@@ -20,17 +20,18 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
-	path('admin/', admin.site.urls),
-	path('__reload__/', include('django_browser_reload.urls')),
-	path("staff/", include("staff.urls")),
-	path("students/", include("students.urls")),
-	path("scheduling/", include("scheduling.urls")),
-	path("attendance/", include("attendance.urls")),
-	path("grades/", include("grades.urls")),
-	path("merits/", include("merits.urls")),
-	path("backups/", include("backups.urls")),
-	path("accounts/",   include("accounts.urls")),
-	path("",          include("portals.urls")),
+	path("admin/",        admin.site.urls),
+	path("__reload__/",   include("django_browser_reload.urls")),
+	path("accounts/",     include("accounts.urls")),
+	path("core/",         include("core.urls")),          
+	path("staff/",        include("staff.urls")),
+	path("students/",     include("students.urls")),
+	path("scheduling/",   include("scheduling.urls")),
+	path("attendance/",   include("attendance.urls")),
+	path("grades/",       include("grades.urls")),
+	path("merits/",       include("merits.urls")),
+	path("backups/",      include("backups.urls")),
+	path("",              include("portals.urls")),
 ]
 
 if settings.DEBUG:

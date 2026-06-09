@@ -20,7 +20,7 @@ class MeritRecord(models.Model):
 	awarded_by  = models.ForeignKey("staff.Staff", on_delete=models.SET_NULL, null=True, related_name="merits_awarded")
 	category    = models.CharField(max_length=20, choices=CATEGORY_CHOICES)
 	reason      = models.TextField()
-	points      = models.PositiveIntegerField(default=1)
+	count       = models.PositiveIntegerField(default=1)
 	date        = models.DateField()
 	created_at  = models.DateTimeField(auto_now_add=True)
 
@@ -29,7 +29,7 @@ class MeritRecord(models.Model):
 		ordering = ["-date"]
 
 	def __str__(self):
-		return f"{self.student} — Merit — {self.points}pts — {self.date}"
+		return f"{self.student} — Merit — {self.count} — {self.date}"
 
 
 class DemeritRecord(models.Model):
@@ -48,7 +48,7 @@ class DemeritRecord(models.Model):
 	awarded_by  = models.ForeignKey("staff.Staff", on_delete=models.SET_NULL, null=True, related_name="demerits_awarded")
 	category    = models.CharField(max_length=20, choices=CATEGORY_CHOICES)
 	reason      = models.TextField()
-	points      = models.PositiveIntegerField(default=1)
+	count       = models.PositiveIntegerField(default=1)
 	date        = models.DateField()
 	created_at  = models.DateTimeField(auto_now_add=True)
 
@@ -57,4 +57,4 @@ class DemeritRecord(models.Model):
 		ordering = ["-date"]
 
 	def __str__(self):
-		return f"{self.student} — Demerit — {self.points}pts — {self.date}"
+		return f"{self.student} — Demerit — {self.count} — {self.date}"

@@ -1,22 +1,36 @@
 {% extends "base.html" %}
+{% load accounts_tags %}
 {% block title %}Grades — {{ school.name }}{% endblock %}
 {% block page_title %}Grades{% endblock %}
 
 {% block content %}
-<div class="flex items-center justify-between mb-6">
-	<h1 class="text-2xl font-bold text-gray-800">Grades</h1>
-	<div class="flex gap-2">
+
+<div class="flex items-center justify-between mb-5 flex-wrap gap-3">
+	<div></div>
+	<div class="flex items-center gap-2 flex-wrap">
+
+		<!-- View toggle -->
+		<div class="flex border border-gray-200 rounded-lg overflow-hidden text-sm">
+			<button id="btn-kanban" onclick="setView('kanban')"
+					class="flex items-center gap-1.5 px-3 py-1.5 font-medium transition"
+					style="background:var(--accent); color:#fff;">
+				<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+					<path stroke-linecap="round" stroke-linejoin="round" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7"/>
+				</svg>
+				Kanban
+			</button>
+			<button id="btn-list" onclick="setView('list')"
+					class="flex items-center gap-1.5 px-3 py-1.5 font-medium border-l border-gray-200 text-gray-500 hover:bg-gray-50 transition">
+				<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+					<path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
+				</svg>
+				List
+			</button>
+		</div>
+
 		{% if is_admin %}
-		<a href="{% url 'grades:windows' %}"
-		   class="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 text-gray-600 hover:bg-gray-50 transition">
-			Grade Windows
-		</a>
-		<a href="{% url 'grades:visibility' %}"
-		   class="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 text-gray-600 hover:bg-gray-50 transition">
-			Visibility
-		</a>
 		<a href="{% url 'grades:report_card_list' %}"
-		   class="btn-primary px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition">
+		class="btn-primary px-3 py-1.5 rounded-lg text-sm font-medium hover:opacity-90 transition">
 			Report Cards
 		</a>
 		{% endif %}
@@ -24,8 +38,10 @@
 </div>
 
 <!-- Filters -->
-<form method="get" class="flex gap-3 mb-5 flex-wrap">
-	<select name="year" class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+<form method="get" class="flex gap-3 mb-5 flex-wrap items-end">
+	<input type="hidden" name="view" id="view-input" value="{{ request.GET.view|default:'kanban' }}" />
+	<select name="year"
+			class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
 		<option value="">All Years</option>
 		{% for year in years %}
 		<option value="{{ year.pk }}" {% if selected_year == year.pk|stringformat:"s" %}selected{% endif %}>
@@ -33,63 +49,176 @@
 		</option>
 		{% endfor %}
 	</select>
-	<select name="term" class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-		<option value="">All Terms</option>
-		<option value="1" {% if selected_term == "1" %}selected{% endif %}>Term 1</option>
-		<option value="2" {% if selected_term == "2" %}selected{% endif %}>Term 2</option>
-		<option value="3" {% if selected_term == "3" %}selected{% endif %}>Term 3</option>
-	</select>
-	<button type="submit" class="btn-primary px-4 py-2 rounded-lg text-sm font-medium">Filter</button>
+	<button type="submit"
+			class="btn-primary px-4 py-2 rounded-lg text-sm font-medium">
+		Filter
+	</button>
 </form>
 
-<div class="bg-white rounded-xl shadow overflow-hidden">
-	<table class="min-w-full text-sm">
-		<thead class="bg-gray-50 text-gray-500 uppercase text-xs tracking-wide">
-			<tr>
-				<th class="px-4 py-3 text-left">Course</th>
-				<th class="px-4 py-3 text-left">Form</th>
-				<th class="px-4 py-3 text-left">Term</th>
-				<th class="px-4 py-3 text-left">Year</th>
-				{% if is_admin %}<th class="px-4 py-3 text-left">Teacher</th>{% endif %}
-				<th class="px-4 py-3 text-left">Evaluations</th>
-				<th class="px-4 py-3 text-left">Window</th>
-				<th class="px-4 py-3 text-left">Actions</th>
-			</tr>
-		</thead>
-		<tbody class="divide-y divide-gray-100">
-			{% for section in sections %}
-			<tr class="hover:bg-gray-50 transition">
-				<td class="px-4 py-3 font-medium text-gray-800">{{ section.course.name }}</td>
-				<td class="px-4 py-3 text-gray-600">{{ section.form }}</td>
-				<td class="px-4 py-3 text-gray-600">Term {{ section.term_number }}</td>
-				<td class="px-4 py-3 text-gray-600">{{ section.academic_year.name }}</td>
-				{% if is_admin %}
-				<td class="px-4 py-3 text-gray-500 text-xs">{{ section.teacher|default:"—" }}</td>
-				{% endif %}
-				<td class="px-4 py-3 text-gray-500 text-xs">
-					{{ section.evaluations.count }} evaluation{{ section.evaluations.count|pluralize }}
-				</td>
-				<td class="px-4 py-3">
-					{% with wopen=section.form %}
-					{% comment %}Window status shown inline{% endcomment %}
-					<span class="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">—</span>
-					{% endwith %}
-				</td>
-				<td class="px-4 py-3">
-					<a href="{% url 'grades:section_table' section.pk %}"
-					   class="text-blue-600 hover:underline text-xs font-medium">
-						Open Gradebook
-					</a>
-				</td>
-			</tr>
-			{% empty %}
-			<tr>
-				<td colspan="8" class="px-4 py-8 text-center text-gray-400">
-					No sections found.
-				</td>
-			</tr>
-			{% endfor %}
-		</tbody>
-	</table>
+
+{# ── KANBAN VIEW ────────────────────────────────────────────────────────────── #}
+<div id="view-kanban">
+
+	{# Group sections by term #}
+	{% regroup sections by term_number as term_groups %}
+
+	{% if not sections %}
+	<div class="bg-white rounded-xl border border-gray-200 p-10 text-center text-gray-400">
+		No sections found.
+	</div>
+	{% else %}
+	<div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+		{% for term_group in term_groups %}
+		<div>
+			<!-- Term column header -->
+			<div class="flex items-center justify-between mb-3">
+				<span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+					Term {{ term_group.grouper }}
+				</span>
+				<span class="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">
+					{{ term_group.list|length }} section{{ term_group.list|length|pluralize }}
+				</span>
+			</div>
+
+			<!-- Cards -->
+			<div class="space-y-3">
+				{% for section in term_group.list %}
+				{% with wopen=window_statuses|get_item:section.pk %}
+				<a href="{% url 'grades:section_table' section.pk %}"
+				class="block bg-white border border-gray-200 rounded-xl p-4 hover:border-gray-300 hover:shadow-sm transition
+						{% if not wopen %}opacity-70{% endif %}">
+					<div class="flex items-start justify-between mb-2">
+						<div>
+							<p class="font-medium text-gray-800 text-sm">{{ section.course.name }}</p>
+							<p class="text-xs text-gray-400 mt-0.5">
+								{{ section.form }}
+								{% if is_admin and section.teacher %}
+								· {{ section.teacher.get_display_name }}
+								{% endif %}
+							</p>
+						</div>
+						{% if wopen %}
+						<span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full whitespace-nowrap">Open</span>
+						{% else %}
+						<span class="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full whitespace-nowrap border border-gray-200">Closed</span>
+						{% endif %}
+					</div>
+					<div class="flex items-center gap-4 text-xs text-gray-400 border-t border-gray-100 pt-2 mt-2">
+						<span>{{ section.evaluations.count }} eval{{ section.evaluations.count|pluralize }}</span>
+						<span>{{ section.enrolments.count }} student{{ section.enrolments.count|pluralize }}</span>
+						<span class="ml-auto text-xs
+							{% if section.academic_year.is_current %}text-blue-500{% else %}text-gray-400{% endif %}">
+							{{ section.academic_year.name }}
+						</span>
+					</div>
+				</a>
+				{% endwith %}
+				{% endfor %}
+			</div>
+		</div>
+		{% endfor %}
+
+		{# Fill empty term columns if fewer than 3 terms #}
+		{% if term_groups|length < 3 %}
+		<div class="hidden md:block">
+			<div class="flex items-center justify-between mb-3">
+				<span class="text-xs font-semibold text-gray-300 uppercase tracking-wider">—</span>
+			</div>
+		</div>
+		{% endif %}
+	</div>
+	{% endif %}
+
 </div>
+
+
+{# ── LIST VIEW ──────────────────────────────────────────────────────────────── #}
+<div id="view-list" style="display:none;">
+	<div class="bg-white rounded-xl shadow overflow-hidden">
+		<table class="min-w-full text-sm">
+			<thead class="bg-gray-50 text-gray-500 uppercase text-xs tracking-wide">
+				<tr>
+					<th class="px-4 py-3 text-left">Course</th>
+					<th class="px-4 py-3 text-left">Form</th>
+					<th class="px-4 py-3 text-left">Term</th>
+					<th class="px-4 py-3 text-left">Year</th>
+					{% if is_admin %}<th class="px-4 py-3 text-left">Teacher</th>{% endif %}
+					<th class="px-4 py-3 text-center">Evals</th>
+					<th class="px-4 py-3 text-center">Students</th>
+					<th class="px-4 py-3 text-center">Window</th>
+					<th class="px-4 py-3 text-left">Action</th>
+				</tr>
+			</thead>
+			<tbody class="divide-y divide-gray-100">
+				{% for section in sections %}
+				<tr class="hover:bg-gray-50 transition">
+					<td class="px-4 py-3 font-medium text-gray-800">{{ section.course.name }}</td>
+					<td class="px-4 py-3 text-gray-600">{{ section.form }}</td>
+					<td class="px-4 py-3 text-gray-600">Term {{ section.term_number }}</td>
+					<td class="px-4 py-3 text-gray-500 text-xs">{{ section.academic_year.name }}</td>
+					{% if is_admin %}
+					<td class="px-4 py-3 text-gray-500 text-xs">{{ section.teacher|default:"—" }}</td>
+					{% endif %}
+					<td class="px-4 py-3 text-center text-gray-500">{{ section.evaluations.count }}</td>
+					<td class="px-4 py-3 text-center text-gray-500">{{ section.enrolments.count }}</td>
+					<td class="px-4 py-3 text-center">
+						<span class="text-xs px-2 py-0.5 rounded-full
+							bg-gray-100 text-gray-500 border border-gray-200">
+							—
+						</span>
+					</td>
+					<td class="px-4 py-3">
+						<a href="{% url 'grades:section_table' section.pk %}"
+						class="text-blue-600 hover:underline text-xs font-medium">
+							Open Gradebook
+						</a>
+					</td>
+				</tr>
+				{% empty %}
+				<tr>
+					<td colspan="{% if is_admin %}9{% else %}8{% endif %}"
+						class="px-4 py-8 text-center text-gray-400">
+						No sections found.
+					</td>
+				</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+	</div>
+</div>
+
 {% endblock %}
+
+
+{% block extra_js %}
+<script>
+const STORED_VIEW = localStorage.getItem('grades_view') || '{{ request.GET.view|default:"kanban" }}';
+
+function setView(v) {
+	var kanban  = document.getElementById('view-kanban');
+	var list    = document.getElementById('view-list');
+	var bk      = document.getElementById('btn-kanban');
+	var bl      = document.getElementById('btn-list');
+	var input   = document.getElementById('view-input');
+
+	if (v === 'kanban') {
+		kanban.style.display = 'block';
+		list.style.display   = 'none';
+		bk.style.cssText     = 'background:var(--accent);color:#fff;';
+		bl.style.cssText     = 'background:transparent;color:#6b7280;';
+	} else {
+		kanban.style.display = 'none';
+		list.style.display   = 'block';
+		bl.style.cssText     = 'background:var(--accent);color:#fff;';
+		bk.style.cssText     = 'background:transparent;color:#6b7280;';
+	}
+
+	if (input) input.value = v;
+	localStorage.setItem('grades_view', v);
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+	setView(STORED_VIEW);
+});
+</script>
+{% endblock %}	

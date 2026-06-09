@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block title %}{{ course.name }} — {{ school.name }}{% endblock %}
+{% block page_title %}Course Detail{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-6">
+
+	<!-- Header -->
+	<div class="flex items-center justify-between flex-wrap gap-3">
+		<div>
+			<h1 class="text-xl font-bold text-gray-800">{{ course.name }}</h1>
+			<p class="text-sm text-gray-500">
+				{% if course.code %}{{ course.code }} ·{% endif %}
+				{% if course.subject_area %}{{ course.get_subject_area_display }} ·{% endif %}
+				Seq {{ course.sequence }}
+			</p>
+		</div>
+		<div class="flex gap-2">
+			<a href="{% url 'scheduling:course_edit' course.pk %}"
+			   class="btn-primary px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition">
+				Edit
+			</a>
+			<a href="{% url 'scheduling:course_delete' course.pk %}"
+			   class="px-4 py-2 rounded-lg text-sm font-medium border border-red-300 text-red-600 hover:bg-red-50 transition">
+				Delete
+			</a>
+			<a href="{% url 'scheduling:course_list' %}"
+			   class="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 text-gray-600 hover:bg-gray-50 transition">
+				Back
+			</a>
+		</div>
+	</div>
+
+	<!-- Details grid -->
+	<div class="bg-white rounded-xl shadow overflow-hidden">
+		<div class="px-5 py-3 bg-gray-50 border-b font-semibold text-gray-700 text-sm uppercase tracking-wide">
+			Course Information
+		</div>
+		<div class="p-5 grid grid-cols-2 md:grid-cols-3 gap-5 text-sm">
+			<div><span class="text-gray-400 block text-xs mb-0.5">Course Code</span><p class="font-medium font-mono">{{ course.code|default:"—" }}</p></div>
+			<div><span class="text-gray-400 block text-xs mb-0.5">Section</span><p class="font-medium">{{ course.section_number|default:"—" }}</p></div>
+			<div><span class="text-gray-400 block text-xs mb-0.5">Short Description</span><p class="font-medium">{{ course.short_description|default:"—" }}</p></div>
+			<div class="col-span-2 md:col-span-3"><span class="text-gray-400 block text-xs mb-0.5">Description</span><p class="font-medium">{{ course.description|default:"—" }}</p></div>
+			<div><span class="text-gray-400 block text-xs mb-0.5">Form</span><p class="font-medium">{{ course.form|default:"—" }}</p></div>
+			<div><span class="text-gray-400 block text-xs mb-0.5">Start Term</span><p class="font-medium">{{ course.start_term|default:"—" }}</p></div>
+			<div><span class="text-gray-400 block text-xs mb-0.5">End Term</span><p class="font-medium">{{ course.end_term|default:"—" }}</p></div>
+			<div><span class="text-gray-400 block text-xs mb-0.5">Teacher</span><p class="font-medium">{{ course.teacher|default:"—" }}</p></div>
+			<div><span class="text-gray-400 block text-xs mb-0.5">Teacher 2</span><p class="font-medium">{{ course.teacher_2|default:"—" }}</p></div>
+			<div><span class="text-gray-400 block text-xs mb-0.5">Sequence</span><p class="font-medium">{{ course.sequence }}</p></div>
+			<div><span class="text-gray-400 block text-xs mb-0.5">Faculty / Dept</span><p class="font-medium">{{ course.faculty|default:"—" }}</p></div>
+			<div><span class="text-gray-400 block text-xs mb-0.5">Room</span><p class="font-medium">{{ course.room|default:"—" }}</p></div>
+			<div><span class="text-gray-400 block text-xs mb-0.5">Subject Area</span><p class="font-medium">{{ course.get_subject_area_display|default:"—" }}</p></div>
+			<div><span class="text-gray-400 block text-xs mb-0.5">Instructional Mode</span><p class="font-medium">{{ course.get_instructional_mode_display|default:"—" }}</p></div>
+			<div>
+				<span class="text-gray-400 block text-xs mb-0.5">Web Visible</span>
+				{% if course.web_visible %}
+					<span class="bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full">Yes</span>
+				{% else %}
+					<span class="bg-gray-100 text-gray-500 text-xs px-2 py-0.5 rounded-full">No</span>
+				{% endif %}
+			</div>
+			<div>
+				<span class="text-gray-400 block text-xs mb-0.5">Calc Average</span>
+				{% if course.calc_average %}
+					<span class="bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full">Yes</span>
+				{% else %}
+					<span class="bg-gray-100 text-gray-500 text-xs px-2 py-0.5 rounded-full">No</span>
+				{% endif %}
+			</div>
+			<div>
+				<span class="text-gray-400 block text-xs mb-0.5">Status</span>
+				{% if course.active %}
+					<span class="bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full">Active</span>
+				{% else %}
+					<span class="bg-red-100 text-red-700 text-xs px-2 py-0.5 rounded-full">Inactive</span>
+				{% endif %}
+			</div>
+		</div>
+	</div>
+
+	<!-- Sections using this course -->
+	{% if sections %}
+	<div class="bg-white rounded-xl shadow overflow-hidden">
+		<div class="px-5 py-3 bg-gray-50 border-b font-semibold text-gray-700 text-sm uppercase tracking-wide">
+			Sections Using This Course
+		</div>
+		<table class="min-w-full text-sm">
+			<thead class="text-gray-400 uppercase text-xs bg-gray-50">
+				<tr>
+					<th class="px-4 py-2 text-left">Year</th>
+					<th class="px-4 py-2 text-left">Term</th>
+					<th class="px-4 py-2 text-left">Form</th>
+					<th class="px-4 py-2 text-left">Teacher</th>
+					<th class="px-4 py-2 text-left">Room</th>
+					<th class="px-4 py-2 text-left">Actions</th>
+				</tr>
+			</thead>
+			<tbody class="divide-y divide-gray-100">
+				{% for section in sections %}
+				<tr class="hover:bg-gray-50">
+					<td class="px-4 py-2 text-gray-600">{{ section.academic_year.name }}</td>
+					<td class="px-4 py-2 text-gray-600">Term {{ section.term_number }}</td>
+					<td class="px-4 py-2 text-gray-600">{{ section.form }}</td>
+					<td class="px-4 py-2 text-gray-500 text-xs">{{ section.teacher|default:"—" }}</td>
+					<td class="px-4 py-2 text-gray-500 text-xs">{{ section.room|default:"—" }}</td>
+					<td class="px-4 py-2">
+						<a href="{% url 'scheduling:section_detail' section.pk %}"
+						   class="text-blue-600 hover:underline text-xs">View</a>
+					</td>
+				</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+	</div>
+	{% endif %}
+
+</div>
+{% endblock %}

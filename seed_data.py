@@ -1,17 +1,7 @@
 """
 Seed script for Edara school management system.
-Creates:
-  - Academic Year (2024-2025) with 3 Term Configs
-  - Form 1 with homerooms 101, 102, 103
-  - 8 Teachers (Staff + User + UserRole)
-  - 84 Students all male (28 per homeroom) with User + UserRole + StatusLog
-  - 8 Courses
-  - Sections linking courses to Form 1 for each term
-  - Enrolments for all students in all sections
-  - Sample attendance, grade entries, merits/demerits
-
 Run from project root:
-    python manage.py shell < seed_data.py
+    python manage.py shell -c "exec(open('seed_data.py', encoding='utf-8').read())"
 """
 
 import os
@@ -31,16 +21,16 @@ from scheduling.models import (
     Form, Homeroom, AcademicYear, TermConfig, Course, Section, Enrolment
 )
 from attendance.models import Attendance
-from grades.models import GradeEntry
+from grades.models import Evaluation, GradeEntry
 from merits.models import MeritRecord, DemeritRecord
 
-print("🌱 Starting seed...")
+print("Starting seed...")
 
 # ── Get existing school ───────────────────────────────────────────────────────
 
 school = School.objects.filter(is_active=True).first()
 if not school:
-    print("❌ No active school found. Create one in the admin first.")
+    print("No active school found. Create one in the admin first.")
     exit()
 
 print(f"  Using school: {school.name} (slug: {school.slug})")
@@ -145,7 +135,7 @@ for td in term_data:
     print(f"  {'Created' if created else 'Found'} term config: {obj.name}")
 
 
-# ── 2. Form 1 + Homerooms ─────────────────────────────────────────────────────
+# ── 2. Form 1 + Homerooms 101, 102, 103 ──────────────────────────────────────
 
 form1, created = Form.objects.get_or_create(
     school=school,
@@ -192,14 +182,14 @@ print(f"  {len(courses)} courses ready.")
 # ── 4. Teachers ───────────────────────────────────────────────────────────────
 
 teacher_data = [
-    ("Alice",  "Thompson", "F", "Mathematics",       "Mathematics Teacher",     "Mathematics"),
-    ("Brian",  "Edwards",  "M", "Languages",         "English Teacher",         "English Language"),
-    ("Carol",  "Bennett",  "F", "Sciences",          "Science Teacher",         "Integrated Science"),
-    ("David",  "Foster",   "M", "Social Studies",    "History Teacher",         "Social Studies"),
-    ("Emma",   "Hughes",   "F", "Physical Education","PE Teacher",              "Physical Education"),
-    ("Frank",  "Morris",   "M", "Technology",        "IT Teacher",              "Information Technology"),
-    ("Grace",  "Russell",  "F", "Arts",              "Art Teacher",             "Art & Design"),
-    ("Henry",  "Coleman",  "M", "Languages",         "French Teacher",          "French"),
+    ("Alice",  "Thompson", "F", "Mathematics",        "Mathematics Teacher",    "Mathematics"),
+    ("Brian",  "Edwards",  "M", "Languages",          "English Teacher",        "English Language"),
+    ("Carol",  "Bennett",  "F", "Sciences",           "Science Teacher",        "Integrated Science"),
+    ("David",  "Foster",   "M", "Social Studies",     "History Teacher",        "Social Studies"),
+    ("Emma",   "Hughes",   "F", "Physical Education", "PE Teacher",             "Physical Education"),
+    ("Frank",  "Morris",   "M", "Technology",         "IT Teacher",             "Information Technology"),
+    ("Grace",  "Russell",  "F", "Arts",               "Art Teacher",            "Art & Design"),
+    ("Henry",  "Coleman",  "M", "Languages",          "French Teacher",         "French"),
 ]
 
 teachers = []
@@ -225,7 +215,7 @@ for i, (first, last, gender, dept, role_title, spec) in enumerate(teacher_data, 
             "first_name":             first,
             "last_name":              last,
             "gender":                 gender,
-            "email":                  email,
+            "email_work":             email,       # updated field name
             "department":             dept,
             "role_title":             role_title,
             "subject_specialisation": spec,
@@ -263,7 +253,7 @@ for code, course in courses.items():
 print(f"  {len(sections)} sections ready.")
 
 
-# ── 6. Students (all male) ────────────────────────────────────────────────────
+# ── 6. Students (all male, homerooms 101/102/103) ─────────────────────────────
 
 all_students = []
 student_counter = 1
@@ -332,7 +322,7 @@ for student in all_students:
 print(f"  {enrolment_count} enrolments created.")
 
 
-# ── 8. Attendance (last 10 school days) ───────────────────────────────────────
+# ── 8. Attendance — homeroom-based, last 10 school days ──────────────────────
 
 admin_user = User.objects.filter(is_superuser=True).first()
 today      = datetime.date.today()
@@ -345,75 +335,99 @@ while len(school_days) < 10:
     d -= datetime.timedelta(days=1)
 
 att_count = 0
-math_section = sections[("MATH", 1)]
 
-for student in all_students:
-    for day in school_days:
-        roll = random.random()
-        if roll < 0.90:
-            status = "present"
-        elif roll < 0.97:
-            status = "absent"
-        else:
-            status = "late"
+for hr_name, homeroom in homerooms.items():
+    hr_students = [s for s in all_students if s.homeroom == homeroom]
+    for student in hr_students:
+        for day in school_days:
+            roll = random.random()
+            if roll < 0.90:
+                status = "present"
+            elif roll < 0.97:
+                status = "absent"
+            else:
+                status = "late"
 
-        _, created = Attendance.objects.get_or_create(
-            school   = school,
-            student  = student,
-            section  = math_section,
-            date     = day,
-            defaults = {
-                "status":    status,
-                "marked_by": admin_user,
-            }
-        )
-        if created:
-            att_count += 1
+            # Only create exception records (present is the default)
+            if status != "present":
+                Attendance.objects.get_or_create(
+                    school   = school,
+                    student  = student,
+                    homeroom = homeroom,
+                    date     = day,
+                    defaults = {
+                        "status":    status,
+                        "marked_by": admin_user,
+                    }
+                )
+                att_count += 1
 
-print(f"  {att_count} attendance records created.")
+print(f"  {att_count} attendance exception records created.")
 
 
-# ── 9. Grade Entries (Term 1, MATH + ENG) ────────────────────────────────────
+# ── 9. Evaluations + Grade Entries (Term 1, MATH + ENG) ──────────────────────
+
+admin_user = User.objects.filter(is_superuser=True).first()
+
+eval_definitions = [
+    {"title": "Assignment 1",    "category": "coursework", "subcategory": "assignment", "max_marks": 100, "weight": 1, "is_final_exam": False},
+    {"title": "Quiz 1",          "category": "coursework", "subcategory": "quiz",       "max_marks": 50,  "weight": 1, "is_final_exam": False},
+    {"title": "Assignment 2",    "category": "coursework", "subcategory": "assignment", "max_marks": 100, "weight": 1, "is_final_exam": False},
+    {"title": "Term 1 Final Exam","category": "exam",      "subcategory": "final_exam", "max_marks": 100, "weight": 2, "is_final_exam": True},
+]
 
 grade_count = 0
-for student in all_students:
-    for code in ["MATH", "ENG"]:
-        section   = sections[(code, 1)]
+eval_count  = 0
+
+for code in ["MATH", "ENG"]:
+    section = sections[(code, 1)]
+
+    # Create evaluations for this section
+    evals = []
+    for ed in eval_definitions:
+        ev, created = Evaluation.objects.get_or_create(
+            school   = school,
+            section  = section,
+            title    = ed["title"],
+            defaults = {
+                "category":     ed["category"],
+                "subcategory":  ed["subcategory"],
+                "max_marks":    ed["max_marks"],
+                "weight":       ed["weight"],
+                "is_final_exam": ed["is_final_exam"],
+                "date":         random_date_this_year(),
+                "created_by":   admin_user,
+            }
+        )
+        evals.append(ev)
+        if created:
+            eval_count += 1
+
+    # Create grade entries for each enrolled student
+    for student in all_students:
         enrolment = Enrolment.objects.filter(student=student, section=section).first()
         if not enrolment:
             continue
 
-        for title in ["Assignment 1", "Quiz 1", "Assignment 2"]:
+        for ev in evals:
+            # ~10% chance of absent
+            is_absent = random.random() < 0.10
+            marks     = None if is_absent else round(random.uniform(40, 100), 1)
+
             _, created = GradeEntry.objects.get_or_create(
-                school=school, enrolment=enrolment, title=title,
-                defaults={
-                    "category":      "coursework",
-                    "max_marks":     100,
-                    "marks_earned":  random.randint(40, 100),
-                    "weight":        1,
-                    "is_final_exam": False,
-                    "date":          random_date_this_year(),
-                    "entered_by":    admin_user,
+                evaluation = ev,
+                student    = student,
+                defaults   = {
+                    "school":       school,
+                    "marks_earned": marks,
+                    "is_absent":    is_absent,
+                    "entered_by":   admin_user,
                 }
             )
             if created:
                 grade_count += 1
 
-        _, created = GradeEntry.objects.get_or_create(
-            school=school, enrolment=enrolment, title="Term 1 Final Exam",
-            defaults={
-                "category":      "exam",
-                "max_marks":     100,
-                "marks_earned":  random.randint(40, 100),
-                "weight":        1,
-                "is_final_exam": True,
-                "date":          random_date_this_year(),
-                "entered_by":    admin_user,
-            }
-        )
-        if created:
-            grade_count += 1
-
+print(f"  {eval_count} evaluations created.")
 print(f"  {grade_count} grade entries created.")
 
 
@@ -447,15 +461,16 @@ print(f"  Merits and demerits created.")
 # ── Done ──────────────────────────────────────────────────────────────────────
 
 print()
-print("✅ Seed complete!")
+print("Seed complete!")
 print()
-print(f"  School:   {school.name}")
-print(f"  Students: {len(all_students)} males (password: student123)")
-print(f"  Teachers: {len(teachers)} (password: teacher123)")
+print(f"  School:    {school.name}")
+print(f"  Students:  {len(all_students)} males (password: student123)")
+print(f"  Teachers:  {len(teachers)} (password: teacher123)")
+print(f"  Homerooms: 101, 102, 103 (28 students each)")
 print()
 print("  Teacher logins:")
 for staff in teachers:
-    print(f"    {staff.email}  /  teacher123")
+    print(f"    {staff.email_work}  /  teacher123")
 print()
 print("  Sample student login:")
 sample = all_students[0]

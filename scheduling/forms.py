@@ -65,11 +65,28 @@ class CourseForm(forms.ModelForm):
 
 	class Meta:
 		model  = Course
-		fields = ["name", "code", "active"]
+		fields = [
+			"code", "section_number", "name", "short_description", "description",
+			"form", "start_term", "end_term",
+			"teacher", "teacher_2", "sequence",
+			"web_visible", "instructional_mode",
+			"faculty", "room", "subject_area",
+			"calc_average", "active",
+		]
+		widgets = {
+			"description": forms.Textarea(attrs={"rows": 2}),
+		}
 
-	def __init__(self, *args, **kwargs):
+	def __init__(self, *args, school=None, **kwargs):
 		super().__init__(*args, **kwargs)
-		apply_classes(self)
+		if school:
+			self.fields["form"].queryset    = self.fields["form"].queryset.filter(school=school)
+			self.fields["teacher"].queryset = self.fields["teacher"].queryset.filter(school=school, active=True)
+			self.fields["teacher_2"].queryset = self.fields["teacher_2"].queryset.filter(school=school, active=True)
+		for name, field in self.fields.items():
+			if not isinstance(field.widget, forms.CheckboxInput):
+				existing = field.widget.attrs.get("class", "")
+				field.widget.attrs["class"] = FIELD_CLASS + " " + existing
 
 
 class SectionForm(forms.ModelForm):

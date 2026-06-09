@@ -1,11 +1,12 @@
 {% extends "base.html" %}
 {% block title %}{{ student.get_full_name }} — {{ school.name }}{% endblock %}
+{% block page_title %}Student Record{% endblock %}
 
 {% block content %}
 <div class="max-w-4xl mx-auto space-y-6">
 
 	<!-- Header -->
-	<div class="flex items-center justify-between">
+	<div class="flex items-center justify-between flex-wrap gap-3">
 		<div class="flex items-center gap-4">
 			{% if student.photo %}
 				<img src="{{ student.photo.url }}" class="h-20 w-20 rounded-full object-cover border-2 border-gray-200" />
@@ -26,12 +27,13 @@
 					{% if student.current_status == 'enrolled' %}bg-green-100 text-green-700
 					{% elif student.current_status == 'suspended' %}bg-yellow-100 text-yellow-700
 					{% elif student.current_status == 'graduated' %}bg-blue-100 text-blue-700
-					{% else %}bg-red-100 text-red-700{% endif %}">
+					{% elif student.current_status == 'withdrawn' %}bg-red-100 text-red-700
+					{% else %}bg-gray-100 text-gray-600{% endif %}">
 					{{ student.current_status_display }}
 				</span>
 			</div>
 		</div>
-		<div class="flex gap-2">
+		<div class="flex flex-wrap gap-2">
 			{% if is_admin %}
 			<a href="{% url 'students:edit' student.pk %}"
 			class="btn-primary px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition">
@@ -41,6 +43,12 @@
 			class="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 text-gray-600 hover:bg-gray-50 transition">
 				Change Status
 			</a>
+			{% if student.current_status != 'withdrawn' %}
+			<a href="{% url 'students:withdraw' student.pk %}"
+			class="px-4 py-2 rounded-lg text-sm font-medium border border-red-300 text-red-600 hover:bg-red-50 transition">
+				Withdraw
+			</a>
+			{% endif %}
 			{% endif %}
 			<a href="{% url 'students:list' %}"
 			class="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 text-gray-600 hover:bg-gray-50 transition">
@@ -48,6 +56,29 @@
 			</a>
 		</div>
 	</div>
+
+	<!-- Withdrawn banner -->
+	{% if student.current_status == 'withdrawn' %}
+	{% with last_log=logs.0 %}
+	<div class="bg-red-50 border border-red-200 rounded-xl px-5 py-4 flex items-start gap-3">
+		<svg class="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+			<path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+		</svg>
+		<div class="text-sm">
+			<p class="font-semibold text-red-700">Student Withdrawn</p>
+			{% if last_log %}
+			<p class="text-red-600 mt-0.5">
+				Date: {{ last_log.change_date }}
+				{% if last_log.reason %}&bull; Reason: {{ last_log.reason }}{% endif %}
+			</p>
+			{% if last_log.description %}
+			<p class="text-red-500 mt-0.5 text-xs">{{ last_log.description }}</p>
+			{% endif %}
+			{% endif %}
+		</div>
+	</div>
+	{% endwith %}
+	{% endif %}
 
 	<!-- Personal Info -->
 	<div class="bg-white rounded-xl shadow overflow-hidden">
@@ -203,7 +234,7 @@
 		{% endif %}
 	</div>
 
-	<!-- Status log -->
+	<!-- Status History -->
 	<div class="bg-white rounded-xl shadow overflow-hidden">
 		<div class="px-5 py-3 bg-gray-50 border-b font-semibold text-gray-700 text-sm uppercase tracking-wide">
 			Status History
@@ -214,19 +245,32 @@
 					<th class="text-left px-4 py-2">Date</th>
 					<th class="text-left px-4 py-2">Status</th>
 					<th class="text-left px-4 py-2">Reason</th>
+					<th class="text-left px-4 py-2">Description</th>
 					<th class="text-left px-4 py-2">By</th>
 				</tr>
 			</thead>
 			<tbody class="divide-y divide-gray-100">
 				{% for log in logs %}
-				<tr>
-					<td class="px-4 py-2">{{ log.change_date }}</td>
-					<td class="px-4 py-2">{{ log.get_status_display }}</td>
-					<td class="px-4 py-2 text-gray-500">{{ log.reason|default:"—" }}</td>
-					<td class="px-4 py-2 text-gray-500">{{ log.changed_by|default:"—" }}</td>
+				<tr class="{% if log.status == 'withdrawn' %}bg-red-50{% endif %}">
+					<td class="px-4 py-2 text-gray-700">{{ log.change_date }}</td>
+					<td class="px-4 py-2">
+						<span class="text-xs px-2 py-0.5 rounded-full
+							{% if log.status == 'enrolled' %}bg-green-100 text-green-700
+							{% elif log.status == 'withdrawn' %}bg-red-100 text-red-700
+							{% elif log.status == 'suspended' %}bg-yellow-100 text-yellow-700
+							{% elif log.status == 'graduated' %}bg-blue-100 text-blue-700
+							{% else %}bg-gray-100 text-gray-600{% endif %}">
+							{{ log.get_status_display }}
+						</span>
+					</td>
+					<td class="px-4 py-2 text-gray-500 text-xs">{{ log.reason|default:"—" }}</td>
+					<td class="px-4 py-2 text-gray-400 text-xs">{{ log.description|default:"—" }}</td>
+					<td class="px-4 py-2 text-gray-500 text-xs">{{ log.changed_by|default:"—" }}</td>
 				</tr>
 				{% empty %}
-				<tr><td colspan="4" class="px-4 py-4 text-center text-gray-400">No status history.</td></tr>
+				<tr>
+					<td colspan="5" class="px-4 py-4 text-center text-gray-400">No status history.</td>
+				</tr>
 				{% endfor %}
 			</tbody>
 		</table>

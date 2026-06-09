@@ -217,12 +217,13 @@ class StudentStatusLog(models.Model):
 
 	STATUS_CHOICES = Student.STATUS_CHOICES
 
-	student         = models.ForeignKey(Student, on_delete=models.CASCADE, related_name="status_logs")
-	status          = models.CharField(max_length=20, choices=STATUS_CHOICES)
-	change_date     = models.DateField()
-	reason          = models.TextField(blank=True)
-	changed_by      = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="status_changes")
-	created_at      = models.DateTimeField(auto_now_add=True)
+	student     = models.ForeignKey(Student, on_delete=models.CASCADE, related_name="status_logs")
+	status      = models.CharField(max_length=20, choices=STATUS_CHOICES)
+	change_date = models.DateField()
+	reason      = models.CharField(max_length=200, blank=True)   # short reason/category
+	description = models.TextField(blank=True)                    # longer notes
+	changed_by  = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="status_changes")
+	created_at  = models.DateTimeField(auto_now_add=True)
 
 	class Meta:
 		db_table = "student_status_logs"

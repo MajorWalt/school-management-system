@@ -2,6 +2,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 from core.decorators import tenant_required
+from core.activity import log_activity
 from .forms import (
 	AcademicYearForm, CourseForm, EnrolmentForm,
 	FormTermRuleForm, NonSchoolDayForm, SectionForm, TermConfigForm,
@@ -138,33 +139,83 @@ def non_school_day_delete(request, pk):
 @login_required
 @tenant_required
 def course_list(request):
+	query   = request.GET.get("q", "")
+	area    = request.GET.get("area", "")
 	courses = Course.objects.filter(school=request.school)
-	return render(request, "scheduling/course_list.html", {"courses": courses})
+
+	if query:
+		from django.db.models import Q
+		courses = courses.filter(
+			Q(name__icontains=query) |
+			Q(code__icontains=query) |
+			Q(faculty__icontains=query)
+		)
+	if area:
+		courses = courses.filter(subject_area=area)
+
+	return render(request, "scheduling/course_list.html", {
+		"courses":          courses,
+		"query":            query,
+		"selected_area":    area,
+		"subject_areas":    Course.SUBJECT_AREA_CHOICES,
+	})
 
 
 @login_required
 @tenant_required
 def course_add(request):
-	form = CourseForm(request.POST or None)
+	form = CourseForm(request.POST or None, school=request.school)
 	if request.method == "POST" and form.is_valid():
-		course = form.save(commit=False)
+		course        = form.save(commit=False)
 		course.school = request.school
 		course.save()
 		messages.success(request, f"{course.name} added.")
-		return redirect("scheduling:course_list")
-	return render(request, "scheduling/course_form.html", {"form": form, "title": "Add Course"})
+		return redirect("scheduling:course_detail", pk=course.pk)
+	return render(request, "scheduling/course_form.html", {
+		"form":  form,
+		"title": "Add Course",
+	})
+
+
+@login_required
+@tenant_required
+def course_detail(request, pk):
+	course   = get_object_or_404(Course, pk=pk, school=request.school)
+	sections = Section.objects.filter(school=request.school, course=course).select_related(
+		"academic_year", "form", "teacher"
+	)
+	return render(request, "scheduling/course_detail.html", {
+		"course":   course,
+		"sections": sections,
+	})
 
 
 @login_required
 @tenant_required
 def course_edit(request, pk):
 	course = get_object_or_404(Course, pk=pk, school=request.school)
-	form   = CourseForm(request.POST or None, instance=course)
+	form   = CourseForm(request.POST or None, instance=course, school=request.school)
 	if request.method == "POST" and form.is_valid():
 		form.save()
 		messages.success(request, f"{course.name} updated.")
+		return redirect("scheduling:course_detail", pk=pk)
+	return render(request, "scheduling/course_form.html", {
+		"form":   form,
+		"title":  f"Edit — {course.name}",
+		"course": course,
+	})
+
+
+@login_required
+@tenant_required
+def course_delete(request, pk):
+	course = get_object_or_404(Course, pk=pk, school=request.school)
+	if request.method == "POST":
+		name = course.name
+		course.delete()
+		messages.warning(request, f"Course '{name}' deleted.")
 		return redirect("scheduling:course_list")
-	return render(request, "scheduling/course_form.html", {"form": form, "title": "Edit Course"})
+	return render(request, "scheduling/course_confirm_delete.html", {"course": course})
 
 
 # ── Sections ──────────────────────────────────────────────────────────────────
@@ -196,6 +247,7 @@ def section_add(request):
 		section = form.save(commit=False)
 		section.school = request.school
 		section.save()
+		log_activity(request, "section_created", f"Created section: {section}.")
 		messages.success(request, f"Section created.")
 		return redirect("scheduling:section_detail", pk=section.pk)
 	return render(request, "scheduling/section_form.html", {"form": form, "title": "Add Section"})
@@ -235,6 +287,7 @@ def enrol_student(request, section_pk):
 		enrolment = form.save(commit=False)
 		enrolment.section = section
 		enrolment.save()
+		log_activity(request, "enrolment_added", f"Enrolled {enrolment.student.get_full_name()} in section {section}.")
 		messages.success(request, f"{enrolment.student.get_full_name()} enrolled.")
 		return redirect("scheduling:section_detail", pk=section_pk)
 	return render(request, "scheduling/enrol_form.html", {"form": form, "section": section})

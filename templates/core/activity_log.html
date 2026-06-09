@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% block title %}Activity Log — {{ school.name }}{% endblock %}
+{% block page_title %}Activity Log{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+	<h1 class="text-2xl font-bold text-gray-800">Activity Log</h1>
+	<span class="text-sm text-gray-500">{{ page_obj.paginator.count }} total entries</span>
+</div>
+
+<!-- Filters -->
+<form method="get" class="bg-white rounded-xl shadow p-4 mb-6 flex flex-wrap gap-3 items-end">
+	<div>
+		<label class="block text-xs font-medium text-gray-600 mb-1">Action</label>
+		<select name="action"
+				class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+			<option value="">All Actions</option>
+			{% for val, label in action_choices %}
+			<option value="{{ val }}" {% if action_filter == val %}selected{% endif %}>
+				{{ label }}
+			</option>
+			{% endfor %}
+		</select>
+	</div>
+	{% if is_admin and staff_users %}
+	<div>
+		<label class="block text-xs font-medium text-gray-600 mb-1">User</label>
+		<select name="user"
+				class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+			<option value="">All Users</option>
+			{% for u in staff_users %}
+			<option value="{{ u.user__id }}"
+					{% if user_filter == u.user__id|stringformat:"s" %}selected{% endif %}>
+				{{ u.user__first_name }} {{ u.user__last_name }}
+			</option>
+			{% endfor %}
+		</select>
+	</div>
+	{% endif %}
+	<button type="submit"
+			class="btn-primary px-4 py-2 rounded-lg text-sm font-medium">
+		Filter
+	</button>
+	<a href="{% url 'core:activity_log' %}"
+	class="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 text-gray-600 hover:bg-gray-50 transition">
+		Clear
+	</a>
+</form>
+
+<!-- Log table -->
+<div class="bg-white rounded-xl shadow overflow-hidden">
+	<table class="min-w-full text-sm">
+		<thead class="bg-gray-50 text-gray-500 uppercase text-xs tracking-wide">
+			<tr>
+				<th class="px-4 py-3 text-left">Date & Time</th>
+				{% if is_admin %}
+				<th class="px-4 py-3 text-left">User</th>
+				{% endif %}
+				<th class="px-4 py-3 text-left">Action</th>
+				<th class="px-4 py-3 text-left">Description</th>
+				<th class="px-4 py-3 text-left">IP</th>
+			</tr>
+		</thead>
+		<tbody class="divide-y divide-gray-100">
+			{% for log in page_obj %}
+			<tr class="hover:bg-gray-50 transition">
+				<td class="px-4 py-3 text-gray-500 text-xs font-mono whitespace-nowrap">
+					{{ log.created_at|date:"d M Y H:i" }}
+				</td>
+				{% if is_admin %}
+				<td class="px-4 py-3">
+					<p class="font-medium text-gray-800 text-xs">
+						{{ log.user.get_full_name|default:"—" }}
+					</p>
+					<p class="text-gray-400 text-xs">{{ log.user.email|default:"" }}</p>
+				</td>
+				{% endif %}
+				<td class="px-4 py-3">
+					<span class="text-xs px-2 py-1 rounded-full font-medium
+						{% if 'login' in log.action %}bg-blue-100 text-blue-700
+						{% elif 'delete' in log.action or 'deactivate' in log.action %}bg-red-100 text-red-700
+						{% elif 'add' in log.action or 'created' in log.action or 'enrolled' in log.action %}bg-green-100 text-green-700
+						{% elif 'edit' in log.action or 'saved' in log.action or 'updated' in log.action %}bg-yellow-100 text-yellow-700
+						{% elif 'merit' in log.action %}bg-emerald-100 text-emerald-700
+						{% elif 'demerit' in log.action %}bg-rose-100 text-rose-700
+						{% elif 'backup' in log.action %}bg-purple-100 text-purple-700
+						{% else %}bg-gray-100 text-gray-600{% endif %}">
+						{{ log.get_action_display }}
+					</span>
+				</td>
+				<td class="px-4 py-3 text-gray-700 text-sm">{{ log.description }}</td>
+				<td class="px-4 py-3 text-gray-400 text-xs font-mono">
+					{{ log.ip_address|default:"—" }}
+				</td>
+			</tr>
+			{% empty %}
+			<tr>
+				<td colspan="{% if is_admin %}5{% else %}4{% endif %}"
+					class="px-4 py-8 text-center text-gray-400">
+					No activity recorded yet.
+				</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+</div>
+
+<!-- Pagination -->
+{% if page_obj.has_other_pages %}
+<div class="flex items-center justify-between mt-4">
+	<p class="text-sm text-gray-500">
+		Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+	</p>
+	<div class="flex gap-2">
+		{% if page_obj.has_previous %}
+		<a href="?page={{ page_obj.previous_page_number }}&action={{ action_filter }}&user={{ user_filter }}"
+		class="px-3 py-1.5 rounded-lg text-sm border border-gray-300 text-gray-600 hover:bg-gray-50 transition">
+			Previous
+		</a>
+		{% endif %}
+		{% if page_obj.has_next %}
+		<a href="?page={{ page_obj.next_page_number }}&action={{ action_filter }}&user={{ user_filter }}"
+		class="btn-primary px-3 py-1.5 rounded-lg text-sm font-medium hover:opacity-90 transition">
+			Next
+		</a>
+		{% endif %}
+	</div>
+</div>
+{% endif %}
+
+{% endblock %}

@@ -3,6 +3,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 from core.decorators import tenant_required
+from core.activity import log_activity
 from accounts.models import UserRole
 from scheduling.models import Homeroom
 from students.models import Student
@@ -218,6 +219,7 @@ def attendance_mark(request, date, homeroom_pk):
 				}
 			)
 
+		log_activity(request, "attendance_marked", f"Marked attendance for {homeroom} on {mark_date}.")
 		messages.success(request, f"Attendance saved for {homeroom} on {mark_date}.")
 		return redirect("attendance:home")
 

@@ -3,7 +3,10 @@
 
 {% block content %}
 <div class="flex items-center justify-between mb-6">
-	<h1 class="text-2xl font-bold text-gray-800">School Merit Summary</h1>
+	<div>
+		<h1 class="text-2xl font-bold text-gray-800">School Merit Summary</h1>
+		<p class="text-sm text-gray-500 mt-0.5">{{ today|date:"F Y" }}</p>
+	</div>
 	<a href="{% url 'merits:list' %}"
 	   class="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 text-gray-600 hover:bg-gray-50 transition">
 		Back
@@ -12,12 +15,21 @@
 
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
 
-	<!-- Top merit students -->
+	<!-- Students with 10+ merits this month -->
 	<div class="bg-white rounded-xl shadow overflow-hidden">
 		<div class="px-5 py-4 bg-green-50 border-b border-green-100">
-			<h2 class="font-semibold text-green-800">Top Merit Students</h2>
+			<h2 class="font-semibold text-green-800">10+ Merits This Month</h2>
+			<p class="text-xs text-green-600 mt-0.5">Students with 10 or more merits in {{ today|date:"F Y" }}</p>
 		</div>
 		<table class="min-w-full text-sm">
+			<thead class="bg-gray-50 text-gray-400 uppercase text-xs">
+				<tr>
+					<th class="px-4 py-2 text-left">Student</th>
+					<th class="px-4 py-2 text-left">Homeroom</th>
+					<th class="px-4 py-2 text-left">Form</th>
+					<th class="px-4 py-2 text-right">Merits</th>
+				</tr>
+			</thead>
 			<tbody class="divide-y divide-gray-100">
 				{% for row in top_merits %}
 				<tr class="hover:bg-gray-50">
@@ -26,23 +38,34 @@
 							{{ row.student__first_name }} {{ row.student__last_name }}
 						</a>
 					</td>
-					<td class="px-4 py-3 text-right font-bold text-green-600">+{{ row.total }} pts</td>
+					<td class="px-4 py-3 text-gray-500 text-xs">{{ row.student__homeroom__name|default:"—" }}</td>
+					<td class="px-4 py-3 text-gray-500 text-xs">{{ row.student__form__name|default:"—" }}</td>
+					<td class="px-4 py-3 text-right font-bold text-green-600">{{ row.total }}</td>
 				</tr>
 				{% empty %}
 				<tr>
-					<td colspan="2" class="px-4 py-6 text-center text-gray-400">No data yet.</td>
+					<td colspan="4" class="px-4 py-6 text-center text-gray-400">No students with 10+ merits this month.</td>
 				</tr>
 				{% endfor %}
 			</tbody>
 		</table>
 	</div>
 
-	<!-- Top demerit students -->
+	<!-- Students with 5+ demerits this month -->
 	<div class="bg-white rounded-xl shadow overflow-hidden">
 		<div class="px-5 py-4 bg-red-50 border-b border-red-100">
-			<h2 class="font-semibold text-red-800">Most Demerit Points</h2>
+			<h2 class="font-semibold text-red-800">5+ Demerits This Month</h2>
+			<p class="text-xs text-red-600 mt-0.5">Students with 5 or more demerits in {{ today|date:"F Y" }}</p>
 		</div>
 		<table class="min-w-full text-sm">
+			<thead class="bg-gray-50 text-gray-400 uppercase text-xs">
+				<tr>
+					<th class="px-4 py-2 text-left">Student</th>
+					<th class="px-4 py-2 text-left">Homeroom</th>
+					<th class="px-4 py-2 text-left">Form</th>
+					<th class="px-4 py-2 text-right">Demerits</th>
+				</tr>
+			</thead>
 			<tbody class="divide-y divide-gray-100">
 				{% for row in top_demerits %}
 				<tr class="hover:bg-gray-50">
@@ -51,11 +74,13 @@
 							{{ row.student__first_name }} {{ row.student__last_name }}
 						</a>
 					</td>
-					<td class="px-4 py-3 text-right font-bold text-red-600">-{{ row.total }} pts</td>
+					<td class="px-4 py-3 text-gray-500 text-xs">{{ row.student__homeroom__name|default:"—" }}</td>
+					<td class="px-4 py-3 text-gray-500 text-xs">{{ row.student__form__name|default:"—" }}</td>
+					<td class="px-4 py-3 text-right font-bold text-red-600">{{ row.total }}</td>
 				</tr>
 				{% empty %}
 				<tr>
-					<td colspan="2" class="px-4 py-6 text-center text-gray-400">No data yet.</td>
+					<td colspan="4" class="px-4 py-6 text-center text-gray-400">No students with 5+ demerits this month.</td>
 				</tr>
 				{% endfor %}
 			</tbody>
@@ -69,20 +94,20 @@
 
 	<div class="bg-white rounded-xl shadow overflow-hidden">
 		<div class="px-5 py-4 border-b bg-gray-50">
-			<h2 class="font-semibold text-gray-700">Monthly Merit Points</h2>
+			<h2 class="font-semibold text-gray-700">Monthly Merits</h2>
 		</div>
 		<table class="min-w-full text-sm">
 			<thead class="text-gray-400 uppercase text-xs bg-gray-50">
 				<tr>
 					<th class="px-4 py-2 text-left">Month</th>
-					<th class="px-4 py-2 text-right">Total Points</th>
+					<th class="px-4 py-2 text-right">Total</th>
 				</tr>
 			</thead>
 			<tbody class="divide-y divide-gray-100">
 				{% for row in merit_monthly %}
 				<tr>
 					<td class="px-4 py-2 text-gray-600">{{ row.month|date:"F Y" }}</td>
-					<td class="px-4 py-2 text-right font-bold text-green-600">+{{ row.total }}</td>
+					<td class="px-4 py-2 text-right font-bold text-green-600">{{ row.total }}</td>
 				</tr>
 				{% empty %}
 				<tr>
@@ -95,20 +120,20 @@
 
 	<div class="bg-white rounded-xl shadow overflow-hidden">
 		<div class="px-5 py-4 border-b bg-gray-50">
-			<h2 class="font-semibold text-gray-700">Monthly Demerit Points</h2>
+			<h2 class="font-semibold text-gray-700">Monthly Demerits</h2>
 		</div>
 		<table class="min-w-full text-sm">
 			<thead class="text-gray-400 uppercase text-xs bg-gray-50">
 				<tr>
 					<th class="px-4 py-2 text-left">Month</th>
-					<th class="px-4 py-2 text-right">Total Points</th>
+					<th class="px-4 py-2 text-right">Total</th>
 				</tr>
 			</thead>
 			<tbody class="divide-y divide-gray-100">
 				{% for row in demerit_monthly %}
 				<tr>
 					<td class="px-4 py-2 text-gray-600">{{ row.month|date:"F Y" }}</td>
-					<td class="px-4 py-2 text-right font-bold text-red-600">-{{ row.total }}</td>
+					<td class="px-4 py-2 text-right font-bold text-red-600">{{ row.total }}</td>
 				</tr>
 				{% empty %}
 				<tr>
