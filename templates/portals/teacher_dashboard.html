@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% block title %}Teacher Dashboard — {{ school.name }}{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+	<h1 class="text-2xl font-bold text-gray-800">
+		Welcome, {{ staff_profile.get_full_name|default:request.user.get_full_name }}
+	</h1>
+	<p class="text-sm text-gray-500">{{ today|date:"l, d F Y" }}</p>
+</div>
+
+{% if homeroom_stats %}
+<div class="bg-white rounded-xl shadow overflow-hidden mb-6">
+	<div class="px-5 py-4 border-b bg-gray-50">
+		<h2 class="font-semibold text-gray-700">My Homerooms — Today</h2>
+	</div>
+	<table class="min-w-full text-sm">
+		<thead class="text-gray-400 uppercase text-xs bg-gray-50">
+			<tr>
+				<th class="px-4 py-3 text-left">Homeroom</th>
+				<th class="px-4 py-3 text-left">Form</th>
+				<th class="px-4 py-3 text-right">Students</th>
+				<th class="px-4 py-3 text-right">Absent</th>
+				<th class="px-4 py-3 text-right">Late</th>
+				<th class="px-4 py-3 text-left">Register</th>
+				<th class="px-4 py-3 text-left">Actions</th>
+			</tr>
+		</thead>
+		<tbody class="divide-y divide-gray-100">
+			{% for row in homeroom_stats %}
+			<tr class="hover:bg-gray-50">
+				<td class="px-4 py-3 font-medium text-gray-800">{{ row.homeroom.name }}</td>
+				<td class="px-4 py-3 text-gray-600">{{ row.homeroom.form }}</td>
+				<td class="px-4 py-3 text-right text-gray-600">{{ row.total }}</td>
+				<td class="px-4 py-3 text-right">
+					<span class="{% if row.absences > 0 %}text-red-600 font-bold{% else %}text-gray-400{% endif %}">
+						{{ row.absences }}
+					</span>
+				</td>
+				<td class="px-4 py-3 text-right">
+					<span class="{% if row.lates > 0 %}text-yellow-600 font-bold{% else %}text-gray-400{% endif %}">
+						{{ row.lates }}
+					</span>
+				</td>
+				<td class="px-4 py-3">
+					{% if row.marked_today %}
+						<span class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full">Done</span>
+					{% else %}
+						<span class="bg-yellow-100 text-yellow-700 text-xs px-2 py-1 rounded-full">Pending</span>
+					{% endif %}
+				</td>
+				<td class="px-4 py-3 flex gap-3">
+					<a href="{% url 'attendance:mark' date=today|date:'Y-m-d' homeroom_pk=row.homeroom.pk %}"
+					class="text-blue-600 hover:underline text-xs font-medium">
+						Mark Today
+					</a>
+					<a href="{% url 'attendance:report' row.homeroom.pk %}"
+					class="text-gray-500 hover:underline text-xs">
+						Report
+					</a>
+				</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+</div>
+{% else %}
+<div class="bg-white rounded-xl shadow p-8 text-center text-gray-400 mb-6">
+	No homerooms assigned to you yet.
+</div>
+{% endif %}
+
+{% if sections %}
+<div class="bg-white rounded-xl shadow overflow-hidden mb-6">
+	<div class="px-5 py-4 border-b bg-gray-50">
+		<h2 class="font-semibold text-gray-700">My Sections</h2>
+	</div>
+	<table class="min-w-full text-sm">
+		<thead class="text-gray-400 uppercase text-xs bg-gray-50">
+			<tr>
+				<th class="px-4 py-3 text-left">Course</th>
+				<th class="px-4 py-3 text-left">Form</th>
+				<th class="px-4 py-3 text-left">Term</th>
+				<th class="px-4 py-3 text-left">Year</th>
+				<th class="px-4 py-3 text-left">Actions</th>
+			</tr>
+		</thead>
+		<tbody class="divide-y divide-gray-100">
+			{% for section in sections %}
+			<tr class="hover:bg-gray-50">
+				<td class="px-4 py-3 font-medium text-gray-800">{{ section.course.name }}</td>
+				<td class="px-4 py-3 text-gray-600">{{ section.form }}</td>
+				<td class="px-4 py-3 text-gray-600">Term {{ section.term_number }}</td>
+				<td class="px-4 py-3 text-gray-600">{{ section.academic_year.name }}</td>
+				<td class="px-4 py-3">
+					<a href="{% url 'grades:section_overview' section.pk %}"
+					class="text-blue-600 hover:underline text-xs">Grades</a>
+				</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+</div>
+{% endif %}
+
+<div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+	<a href="{% url 'attendance:home' %}"
+	class="btn-primary text-center px-4 py-3 rounded-xl text-sm font-medium hover:opacity-90 transition">
+		Mark Attendance
+	</a>
+	<a href="{% url 'grades:section_select' %}"
+	class="btn-primary text-center px-4 py-3 rounded-xl text-sm font-medium hover:opacity-90 transition">
+		Enter Grades
+	</a>
+	<a href="{% url 'merits:add' %}"
+	class="bg-green-600 text-white text-center px-4 py-3 rounded-xl text-sm font-medium hover:bg-green-700 transition">
+		Award Merit
+	</a>
+</div>
+
+{% endblock %}

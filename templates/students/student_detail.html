@@ -1,0 +1,244 @@
+{% extends "base.html" %}
+{% block title %}{{ student.get_full_name }} — {{ school.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-6">
+
+	<!-- Header -->
+	<div class="flex items-center justify-between">
+		<div class="flex items-center gap-4">
+			{% if student.photo %}
+				<img src="{{ student.photo.url }}" class="h-20 w-20 rounded-full object-cover border-2 border-gray-200" />
+			{% else %}
+				<div class="h-20 w-20 rounded-full bg-primary flex items-center justify-center text-white text-2xl font-bold">
+					{{ student.first_name.0 }}{{ student.last_name.0 }}
+				</div>
+			{% endif %}
+			<div>
+				<h1 class="text-2xl font-bold text-gray-800">{{ student.get_full_name }}</h1>
+				<p class="text-sm text-gray-500">
+					{{ student.student_id }}
+					{% if student.form %}&bull; {{ student.form }}{% endif %}
+					{% if student.homeroom %}&bull; Homeroom {{ student.homeroom }}{% endif %}
+					{% if student.house %}&bull; {{ student.house }} House{% endif %}
+				</p>
+				<span class="text-xs px-2 py-1 rounded-full mt-1 inline-block
+					{% if student.current_status == 'enrolled' %}bg-green-100 text-green-700
+					{% elif student.current_status == 'suspended' %}bg-yellow-100 text-yellow-700
+					{% elif student.current_status == 'graduated' %}bg-blue-100 text-blue-700
+					{% else %}bg-red-100 text-red-700{% endif %}">
+					{{ student.current_status_display }}
+				</span>
+			</div>
+		</div>
+		<div class="flex gap-2">
+			{% if is_admin %}
+			<a href="{% url 'students:edit' student.pk %}"
+			class="btn-primary px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition">
+				Edit Record
+			</a>
+			<a href="{% url 'students:status' student.pk %}"
+			class="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 text-gray-600 hover:bg-gray-50 transition">
+				Change Status
+			</a>
+			{% endif %}
+			<a href="{% url 'students:list' %}"
+			class="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 text-gray-600 hover:bg-gray-50 transition">
+				Back
+			</a>
+		</div>
+	</div>
+
+	<!-- Personal Info -->
+	<div class="bg-white rounded-xl shadow overflow-hidden">
+		<div class="px-5 py-3 bg-gray-50 border-b font-semibold text-gray-700 text-sm uppercase tracking-wide">
+			Personal Information
+		</div>
+		<div class="p-5 grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+			<div><span class="text-gray-400 block text-xs">Student ID</span><p class="font-medium font-mono">{{ student.student_id }}</p></div>
+			<div><span class="text-gray-400 block text-xs">First Name</span><p class="font-medium">{{ student.first_name }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Middle Name</span><p class="font-medium">{{ student.middle_name|default:"—" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Last Name</span><p class="font-medium">{{ student.last_name }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Gender</span><p class="font-medium">{{ student.get_gender_display|default:"—" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Date of Birth</span><p class="font-medium">{{ student.date_of_birth|default:"—" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Nationality</span><p class="font-medium">{{ student.nationality|default:"—" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Religion</span><p class="font-medium">{{ student.get_religion_display|default:"—" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">House</span><p class="font-medium">{{ student.house|default:"—" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Lives With</span><p class="font-medium">{{ student.get_lives_with_display|default:"—" }}</p></div>
+		</div>
+	</div>
+
+	<!-- Contact -->
+	<div class="bg-white rounded-xl shadow overflow-hidden">
+		<div class="px-5 py-3 bg-gray-50 border-b font-semibold text-gray-700 text-sm uppercase tracking-wide">
+			Contact & Address
+		</div>
+		<div class="p-5 grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+			<div><span class="text-gray-400 block text-xs">Phone</span><p class="font-medium">{{ student.phone|default:"—" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Email</span><p class="font-medium">{{ student.email|default:"—" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Parish</span><p class="font-medium">{{ student.parish|default:"—" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Community</span><p class="font-medium">{{ student.community|default:"—" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">City</span><p class="font-medium">{{ student.city|default:"—" }}</p></div>
+			<div class="col-span-2"><span class="text-gray-400 block text-xs">Address</span><p class="font-medium">{{ student.address|default:"—" }}</p></div>
+		</div>
+	</div>
+
+	<!-- Academic -->
+	<div class="bg-white rounded-xl shadow overflow-hidden">
+		<div class="px-5 py-3 bg-gray-50 border-b font-semibold text-gray-700 text-sm uppercase tracking-wide">
+			Academic Details
+		</div>
+		<div class="p-5 grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+			<div><span class="text-gray-400 block text-xs">Form</span><p class="font-medium">{{ student.form|default:"—" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Homeroom</span><p class="font-medium">{{ student.homeroom|default:"—" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Admission Date</span><p class="font-medium">{{ student.admission_date|default:"—" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Previous School</span><p class="font-medium">{{ student.previous_school|default:"—" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">EMIS ID</span><p class="font-medium font-mono">{{ student.emis_id|default:"—" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">CSEC Candidate No.</span><p class="font-medium font-mono">{{ student.csec_candidate_no|default:"—" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Cohort Grade</span><p class="font-medium">{{ student.cohort_grade|default:"—" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Cohort Year</span><p class="font-medium">{{ student.cohort_year|default:"—" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Repeated</span><p class="font-medium">{{ student.repeated|default:"—" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Sponsor</span><p class="font-medium">{{ student.sponsor|default:"—" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Grad Date</span><p class="font-medium">{{ student.grad_date|default:"—" }}</p></div>
+		</div>
+	</div>
+
+	<!-- GSNA -->
+	<div class="bg-white rounded-xl shadow overflow-hidden">
+		<div class="px-5 py-3 bg-gray-50 border-b font-semibold text-gray-700 text-sm uppercase tracking-wide">
+			GSNA Results
+		</div>
+		<div class="p-5 grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+			<div><span class="text-gray-400 block text-xs">GSNA Year</span><p class="font-medium">{{ student.gsna_year|default:"—" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">GSNA Award</span><p class="font-medium">{{ student.gsna_award|default:"—" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">English</span><p class="font-medium">{{ student.get_gsna_english_display|default:"—" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Mathematics</span><p class="font-medium">{{ student.get_gsna_mathematics_display|default:"—" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Science</span><p class="font-medium">{{ student.get_gsna_science_display|default:"—" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Social Studies</span><p class="font-medium">{{ student.get_gsna_social_studies_display|default:"—" }}</p></div>
+		</div>
+	</div>
+
+	<!-- Emergency Contact -->
+	<div class="bg-white rounded-xl shadow overflow-hidden">
+		<div class="px-5 py-3 bg-gray-50 border-b font-semibold text-gray-700 text-sm uppercase tracking-wide">
+			Emergency Contact
+		</div>
+		<div class="p-5 grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+			<div><span class="text-gray-400 block text-xs">Name</span><p class="font-medium">{{ student.emergency_contact_name|default:"—" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Relation</span><p class="font-medium">{{ student.emergency_relation|default:"—" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Phone 1</span><p class="font-medium">{{ student.emergency_phone_1|default:"—" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Phone 2</span><p class="font-medium">{{ student.emergency_phone_2|default:"—" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Work Phone</span><p class="font-medium">{{ student.emergency_work_phone|default:"—" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Workplace</span><p class="font-medium">{{ student.emergency_workplace|default:"—" }}</p></div>
+		</div>
+	</div>
+
+	<!-- Doctor & Restrictions -->
+	<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+		<div class="bg-white rounded-xl shadow overflow-hidden">
+			<div class="px-5 py-3 bg-gray-50 border-b font-semibold text-gray-700 text-sm uppercase tracking-wide">
+				Doctor / Child Care
+			</div>
+			<div class="p-5 grid grid-cols-1 gap-4 text-sm">
+				<div><span class="text-gray-400 block text-xs">Doctor</span><p class="font-medium">{{ student.doctor_name|default:"—" }}</p></div>
+				<div><span class="text-gray-400 block text-xs">Doctor Phone</span><p class="font-medium">{{ student.doctor_phone|default:"—" }}</p></div>
+			</div>
+		</div>
+		<div class="bg-white rounded-xl shadow overflow-hidden">
+			<div class="px-5 py-3 bg-gray-50 border-b font-semibold text-gray-700 text-sm uppercase tracking-wide">
+				Contact Restrictions
+			</div>
+			<div class="p-5 grid grid-cols-1 gap-4 text-sm">
+				<div><span class="text-gray-400 block text-xs">Restrict Contact With 1</span><p class="font-medium">{{ student.restrict_contact_1|default:"—" }}</p></div>
+				<div><span class="text-gray-400 block text-xs">Restrict Contact With 2</span><p class="font-medium">{{ student.restrict_contact_2|default:"—" }}</p></div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Birth Parents -->
+	<div class="bg-white rounded-xl shadow overflow-hidden">
+		<div class="px-5 py-3 bg-gray-50 border-b font-semibold text-gray-700 text-sm uppercase tracking-wide">
+			Legal / Birth Parents
+		</div>
+		<div class="p-5 grid grid-cols-2 gap-4 text-sm">
+			<div><span class="text-gray-400 block text-xs">Father Name</span><p class="font-medium">{{ student.father_name|default:"—" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Mother Name</span><p class="font-medium">{{ student.mother_name|default:"—" }}</p></div>
+		</div>
+	</div>
+
+	<!-- Guardians -->
+	<div class="bg-white rounded-xl shadow overflow-hidden">
+		<div class="px-5 py-4 border-b bg-gray-50 flex items-center justify-between">
+			<h2 class="font-semibold text-gray-700">Guardians</h2>
+			{% if is_admin %}
+			<a href="{% url 'students:guardian_add' student.pk %}"
+			class="text-xs text-blue-600 hover:underline">+ Add Guardian</a>
+			{% endif %}
+		</div>
+		{% if guardians %}
+		<table class="w-full text-sm">
+			<thead>
+				<tr class="text-gray-400 uppercase text-xs bg-gray-50">
+					<th class="text-left px-4 py-2">Name</th>
+					<th class="text-left px-4 py-2">Relationship</th>
+					<th class="text-left px-4 py-2">Phone</th>
+					<th class="text-left px-4 py-2">Primary</th>
+					<th class="text-left px-4 py-2">Can Pickup</th>
+				</tr>
+			</thead>
+			<tbody class="divide-y divide-gray-100">
+				{% for sg in guardians %}
+				<tr>
+					<td class="px-4 py-2 font-medium">{{ sg.guardian.get_full_name }}</td>
+					<td class="px-4 py-2 text-gray-600">{{ sg.get_relationship_display }}</td>
+					<td class="px-4 py-2 text-gray-600">{{ sg.guardian.phone|default:"—" }}</td>
+					<td class="px-4 py-2">{% if sg.is_primary %}<span class="bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full">Primary</span>{% endif %}</td>
+					<td class="px-4 py-2">{% if sg.can_pickup %}<span class="bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full">Yes</span>{% endif %}</td>
+				</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+		{% else %}
+		<p class="px-5 py-4 text-sm text-gray-400">No guardians added yet.</p>
+		{% endif %}
+	</div>
+
+	<!-- Status log -->
+	<div class="bg-white rounded-xl shadow overflow-hidden">
+		<div class="px-5 py-3 bg-gray-50 border-b font-semibold text-gray-700 text-sm uppercase tracking-wide">
+			Status History
+		</div>
+		<table class="w-full text-sm">
+			<thead>
+				<tr class="text-gray-400 uppercase text-xs bg-gray-50">
+					<th class="text-left px-4 py-2">Date</th>
+					<th class="text-left px-4 py-2">Status</th>
+					<th class="text-left px-4 py-2">Reason</th>
+					<th class="text-left px-4 py-2">By</th>
+				</tr>
+			</thead>
+			<tbody class="divide-y divide-gray-100">
+				{% for log in logs %}
+				<tr>
+					<td class="px-4 py-2">{{ log.change_date }}</td>
+					<td class="px-4 py-2">{{ log.get_status_display }}</td>
+					<td class="px-4 py-2 text-gray-500">{{ log.reason|default:"—" }}</td>
+					<td class="px-4 py-2 text-gray-500">{{ log.changed_by|default:"—" }}</td>
+				</tr>
+				{% empty %}
+				<tr><td colspan="4" class="px-4 py-4 text-center text-gray-400">No status history.</td></tr>
+				{% endfor %}
+			</tbody>
+		</table>
+	</div>
+
+	<!-- Notes -->
+	{% if student.notes %}
+	<div class="bg-white rounded-xl shadow p-5">
+		<h2 class="font-semibold text-gray-700 mb-2 text-sm uppercase tracking-wide">Notes</h2>
+		<p class="text-sm text-gray-600 whitespace-pre-line">{{ student.notes }}</p>
+	</div>
+	{% endif %}
+
+</div>
+{% endblock %}

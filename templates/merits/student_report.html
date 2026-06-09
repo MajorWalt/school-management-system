@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}Merits — {{ student.get_full_name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto space-y-6">
+
+	<div class="flex items-center justify-between">
+		<div>
+			<h1 class="text-2xl font-bold text-gray-800">{{ student.get_full_name }}</h1>
+			<p class="text-sm text-gray-500">Merit & Demerit Report</p>
+		</div>
+		<a href="{% url 'merits:list' %}"
+		   class="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 text-gray-600 hover:bg-gray-50 transition">
+			Back
+		</a>
+	</div>
+
+	<!-- Totals -->
+	<div class="grid grid-cols-2 gap-4">
+		<div class="bg-green-50 border border-green-200 rounded-xl p-5 text-center">
+			<p class="text-xs text-green-600 font-medium uppercase mb-1">Total Merit Points</p>
+			<p class="text-4xl font-bold text-green-700">+{{ merit_total }}</p>
+		</div>
+		<div class="bg-red-50 border border-red-200 rounded-xl p-5 text-center">
+			<p class="text-xs text-red-600 font-medium uppercase mb-1">Total Demerit Points</p>
+			<p class="text-4xl font-bold text-red-700">-{{ demerit_total }}</p>
+		</div>
+	</div>
+
+	<!-- Merit records -->
+	<div class="bg-white rounded-xl shadow overflow-hidden">
+		<div class="px-5 py-4 bg-green-50 border-b border-green-100">
+			<h2 class="font-semibold text-green-800">Merit Records</h2>
+		</div>
+		<table class="min-w-full text-sm">
+			<thead class="text-gray-400 uppercase text-xs bg-gray-50">
+				<tr>
+					<th class="px-4 py-2 text-left">Date</th>
+					<th class="px-4 py-2 text-left">Category</th>
+					<th class="px-4 py-2 text-left">Reason</th>
+					<th class="px-4 py-2 text-left">Awarded By</th>
+					<th class="px-4 py-2 text-right">Points</th>
+				</tr>
+			</thead>
+			<tbody class="divide-y divide-gray-100">
+				{% for merit in merits %}
+				<tr class="hover:bg-gray-50">
+					<td class="px-4 py-2 text-gray-500">{{ merit.date }}</td>
+					<td class="px-4 py-2 text-gray-600 text-xs">{{ merit.get_category_display }}</td>
+					<td class="px-4 py-2 text-gray-700">{{ merit.reason }}</td>
+					<td class="px-4 py-2 text-gray-500 text-xs">{{ merit.awarded_by|default:"—" }}</td>
+					<td class="px-4 py-2 text-right font-bold text-green-600">+{{ merit.points }}</td>
+				</tr>
+				{% empty %}
+				<tr>
+					<td colspan="5" class="px-4 py-6 text-center text-gray-400">No merit records.</td>
+				</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+	</div>
+
+	<!-- Demerit records -->
+	<div class="bg-white rounded-xl shadow overflow-hidden">
+		<div class="px-5 py-4 bg-red-50 border-b border-red-100">
+			<h2 class="font-semibold text-red-800">Demerit Records</h2>
+		</div>
+		<table class="min-w-full text-sm">
+			<thead class="text-gray-400 uppercase text-xs bg-gray-50">
+				<tr>
+					<th class="px-4 py-2 text-left">Date</th>
+					<th class="px-4 py-2 text-left">Category</th>
+					<th class="px-4 py-2 text-left">Reason</th>
+					<th class="px-4 py-2 text-left">Issued By</th>
+					<th class="px-4 py-2 text-right">Points</th>
+				</tr>
+			</thead>
+			<tbody class="divide-y divide-gray-100">
+				{% for demerit in demerits %}
+				<tr class="hover:bg-gray-50">
+					<td class="px-4 py-2 text-gray-500">{{ demerit.date }}</td>
+					<td class="px-4 py-2 text-gray-600 text-xs">{{ demerit.get_category_display }}</td>
+					<td class="px-4 py-2 text-gray-700">{{ demerit.reason }}</td>
+					<td class="px-4 py-2 text-gray-500 text-xs">{{ demerit.awarded_by|default:"—" }}</td>
+					<td class="px-4 py-2 text-right font-bold text-red-600">-{{ demerit.points }}</td>
+				</tr>
+				{% empty %}
+				<tr>
+					<td colspan="5" class="px-4 py-6 text-center text-gray-400">No demerit records.</td>
+				</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+	</div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Academic Years — {{ school.name }}{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+	<h1 class="text-2xl font-bold text-gray-800">Academic Years</h1>
+	<a href="{% url 'scheduling:year_add' %}"
+	   class="btn-primary px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition">
+		+ Add Year
+	</a>
+</div>
+
+{% for year in years %}
+<div class="bg-white rounded-xl shadow mb-6 overflow-hidden">
+
+	<!-- Year header -->
+	<div class="flex items-center justify-between px-5 py-4 border-b bg-gray-50">
+		<div class="flex items-center gap-3">
+			<h2 class="font-semibold text-gray-800 text-lg">{{ year.name }}</h2>
+			{% if year.is_current %}
+				<span class="bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full">Current</span>
+			{% endif %}
+		</div>
+		<a href="{% url 'scheduling:year_edit' year.pk %}"
+		   class="text-xs text-blue-600 hover:underline">Edit Year</a>
+	</div>
+
+	<div class="grid grid-cols-1 md:grid-cols-2 gap-0 divide-y md:divide-y-0 md:divide-x divide-gray-100">
+
+		<!-- Term configs -->
+		<div class="p-5">
+			<div class="flex items-center justify-between mb-3">
+				<h3 class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Terms</h3>
+				<a href="{% url 'scheduling:term_add' year.pk %}"
+				   class="text-xs text-blue-600 hover:underline">+ Add Term</a>
+			</div>
+			{% for term in year.term_configs.all %}
+			<div class="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
+				<div>
+					<p class="text-sm font-medium text-gray-700">{{ term.name }}</p>
+					<p class="text-xs text-gray-400">
+						{% if term.has_final_exam %}
+							Exam: {{ term.exam_weight }}% &bull; Coursework: {{ term.coursework_weight }}%
+						{% else %}
+							Coursework only (100%)
+						{% endif %}
+					</p>
+				</div>
+				<a href="{% url 'scheduling:term_edit' year.pk term.pk %}"
+				   class="text-xs text-blue-600 hover:underline">Edit</a>
+			</div>
+			{% empty %}
+			<p class="text-xs text-gray-400">No terms configured yet.</p>
+			{% endfor %}
+		</div>
+
+		<!-- Form term rules -->
+		<div class="p-5">
+			<div class="flex items-center justify-between mb-3">
+				<h3 class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Form Overrides</h3>
+				<a href="{% url 'scheduling:rule_add' year.pk %}"
+				   class="text-xs text-blue-600 hover:underline">+ Add Rule</a>
+			</div>
+			{% for rule in year.form_term_rules.all %}
+			<div class="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
+				<div>
+					<p class="text-sm font-medium text-gray-700">{{ rule.form }} — Term {{ rule.term_number }}</p>
+					<p class="text-xs text-gray-400">
+						{{ rule.exam_label }}
+						{% if rule.exam_replaces_final %}
+							<span class="text-yellow-600">(replaces final)</span>
+						{% endif %}
+					</p>
+				</div>
+				<a href="{% url 'scheduling:rule_edit' year.pk rule.pk %}"
+				   class="text-xs text-blue-600 hover:underline">Edit</a>
+			</div>
+			{% empty %}
+			<p class="text-xs text-gray-400">No overrides configured.</p>
+			{% endfor %}
+		</div>
+
+	</div>
+</div>
+{% empty %}
+<div class="bg-white rounded-xl shadow p-8 text-center text-gray-400">
+	No academic years yet. Add one to get started.
+</div>
+{% endfor %}
+{% endblock %}

@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% block title %}Attendance Report — {{ homeroom.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-6">
+
+	<div class="flex items-center justify-between">
+		<div>
+			<h1 class="text-2xl font-bold text-gray-800">
+				Attendance Report — Homeroom {{ homeroom.name }}
+			</h1>
+			<p class="text-sm text-gray-500">{{ homeroom.form }} &bull; Exceptions only</p>
+		</div>
+		<a href="{% url 'attendance:home' %}"
+		class="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 text-gray-600 hover:bg-gray-50 transition">
+			Back
+		</a>
+	</div>
+
+	<!-- Date range filter -->
+	<form method="get" class="bg-white rounded-xl shadow p-4 flex gap-3 items-end flex-wrap">
+		<div>
+			<label class="block text-xs font-medium text-gray-600 mb-1">From</label>
+			<input type="date" name="from" value="{{ from_date|default:'' }}"
+				class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+		</div>
+		<div>
+			<label class="block text-xs font-medium text-gray-600 mb-1">To</label>
+			<input type="date" name="to" value="{{ to_date|default:'' }}"
+				class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+		</div>
+		<button type="submit"
+				class="btn-primary px-4 py-2 rounded-lg text-sm font-medium">
+			Filter
+		</button>
+		<a href="{% url 'attendance:report' homeroom.pk %}"
+		class="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 text-gray-600 hover:bg-gray-50 transition">
+			Clear
+		</a>
+	</form>
+
+	<!-- Student summary -->
+	{% if student_summary %}
+	<div class="bg-white rounded-xl shadow overflow-hidden">
+		<div class="px-5 py-4 border-b bg-gray-50">
+			<h2 class="font-semibold text-gray-700">Student Summary</h2>
+		</div>
+		<table class="min-w-full text-sm">
+			<thead class="text-gray-400 uppercase text-xs bg-gray-50">
+				<tr>
+					<th class="px-4 py-3 text-left">Student</th>
+					<th class="px-4 py-3 text-right">Absences</th>
+					<th class="px-4 py-3 text-right">Lates</th>
+					<th class="px-4 py-3 text-right">Excused</th>
+					<th class="px-4 py-3 text-left">Actions</th>
+				</tr>
+			</thead>
+			<tbody class="divide-y divide-gray-100">
+				{% for row in student_summary %}
+				<tr class="hover:bg-gray-50">
+					<td class="px-4 py-3 font-medium text-gray-800">
+						<a href="{% url 'students:detail' row.student.pk %}" class="hover:underline">
+							{{ row.student.get_full_name }}
+						</a>
+					</td>
+					<td class="px-4 py-3 text-right">
+						<span class="{% if row.absences > 5 %}text-red-600 font-bold{% elif row.absences > 0 %}text-red-500{% else %}text-gray-400{% endif %}">
+							{{ row.absences }}
+						</span>
+					</td>
+					<td class="px-4 py-3 text-right">
+						<span class="{% if row.lates > 0 %}text-yellow-600{% else %}text-gray-400{% endif %}">
+							{{ row.lates }}
+						</span>
+					</td>
+					<td class="px-4 py-3 text-right">
+						<span class="{% if row.excused > 0 %}text-blue-600{% else %}text-gray-400{% endif %}">
+							{{ row.excused }}
+						</span>
+					</td>
+					<td class="px-4 py-3">
+						<a href="{% url 'merits:student_report' row.student.pk %}"
+						class="text-xs text-gray-500 hover:underline">
+							View merits
+						</a>
+					</td>
+				</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+	</div>
+	{% endif %}
+
+	<!-- Daily breakdown -->
+	{% for date, records in grouped %}
+	<div class="bg-white rounded-xl shadow overflow-hidden">
+		<div class="px-5 py-3 border-b bg-gray-50 flex items-center justify-between">
+			<span class="font-semibold text-gray-700">{{ date }}</span>
+			<span class="text-xs text-gray-400">{{ records|length }} exception{{ records|length|pluralize }}</span>
+		</div>
+		<table class="min-w-full text-sm">
+			<tbody class="divide-y divide-gray-100">
+				{% for record in records %}
+				<tr class="hover:bg-gray-50">
+					<td class="px-4 py-2 font-medium text-gray-800 w-1/3">
+						{{ record.student.get_full_name }}
+					</td>
+					<td class="px-4 py-2 w-1/4">
+						<span class="text-xs px-2 py-1 rounded-full
+							{% if record.status == 'absent' %}bg-red-100 text-red-700
+							{% elif record.status == 'late' %}bg-yellow-100 text-yellow-700
+							{% else %}bg-blue-100 text-blue-700{% endif %}">
+							{{ record.get_status_display }}
+						</span>
+					</td>
+					<td class="px-4 py-2 text-gray-500 text-xs">{{ record.note|default:"" }}</td>
+				</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+	</div>
+	{% empty %}
+	<div class="bg-white rounded-xl shadow p-8 text-center text-gray-400">
+		No exceptions recorded{% if from_date or to_date %} for this date range{% endif %}.
+	</div>
+	{% endfor %}
+
+</div>
+{% endblock %}

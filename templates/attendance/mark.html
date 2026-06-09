@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% block title %}Attendance — {{ homeroom.name }} — {{ date }}{% endblock %}
+
+{% block content %}
+<div class="space-y-4">
+
+	<div class="flex items-center justify-between">
+		<div>
+			<p class="text-sm text-gray-500">
+				Homeroom {{ homeroom.name }} &bull; {{ homeroom.form }} &bull; {{ date }}
+			</p>
+			<h1 class="text-2xl font-bold text-gray-800">Mark Attendance</h1>
+		</div>
+		<a href="{% url 'attendance:home' %}"
+		class="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 text-gray-600 hover:bg-gray-50 transition">
+			Cancel
+		</a>
+	</div>
+
+	<!-- Info bar -->
+	<div class="bg-blue-50 border border-blue-200 rounded-xl px-5 py-3 text-sm text-blue-700 flex items-center gap-2">
+		<span>All students are <strong>Present</strong> by default. Only mark exceptions.</span>
+		{% if exception_count > 0 %}
+		<span class="ml-auto bg-yellow-100 text-yellow-700 text-xs px-2 py-1 rounded-full font-medium">
+			{{ exception_count }} exception{{ exception_count|pluralize }}
+		</span>
+		{% endif %}
+	</div>
+
+	<form method="post" novalidate>
+		{% csrf_token %}
+		<div class="bg-white rounded-xl shadow overflow-hidden">
+			<table class="min-w-full text-sm">
+				<thead class="bg-gray-50 text-gray-500 uppercase text-xs tracking-wide">
+					<tr>
+						<th class="px-4 py-3 text-left">Student</th>
+						<th class="px-4 py-3 text-left">ID</th>
+						<th class="px-4 py-3 text-left w-40">Status</th>
+						<th class="px-4 py-3 text-left">Note</th>
+					</tr>
+				</thead>
+				<tbody class="divide-y divide-gray-100">
+					{% for row in rows %}
+					<tr class="hover:bg-gray-50 transition
+							{% if row.status == 'absent' %}bg-red-50
+							{% elif row.status == 'late' %}bg-yellow-50
+							{% elif row.status == 'excused' %}bg-blue-50{% endif %}"
+						id="row_{{ row.student.pk }}">
+						<td class="px-4 py-2 font-medium text-gray-800">
+							{{ row.student.get_full_name }}
+						</td>
+						<td class="px-4 py-2 font-mono text-gray-400 text-xs">
+							{{ row.student.student_id }}
+						</td>
+						<td class="px-4 py-2">
+							<select name="status_{{ row.student.pk }}"
+									onchange="highlightRow(this, {{ row.student.pk }})"
+									class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm
+										focus:outline-none focus:ring-2 focus:ring-blue-500">
+								<option value="present" {% if row.status == 'present' %}selected{% endif %}>
+									Present
+								</option>
+								<option value="absent" {% if row.status == 'absent' %}selected{% endif %}>
+									Absent
+								</option>
+								<option value="late" {% if row.status == 'late' %}selected{% endif %}>
+									Late
+								</option>
+								<option value="excused" {% if row.status == 'excused' %}selected{% endif %}>
+									Excused
+								</option>
+							</select>
+						</td>
+						<td class="px-4 py-2">
+							<input type="text"
+								name="note_{{ row.student.pk }}"
+								value="{{ row.note }}"
+								placeholder="Optional note"
+								class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm
+										focus:outline-none focus:ring-2 focus:ring-blue-500" />
+						</td>
+					</tr>
+					{% empty %}
+					<tr>
+						<td colspan="4" class="px-4 py-8 text-center text-gray-400">
+							No enrolled students in this homeroom.
+						</td>
+					</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>
+
+		{% if rows %}
+		<div class="flex gap-3 mt-4">
+			<button type="submit"
+					class="btn-primary px-6 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition">
+				Save Attendance
+			</button>
+			<a href="{% url 'attendance:home' %}"
+			class="px-5 py-2 rounded-lg text-sm font-medium border border-gray-300 text-gray-600 hover:bg-gray-50 transition">
+				Cancel
+			</a>
+		</div>
+		{% endif %}
+	</form>
+
+</div>
+
+<script>
+function highlightRow(select, studentPk) {
+	const row = document.getElementById('row_' + studentPk);
+	row.classList.remove('bg-red-50', 'bg-yellow-50', 'bg-blue-50', 'hover:bg-gray-50');
+	if (select.value === 'absent') {
+		row.classList.add('bg-red-50');
+	} else if (select.value === 'late') {
+		row.classList.add('bg-yellow-50');
+	} else if (select.value === 'excused') {
+		row.classList.add('bg-blue-50');
+	} else {
+		row.classList.add('hover:bg-gray-50');
+	}
+}
+</script>
+
+{% endblock %}

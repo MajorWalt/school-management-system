@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% block title %}My Portal — {{ school.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto space-y-6">
+
+	<div>
+		<h1 class="text-2xl font-bold text-gray-800">
+			Welcome, {{ student.get_full_name }}
+		</h1>
+		<p class="text-sm text-gray-500">
+			{{ today|date:"l, d F Y" }}
+			{% if student.form %}&bull; {{ student.form }}{% endif %}
+			{% if student.homeroom %}&bull; {{ student.homeroom }}{% endif %}
+		</p>
+	</div>
+
+	<!-- Attendance summary -->
+	<div class="bg-white rounded-xl shadow p-6">
+		<h2 class="font-semibold text-gray-700 mb-4">Attendance</h2>
+		<div class="flex items-center gap-6">
+			<div class="text-center">
+				<p class="text-3xl font-bold
+					{% if attendance_pct >= 90 %}text-green-600
+					{% elif attendance_pct >= 75 %}text-yellow-600
+					{% else %}text-red-600{% endif %}">
+					{{ attendance_pct }}%
+				</p>
+				<p class="text-xs text-gray-400 mt-1">Attendance Rate</p>
+			</div>
+			<div class="flex-1 bg-gray-100 rounded-full h-3">
+				<div class="h-3 rounded-full
+					{% if attendance_pct >= 90 %}bg-green-500
+					{% elif attendance_pct >= 75 %}bg-yellow-500
+					{% else %}bg-red-500{% endif %}"
+					style="width: {{ attendance_pct }}%">
+				</div>
+			</div>
+			<div class="text-center">
+				<p class="text-lg font-bold text-red-600">{{ absent_records }}</p>
+				<p class="text-xs text-gray-400">Absences</p>
+			</div>
+		</div>
+
+		<!-- Recent attendance -->
+		{% if recent_attendance %}
+		<table class="mt-4 w-full text-xs text-gray-600">
+			<thead>
+				<tr class="text-gray-400 uppercase">
+					<th class="text-left py-1">Date</th>
+					<th class="text-left py-1">Course</th>
+					<th class="text-left py-1">Status</th>
+				</tr>
+			</thead>
+			<tbody class="divide-y divide-gray-100">
+				{% for record in recent_attendance %}
+				<tr>
+					<td class="py-1">{{ record.date }}</td>
+					<td class="py-1">{{ record.section.course.name }}</td>
+					<td class="py-1">
+						<span class="px-2 py-0.5 rounded-full text-xs
+							{% if record.status == 'present' %}bg-green-100 text-green-700
+							{% elif record.status == 'absent' %}bg-red-100 text-red-700
+							{% elif record.status == 'late' %}bg-yellow-100 text-yellow-700
+							{% else %}bg-blue-100 text-blue-700{% endif %}">
+							{{ record.get_status_display }}
+						</span>
+					</td>
+				</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+		{% endif %}
+	</div>
+
+	<!-- Merits & Demerits -->
+	<div class="grid grid-cols-2 gap-4">
+		<div class="bg-green-50 border border-green-200 rounded-xl p-5 text-center">
+			<p class="text-xs text-green-600 font-medium uppercase mb-1">Merit Points</p>
+			<p class="text-3xl font-bold text-green-700">+{{ merit_total }}</p>
+			<a href="{% url 'merits:student_report' student.pk %}"
+			   class="text-xs text-green-600 hover:underline mt-2 block">View details</a>
+		</div>
+		<div class="bg-red-50 border border-red-200 rounded-xl p-5 text-center">
+			<p class="text-xs text-red-600 font-medium uppercase mb-1">Demerit Points</p>
+			<p class="text-3xl font-bold text-red-700">-{{ demerit_total }}</p>
+			<a href="{% url 'merits:student_report' student.pk %}"
+			   class="text-xs text-red-600 hover:underline mt-2 block">View details</a>
+		</div>
+	</div>
+
+	<!-- Report cards -->
+	<div class="bg-white rounded-xl shadow p-6">
+		<h2 class="font-semibold text-gray-700 mb-4">Report Cards</h2>
+
+		{% if not can_see_grades %}
+		<div class="bg-yellow-50 border border-yellow-200 rounded-lg px-4 py-3 text-sm text-yellow-700">
+			Grades are currently locked. Please contact the school office.
+		</div>
+		{% elif report_cards %}
+		<table class="w-full text-sm">
+			<thead>
+				<tr class="text-gray-400 uppercase text-xs">
+					<th class="text-left py-1">Year</th>
+					<th class="text-left py-1">Term</th>
+					<th class="text-right py-1">GPA</th>
+					<th class="text-left py-1"></th>
+				</tr>
+			</thead>
+			<tbody class="divide-y divide-gray-100">
+				{% for rc in report_cards %}
+				<tr>
+					<td class="py-2 text-gray-600">{{ rc.academic_year.name }}</td>
+					<td class="py-2 text-gray-600">Term {{ rc.term_number }}</td>
+					<td class="py-2 text-right font-bold
+						{% if rc.gpa >= 70 %}text-green-600
+						{% elif rc.gpa >= 50 %}text-yellow-600
+						{% else %}text-red-600{% endif %}">
+						{{ rc.gpa }}%
+					</td>
+					<td class="py-2">
+						<a href="{% url 'grades:report_card_detail' rc.pk %}"
+						   class="text-xs text-blue-600 hover:underline">View</a>
+					</td>
+				</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+		{% else %}
+		<p class="text-sm text-gray-400">No published report cards yet.</p>
+		{% endif %}
+	</div>
+
+</div>
+{% endblock %}

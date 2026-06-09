@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block title %}Grades — {{ enrolment.student.get_full_name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto space-y-6">
+
+	<div class="flex items-center justify-between">
+		<div>
+			<p class="text-sm text-gray-500">
+				{{ enrolment.section.course.name }} —
+				{{ enrolment.section.form }} —
+				Term {{ enrolment.section.term_number }}
+			</p>
+			<h1 class="text-2xl font-bold text-gray-800">{{ enrolment.student.get_full_name }}</h1>
+		</div>
+		<a href="{% url 'grades:section_overview' enrolment.section.pk %}"
+		   class="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 text-gray-600 hover:bg-gray-50 transition">
+			Back
+		</a>
+	</div>
+
+	<!-- Term summary -->
+	{% if result %}
+	<div class="bg-white rounded-xl shadow p-5 grid grid-cols-3 gap-4 text-center">
+		<div>
+			<p class="text-xs text-gray-400 mb-1">Coursework ({{ result.cw_weight }}%)</p>
+			<p class="text-2xl font-bold text-gray-800">{{ result.coursework_avg }}%</p>
+		</div>
+		<div>
+			<p class="text-xs text-gray-400 mb-1">
+				{{ result.exam_label }} ({{ result.exam_weight }}%)
+			</p>
+			<p class="text-2xl font-bold text-gray-800">
+				{% if result.has_exam %}{{ result.exam_mark }}%{% else %}—{% endif %}
+			</p>
+		</div>
+		<div>
+			<p class="text-xs text-gray-400 mb-1">Term Grade</p>
+			<p class="text-2xl font-bold
+				{% if result.term_grade >= 70 %}text-green-600
+				{% elif result.term_grade >= 50 %}text-yellow-600
+				{% else %}text-red-600{% endif %}">
+				{{ result.term_grade }}%
+			</p>
+		</div>
+	</div>
+	{% endif %}
+
+	<!-- Grade entries table -->
+	<div class="bg-white rounded-xl shadow overflow-hidden">
+		<div class="px-5 py-4 border-b bg-gray-50 font-semibold text-gray-700">
+			Grade Entries
+		</div>
+		<table class="min-w-full text-sm">
+			<thead class="text-gray-400 uppercase text-xs">
+				<tr>
+					<th class="px-4 py-2 text-left">Title</th>
+					<th class="px-4 py-2 text-left">Category</th>
+					<th class="px-4 py-2 text-right">Marks</th>
+					<th class="px-4 py-2 text-right">%</th>
+					<th class="px-4 py-2 text-center">Final Exam</th>
+					<th class="px-4 py-2 text-left">Actions</th>
+				</tr>
+			</thead>
+			<tbody class="divide-y divide-gray-100">
+				{% for entry in entries %}
+				<tr class="hover:bg-gray-50">
+					<td class="px-4 py-2 font-medium text-gray-800">{{ entry.title }}</td>
+					<td class="px-4 py-2 text-gray-500">{{ entry.get_category_display }}</td>
+					<td class="px-4 py-2 text-right text-gray-700">
+						{{ entry.marks_earned }} / {{ entry.max_marks }}
+					</td>
+					<td class="px-4 py-2 text-right font-medium
+						{% if entry.percentage >= 70 %}text-green-600
+						{% elif entry.percentage >= 50 %}text-yellow-600
+						{% else %}text-red-600{% endif %}">
+						{{ entry.percentage }}%
+					</td>
+					<td class="px-4 py-2 text-center">
+						{% if entry.is_final_exam %}
+							<span class="bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full">Yes</span>
+						{% endif %}
+					</td>
+					<td class="px-4 py-2">
+						<a href="{% url 'grades:entry_delete' entry.pk %}"
+						   class="text-red-500 hover:underline text-xs"
+						   onclick="return confirm('Delete this entry?')">
+							Delete
+						</a>
+					</td>
+				</tr>
+				{% empty %}
+				<tr>
+					<td colspan="6" class="px-4 py-6 text-center text-gray-400">No entries yet.</td>
+				</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+	</div>
+
+	<!-- Add grade entry form -->
+	<div class="bg-white rounded-xl shadow p-6">
+		<h2 class="font-semibold text-gray-700 mb-4">Add Grade Entry</h2>
+		<form method="post" novalidate>
+			{% csrf_token %}
+			<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+				{% for field in form %}
+				<div class="{% if field.name == 'note' %}col-span-2{% endif %}">
+					<label class="block text-xs font-medium text-gray-600 mb-1">
+						{{ field.label }}
+						{% if field.field.required %}<span class="text-red-500">*</span>{% endif %}
+					</label>
+					{{ field }}
+					{% if field.errors %}
+						<p class="text-red-500 text-xs mt-1">{{ field.errors.0 }}</p>
+					{% endif %}
+				</div>
+				{% endfor %}
+			</div>
+			<div class="mt-4">
+				<button type="submit"
+						class="btn-primary px-5 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition">
+					Save Entry
+				</button>
+			</div>
+		</form>
+	</div>
+
+</div>
+{% endblock %}

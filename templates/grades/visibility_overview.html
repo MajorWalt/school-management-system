@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}Grade Visibility — {{ school.name }}{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+	<h1 class="text-2xl font-bold text-gray-800">Grade Visibility</h1>
+</div>
+
+<!-- School-wide rule -->
+<div class="bg-white rounded-xl shadow p-6 mb-6">
+	<div class="flex items-center justify-between mb-2">
+		<h2 class="font-semibold text-gray-700">School-wide Default</h2>
+		<a href="{% url 'grades:visibility_school' %}"
+		   class="text-xs text-blue-600 hover:underline">Edit</a>
+	</div>
+	{% if school_rule %}
+		<span class="text-sm px-3 py-1 rounded-full
+			{% if school_rule.is_visible %}bg-green-100 text-green-700{% else %}bg-red-100 text-red-700{% endif %}">
+			Grades {% if school_rule.is_visible %}Visible{% else %}Hidden{% endif %} for all students
+		</span>
+		{% if school_rule.reason %}
+			<p class="text-xs text-gray-400 mt-2">{{ school_rule.reason }}</p>
+		{% endif %}
+	{% else %}
+		<span class="text-sm text-gray-400">No school-wide rule set — grades hidden by default.</span>
+		<a href="{% url 'grades:visibility_school' %}" class="ml-3 text-xs text-blue-600 hover:underline">Set Rule</a>
+	{% endif %}
+</div>
+
+<!-- Per-student overrides -->
+<div class="bg-white rounded-xl shadow overflow-hidden">
+	<div class="px-5 py-4 border-b bg-gray-50 flex items-center justify-between">
+		<h2 class="font-semibold text-gray-700">Per-student Overrides</h2>
+	</div>
+	<table class="min-w-full text-sm">
+		<thead class="text-gray-400 uppercase text-xs bg-gray-50">
+			<tr>
+				<th class="px-4 py-3 text-left">Student</th>
+				<th class="px-4 py-3 text-left">Visibility</th>
+				<th class="px-4 py-3 text-left">Reason</th>
+				<th class="px-4 py-3 text-left">Last Updated</th>
+				<th class="px-4 py-3 text-left">Actions</th>
+			</tr>
+		</thead>
+		<tbody class="divide-y divide-gray-100">
+			{% for rule in student_rules %}
+			<tr class="hover:bg-gray-50">
+				<td class="px-4 py-3 font-medium text-gray-800">{{ rule.student.get_full_name }}</td>
+				<td class="px-4 py-3">
+					<span class="text-xs px-2 py-1 rounded-full
+						{% if rule.is_visible %}bg-green-100 text-green-700{% else %}bg-red-100 text-red-700{% endif %}">
+						{% if rule.is_visible %}Visible{% else %}Hidden{% endif %}
+					</span>
+				</td>
+				<td class="px-4 py-3 text-gray-500 text-xs">{{ rule.reason|default:"—" }}</td>
+				<td class="px-4 py-3 text-gray-400 text-xs">{{ rule.updated_at|date:"d M Y" }}</td>
+				<td class="px-4 py-3">
+					<a href="{% url 'grades:visibility_student' rule.student.pk %}"
+					   class="text-blue-600 hover:underline text-xs">Edit</a>
+				</td>
+			</tr>
+			{% empty %}
+			<tr>
+				<td colspan="5" class="px-4 py-6 text-center text-gray-400 text-sm">
+					No per-student overrides set.
+				</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+
+	<!-- Quick add override for any student -->
+	<div class="px-5 py-4 border-t bg-gray-50">
+		<p class="text-xs text-gray-500 mb-2">Set override for a student:</p>
+		<div class="flex flex-wrap gap-2">
+			{% for student in students %}
+			<a href="{% url 'grades:visibility_student' student.pk %}"
+			   class="text-xs px-3 py-1 rounded-full border border-gray-300 text-gray-600 hover:bg-white transition">
+				{{ student.get_full_name }}
+			</a>
+			{% endfor %}
+		</div>
+	</div>
+</div>
+{% endblock %}

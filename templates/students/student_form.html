@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} — {{ school.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-6">
+	<div class="flex items-center justify-between">
+		<h1 class="text-2xl font-bold text-gray-800">{{ title }}</h1>
+		<a href="{% url 'students:list' %}"
+		class="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 text-gray-600 hover:bg-gray-50 transition">
+			Cancel
+		</a>
+	</div>
+
+	<form method="post" enctype="multipart/form-data" novalidate>
+		{% csrf_token %}
+
+		{% include "students/_form_section.html" with title="Core Identity" fields="student_id first_name middle_name last_name gender date_of_birth nationality religion house photo" %}
+		{% include "students/_form_section.html" with title="Contact & Address" fields="phone email address city parish community" %}
+		{% include "students/_form_section.html" with title="Academic Placement" fields="form homeroom admission_date previous_school emis_id csec_candidate_no cohort_grade cohort_year repeated sponsor grad_date" %}
+		{% include "students/_form_section.html" with title="GSNA" fields="gsna_year gsna_award gsna_english gsna_mathematics gsna_science gsna_social_studies" %}
+		{% include "students/_form_section.html" with title="Legal / Birth Parents" fields="father_name mother_name lives_with" %}
+		{% include "students/_form_section.html" with title="Emergency Contact" fields="emergency_contact_name emergency_relation emergency_phone_1 emergency_phone_2 emergency_work_phone emergency_workplace" %}
+		{% include "students/_form_section.html" with title="Doctor / Child Care" fields="doctor_name doctor_phone" %}
+		{% include "students/_form_section.html" with title="Contact Restrictions" fields="restrict_contact_1 restrict_contact_2" %}
+		{% include "students/_form_section.html" with title="Notes" fields="notes" %}
+
+		<div class="flex gap-3 pb-6">
+			<button type="submit"
+					class="btn-primary px-6 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition">
+				Save Record
+			</button>
+			<a href="{% url 'students:list' %}"
+			class="px-6 py-2 rounded-lg text-sm font-medium border border-gray-300 text-gray-600 hover:bg-gray-50 transition">
+				Cancel
+			</a>
+		</div>
+	</form>
+</div>
+{% endblock %}

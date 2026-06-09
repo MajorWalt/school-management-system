@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Select Homeroom — {{ date }}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto space-y-6">
+
+	<div class="flex items-center justify-between">
+		<div>
+			<p class="text-sm text-gray-500">Marking attendance for</p>
+			<h1 class="text-2xl font-bold text-gray-800">{{ date }}</h1>
+		</div>
+		<a href="{% url 'attendance:home' %}"
+		   class="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 text-gray-600 hover:bg-gray-50 transition">
+			Back
+		</a>
+	</div>
+
+	<div class="bg-white rounded-xl shadow overflow-hidden">
+		<div class="px-5 py-4 border-b bg-gray-50">
+			<h2 class="font-semibold text-gray-700">Select Homeroom</h2>
+		</div>
+		<div class="divide-y divide-gray-100">
+			{% for row in homeroom_status %}
+			<a href="{% url 'attendance:mark' date=date|date:'Y-m-d' homeroom_pk=row.homeroom.pk %}"
+			   class="flex items-center justify-between px-5 py-4 hover:bg-gray-50 transition">
+				<div>
+					<p class="font-medium text-gray-800">{{ row.homeroom.name }}</p>
+					<p class="text-xs text-gray-400">{{ row.homeroom.form }}</p>
+				</div>
+				<div class="flex items-center gap-3">
+					{% if row.marked %}
+					<span class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full">
+						Marked
+					</span>
+					{% else %}
+					<span class="bg-yellow-100 text-yellow-700 text-xs px-2 py-1 rounded-full">
+						Not marked
+					</span>
+					{% endif %}
+					<span class="text-blue-600 text-sm">→</span>
+				</div>
+			</a>
+			{% empty %}
+			<div class="px-5 py-8 text-center text-gray-400">
+				No homerooms assigned to you.
+			</div>
+			{% endfor %}
+		</div>
+	</div>
+
+</div>
+{% endblock %}

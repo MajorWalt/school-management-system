@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block title %}Database Backups — {{ school.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto space-y-6">
+
+	<div class="flex items-center justify-between">
+		<div>
+			<h1 class="text-2xl font-bold text-gray-800">Database Backups</h1>
+			<p class="text-sm text-gray-500">{{ school.name }}</p>
+		</div>
+
+		<!-- Trigger backup -->
+		<form method="post" action="{% url 'backups:run' %}">
+			{% csrf_token %}
+			<button type="submit"
+					onclick="return confirm('Run a new backup now?')"
+					class="btn-primary px-5 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition">
+				Run Backup Now
+			</button>
+		</form>
+	</div>
+
+	<!-- Info box -->
+	<div class="bg-blue-50 border border-blue-200 rounded-xl px-5 py-4 text-sm text-blue-700">
+		Backups are compressed <code class="bg-blue-100 px-1 rounded">.sql.gz</code> files stored on the server.
+		Download and store them safely. Old backups can be deleted to free up space.
+	</div>
+
+	<!-- Backup log table -->
+	<div class="bg-white rounded-xl shadow overflow-hidden">
+		<table class="min-w-full text-sm">
+			<thead class="bg-gray-50 text-gray-500 uppercase text-xs tracking-wide">
+				<tr>
+					<th class="px-4 py-3 text-left">Filename</th>
+					<th class="px-4 py-3 text-left">Status</th>
+					<th class="px-4 py-3 text-right">Size</th>
+					<th class="px-4 py-3 text-left">Triggered By</th>
+					<th class="px-4 py-3 text-left">Date</th>
+					<th class="px-4 py-3 text-left">Actions</th>
+				</tr>
+			</thead>
+			<tbody class="divide-y divide-gray-100">
+				{% for log in logs %}
+				<tr class="hover:bg-gray-50 transition">
+					<td class="px-4 py-3 font-mono text-xs text-gray-700">
+						{{ log.filename|default:"—" }}
+					</td>
+					<td class="px-4 py-3">
+						{% if log.status == "success" %}
+							<span class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full">
+								Success
+							</span>
+						{% else %}
+							<span class="bg-red-100 text-red-700 text-xs px-2 py-1 rounded-full">
+								Failed
+							</span>
+						{% endif %}
+					</td>
+					<td class="px-4 py-3 text-right text-gray-600 text-xs">
+						{{ log.file_size_display }}
+					</td>
+					<td class="px-4 py-3 text-gray-600">
+						{{ log.triggered_by|default:"—" }}
+					</td>
+					<td class="px-4 py-3 text-gray-400 text-xs">
+						{{ log.created_at|date:"d M Y H:i" }}
+					</td>
+					<td class="px-4 py-3 flex gap-3">
+						{% if log.status == "success" %}
+						<a href="{% url 'backups:download' log.pk %}"
+						   class="text-blue-600 hover:underline text-xs font-medium">
+							Download
+						</a>
+						{% endif %}
+						<a href="{% url 'backups:delete' log.pk %}"
+						   class="text-red-500 hover:underline text-xs"
+						   onclick="return confirm('Delete this backup file?')">
+							Delete
+						</a>
+					</td>
+				</tr>
+				{% if log.status == "failed" and log.error_message %}
+				<tr class="bg-red-50">
+					<td colspan="6" class="px-4 py-2 text-xs text-red-600 font-mono">
+						Error: {{ log.error_message }}
+					</td>
+				</tr>
+				{% endif %}
+				{% empty %}
+				<tr>
+					<td colspan="6" class="px-4 py-8 text-center text-gray-400">
+						No backups yet. Run your first backup above.
+					</td>
+				</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+	</div>
+
+</div>
+{% endblock %}

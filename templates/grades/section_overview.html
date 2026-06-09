@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Grades — {{ section }}{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+	<div>
+		<p class="text-sm text-gray-500">{{ section.academic_year.name }} — Term {{ section.term_number }}</p>
+		<h1 class="text-2xl font-bold text-gray-800">{{ section.course.name }} — {{ section.form }}</h1>
+	</div>
+	<div class="flex gap-2">
+		<a href="{% url 'grades:report_card_generate' section.pk %}"
+		   class="btn-primary px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition"
+		   onclick="return confirm('Generate report cards for this section?')">
+			Generate Report Cards
+		</a>
+		<a href="{% url 'grades:section_select' %}"
+		   class="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 text-gray-600 hover:bg-gray-50 transition">
+			Back
+		</a>
+	</div>
+</div>
+
+<div class="bg-white rounded-xl shadow overflow-hidden">
+	<table class="min-w-full text-sm">
+		<thead class="bg-gray-50 text-gray-500 uppercase text-xs tracking-wide">
+			<tr>
+				<th class="px-4 py-3 text-left">Student</th>
+				<th class="px-4 py-3 text-right">Coursework</th>
+				<th class="px-4 py-3 text-right">Exam</th>
+				<th class="px-4 py-3 text-right">Term Grade</th>
+				<th class="px-4 py-3 text-left">Actions</th>
+			</tr>
+		</thead>
+		<tbody class="divide-y divide-gray-100">
+			{% for row in rows %}
+			<tr class="hover:bg-gray-50 transition">
+				<td class="px-4 py-3 font-medium text-gray-800">
+					{{ row.student.get_full_name }}
+				</td>
+				{% if row.result %}
+				<td class="px-4 py-3 text-right text-gray-600">{{ row.result.coursework_avg }}%</td>
+				<td class="px-4 py-3 text-right text-gray-600">
+					{% if row.result.has_exam %}{{ row.result.exam_mark }}%{% else %}—{% endif %}
+				</td>
+				<td class="px-4 py-3 text-right">
+					<span class="font-semibold
+						{% if row.result.term_grade >= 70 %}text-green-600
+						{% elif row.result.term_grade >= 50 %}text-yellow-600
+						{% else %}text-red-600{% endif %}">
+						{{ row.result.term_grade }}%
+					</span>
+				</td>
+				{% else %}
+				<td colspan="3" class="px-4 py-3 text-center text-gray-400 text-xs">No term config</td>
+				{% endif %}
+				<td class="px-4 py-3">
+					<a href="{% url 'grades:enrolment_detail' row.enrolment.pk %}"
+					   class="text-blue-600 hover:underline text-xs">
+						Enter Grades
+					</a>
+				</td>
+			</tr>
+			{% empty %}
+			<tr>
+				<td colspan="5" class="px-4 py-8 text-center text-gray-400">No students enrolled.</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+</div>
+{% endblock %}

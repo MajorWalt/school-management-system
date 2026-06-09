@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}Report Cards — {{ school.name }}{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+	<h1 class="text-2xl font-bold text-gray-800">Report Cards</h1>
+	<a href="{% url 'grades:visibility' %}"
+	   class="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 text-gray-600 hover:bg-gray-50 transition">
+		Visibility Settings
+	</a>
+</div>
+
+<!-- Filters -->
+<form method="get" class="flex gap-3 mb-4 flex-wrap">
+	<select name="year" class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+		<option value="">All Years</option>
+		{% for year in years %}
+		<option value="{{ year.pk }}" {% if selected_year == year.pk|stringformat:"s" %}selected{% endif %}>
+			{{ year.name }}
+		</option>
+		{% endfor %}
+	</select>
+	<select name="term" class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+		<option value="">All Terms</option>
+		<option value="1" {% if selected_term == "1" %}selected{% endif %}>Term 1</option>
+		<option value="2" {% if selected_term == "2" %}selected{% endif %}>Term 2</option>
+		<option value="3" {% if selected_term == "3" %}selected{% endif %}>Term 3</option>
+	</select>
+	<button type="submit" class="btn-primary px-4 py-2 rounded-lg text-sm font-medium">Filter</button>
+</form>
+
+<div class="bg-white rounded-xl shadow overflow-hidden">
+	<table class="min-w-full text-sm">
+		<thead class="bg-gray-50 text-gray-500 uppercase text-xs tracking-wide">
+			<tr>
+				<th class="px-4 py-3 text-left">Student</th>
+				<th class="px-4 py-3 text-left">Year</th>
+				<th class="px-4 py-3 text-left">Term</th>
+				<th class="px-4 py-3 text-right">GPA</th>
+				<th class="px-4 py-3 text-left">Status</th>
+				<th class="px-4 py-3 text-left">Actions</th>
+			</tr>
+		</thead>
+		<tbody class="divide-y divide-gray-100">
+			{% for rc in report_cards %}
+			<tr class="hover:bg-gray-50 transition">
+				<td class="px-4 py-3 font-medium text-gray-800">{{ rc.student.get_full_name }}</td>
+				<td class="px-4 py-3 text-gray-600">{{ rc.academic_year.name }}</td>
+				<td class="px-4 py-3 text-gray-600">Term {{ rc.term_number }}</td>
+				<td class="px-4 py-3 text-right font-semibold
+					{% if rc.gpa >= 70 %}text-green-600
+					{% elif rc.gpa >= 50 %}text-yellow-600
+					{% else %}text-red-600{% endif %}">
+					{{ rc.gpa|default:"—" }}%
+				</td>
+				<td class="px-4 py-3">
+					{% if rc.status == "published" %}
+						<span class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full">Published</span>
+					{% else %}
+						<span class="bg-yellow-100 text-yellow-700 text-xs px-2 py-1 rounded-full">Draft</span>
+					{% endif %}
+				</td>
+				<td class="px-4 py-3 flex gap-2">
+					<a href="{% url 'grades:report_card_detail' rc.pk %}"
+					   class="text-blue-600 hover:underline text-xs">View</a>
+					{% if rc.status == "draft" %}
+					<a href="{% url 'grades:report_card_publish' rc.pk %}"
+					   class="text-green-600 hover:underline text-xs"
+					   onclick="return confirm('Publish this report card?')">
+						Publish
+					</a>
+					{% endif %}
+				</td>
+			</tr>
+			{% empty %}
+			<tr>
+				<td colspan="6" class="px-4 py-8 text-center text-gray-400">
+					No report cards yet. Generate them from the Grades section.
+				</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+</div>
+{% endblock %}

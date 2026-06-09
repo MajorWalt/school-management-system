@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}Report Card — {{ rc.student.get_full_name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto space-y-6">
+
+	<div class="flex items-center justify-between">
+		<div>
+			<h1 class="text-2xl font-bold text-gray-800">{{ rc.student.get_full_name }}</h1>
+			<p class="text-sm text-gray-500">
+				{{ rc.academic_year.name }} — Term {{ rc.term_number }}
+				&bull;
+				{% if rc.status == "published" %}
+					<span class="text-green-600 font-medium">Published</span>
+				{% else %}
+					<span class="text-yellow-600 font-medium">Draft</span>
+				{% endif %}
+			</p>
+		</div>
+		<div class="flex gap-2">
+			{% if rc.status == "draft" %}
+			<a href="{% url 'grades:report_card_publish' rc.pk %}"
+			   class="btn-primary px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition"
+			   onclick="return confirm('Publish this report card?')">
+				Publish
+			</a>
+			{% endif %}
+			<a href="{% url 'grades:report_card_list' %}"
+			   class="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 text-gray-600 hover:bg-gray-50 transition">
+				Back
+			</a>
+		</div>
+	</div>
+
+	<!-- Courses -->
+	<div class="bg-white rounded-xl shadow overflow-hidden">
+		<table class="min-w-full text-sm">
+			<thead class="bg-gray-50 text-gray-500 uppercase text-xs tracking-wide">
+				<tr>
+					<th class="px-4 py-3 text-left">Course</th>
+					<th class="px-4 py-3 text-right">Coursework</th>
+					<th class="px-4 py-3 text-right">Exam</th>
+					<th class="px-4 py-3 text-right">Term Grade</th>
+				</tr>
+			</thead>
+			<tbody class="divide-y divide-gray-100">
+				{% for row in rows %}
+				<tr class="hover:bg-gray-50">
+					<td class="px-4 py-3 font-medium text-gray-800">{{ row.course.name }}</td>
+					{% if row.result %}
+					<td class="px-4 py-3 text-right text-gray-600">{{ row.result.coursework_avg }}%</td>
+					<td class="px-4 py-3 text-right text-gray-600">
+						{% if row.result.has_exam %}{{ row.result.exam_mark }}%{% else %}—{% endif %}
+					</td>
+					<td class="px-4 py-3 text-right font-bold
+						{% if row.result.term_grade >= 70 %}text-green-600
+						{% elif row.result.term_grade >= 50 %}text-yellow-600
+						{% else %}text-red-600{% endif %}">
+						{{ row.result.term_grade }}%
+					</td>
+					{% else %}
+					<td colspan="3" class="px-4 py-3 text-center text-gray-400 text-xs">No data</td>
+					{% endif %}
+				</tr>
+				{% empty %}
+				<tr>
+					<td colspan="4" class="px-4 py-6 text-center text-gray-400">No courses found.</td>
+				</tr>
+				{% endfor %}
+			</tbody>
+			{% if rc.gpa %}
+			<tfoot class="bg-gray-50 border-t">
+				<tr>
+					<td colspan="3" class="px-4 py-3 text-right font-semibold text-gray-700">Overall GPA</td>
+					<td class="px-4 py-3 text-right font-bold text-lg
+						{% if rc.gpa >= 70 %}text-green-600
+						{% elif rc.gpa >= 50 %}text-yellow-600
+						{% else %}text-red-600{% endif %}">
+						{{ rc.gpa }}%
+					</td>
+				</tr>
+			</tfoot>
+			{% endif %}
+		</table>
+	</div>
+
+</div>
+{% endblock %}

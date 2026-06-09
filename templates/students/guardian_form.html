@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Add Guardian — {{ student.get_full_name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-xl mx-auto">
+	<h1 class="text-2xl font-bold text-gray-800 mb-2">Add Guardian</h1>
+	<p class="text-sm text-gray-500 mb-6">For {{ student.get_full_name }}</p>
+
+	<div class="bg-white rounded-xl shadow p-6 space-y-6">
+		<form method="post" novalidate>
+			{% csrf_token %}
+
+			<h2 class="font-semibold text-gray-700 mb-3">Guardian Details</h2>
+			<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+				{% for field in g_form %}
+				<div class="{% if field.name == 'address' %}col-span-2{% endif %}">
+					<label class="block text-xs font-medium text-gray-600 mb-1">{{ field.label }}</label>
+					{{ field }}
+					{% if field.errors %}<p class="text-red-500 text-xs mt-1">{{ field.errors.0 }}</p>{% endif %}
+				</div>
+				{% endfor %}
+			</div>
+
+			<h2 class="font-semibold text-gray-700 mt-6 mb-3">Relationship</h2>
+			<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+				{% for field in sg_form %}
+				<div>
+					<label class="block text-xs font-medium text-gray-600 mb-1">{{ field.label }}</label>
+					{{ field }}
+					{% if field.errors %}<p class="text-red-500 text-xs mt-1">{{ field.errors.0 }}</p>{% endif %}
+				</div>
+				{% endfor %}
+			</div>
+
+			<div class="flex gap-3 mt-6">
+				<button type="submit"
+						class="btn-primary px-5 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition">
+					Save Guardian
+				</button>
+				<a href="{% url 'students:detail' student.pk %}"
+				   class="px-5 py-2 rounded-lg text-sm font-medium border border-gray-300 text-gray-600 hover:bg-gray-50 transition">
+					Cancel
+				</a>
+			</div>
+		</form>
+	</div>
+</div>
+{% endblock %}

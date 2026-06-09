@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+{% block title %}Students — {{ school.name }}{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+	<h1 class="text-2xl font-bold text-gray-800">Students</h1>
+	{% if is_admin %}
+	<div class="flex gap-2">
+		<a href="{% url 'students:add' %}"
+		class="btn-primary px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition">
+			+ Enrol Student
+		</a>
+		<a href="{% url 'students:bulk' %}"
+		class="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 text-gray-600 hover:bg-gray-50 transition">
+			Bulk Enrol
+		</a>
+	</div>
+	{% endif %}
+</div>
+
+<!-- Selector -->
+<div class="bg-white rounded-xl shadow p-5 mb-6">
+	<p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-3">Select students to view</p>
+	<div class="flex flex-wrap gap-2">
+
+		{% for f in forms %}
+		<a href="?form={{ f.pk }}&status={{ status }}"
+		class="px-4 py-2 rounded-lg text-sm font-medium border transition
+				{% if selected_form.pk == f.pk %}bg-primary text-white border-transparent
+				{% else %}bg-white text-gray-700 border-gray-300 hover:bg-gray-50{% endif %}">
+			{{ f.name }}
+		</a>
+		{% endfor %}
+
+		<span class="border-l border-gray-200 mx-1"></span>
+
+		{% for hr in homerooms %}
+		<a href="?homeroom={{ hr.pk }}&status={{ status }}"
+		class="px-4 py-2 rounded-lg text-sm font-medium border transition
+				{% if selected_homeroom.pk == hr.pk %}bg-primary text-white border-transparent
+				{% else %}bg-white text-gray-700 border-gray-300 hover:bg-gray-50{% endif %}">
+			{{ hr.name }}
+		</a>
+		{% endfor %}
+
+		<span class="border-l border-gray-200 mx-1"></span>
+
+		<a href="?all=1&status={{ status }}"
+		class="px-4 py-2 rounded-lg text-sm font-medium border transition
+				{% if show_all %}bg-primary text-white border-transparent
+				{% else %}bg-white text-gray-700 border-gray-300 hover:bg-gray-50{% endif %}">
+			All Students
+		</a>
+
+	</div>
+</div>
+
+{% if students is not None %}
+
+<!-- Status filters -->
+<div class="flex flex-wrap gap-2 mb-4">
+
+	<a href="?{% if selected_form %}form={{ selected_form.pk }}{% elif selected_homeroom %}homeroom={{ selected_homeroom.pk }}{% else %}all=1{% endif %}&status=enrolled&q={{ query }}"
+	class="px-3 py-1 rounded-full text-xs font-medium border
+			{% if status == 'enrolled' %}bg-primary text-white border-transparent
+			{% else %}bg-white text-gray-600 border-gray-300 hover:bg-gray-50{% endif %}">
+		Enrolled
+	</a>
+	<a href="?{% if selected_form %}form={{ selected_form.pk }}{% elif selected_homeroom %}homeroom={{ selected_homeroom.pk }}{% else %}all=1{% endif %}&status=withdrawn&q={{ query }}"
+	class="px-3 py-1 rounded-full text-xs font-medium border
+			{% if status == 'withdrawn' %}bg-primary text-white border-transparent
+			{% else %}bg-white text-gray-600 border-gray-300 hover:bg-gray-50{% endif %}">
+		Withdrawn
+	</a>
+	<a href="?{% if selected_form %}form={{ selected_form.pk }}{% elif selected_homeroom %}homeroom={{ selected_homeroom.pk }}{% else %}all=1{% endif %}&status=suspended&q={{ query }}"
+	class="px-3 py-1 rounded-full text-xs font-medium border
+			{% if status == 'suspended' %}bg-primary text-white border-transparent
+			{% else %}bg-white text-gray-600 border-gray-300 hover:bg-gray-50{% endif %}">
+		Suspended
+	</a>
+	<a href="?{% if selected_form %}form={{ selected_form.pk }}{% elif selected_homeroom %}homeroom={{ selected_homeroom.pk }}{% else %}all=1{% endif %}&status=graduated&q={{ query }}"
+	class="px-3 py-1 rounded-full text-xs font-medium border
+			{% if status == 'graduated' %}bg-primary text-white border-transparent
+			{% else %}bg-white text-gray-600 border-gray-300 hover:bg-gray-50{% endif %}">
+		Graduated
+	</a>
+	<a href="?{% if selected_form %}form={{ selected_form.pk }}{% elif selected_homeroom %}homeroom={{ selected_homeroom.pk }}{% else %}all=1{% endif %}&status=on_leave&q={{ query }}"
+	class="px-3 py-1 rounded-full text-xs font-medium border
+			{% if status == 'on_leave' %}bg-primary text-white border-transparent
+			{% else %}bg-white text-gray-600 border-gray-300 hover:bg-gray-50{% endif %}">
+		On Leave
+	</a>
+	<a href="?{% if selected_form %}form={{ selected_form.pk }}{% elif selected_homeroom %}homeroom={{ selected_homeroom.pk }}{% else %}all=1{% endif %}&status=all&q={{ query }}"
+	class="px-3 py-1 rounded-full text-xs font-medium border
+			{% if status == 'all' %}bg-primary text-white border-transparent
+			{% else %}bg-white text-gray-600 border-gray-300 hover:bg-gray-50{% endif %}">
+		All
+	</a>
+</div>
+
+<!-- Search -->
+<form method="get" class="mb-4">
+	{% if selected_form %}<input type="hidden" name="form" value="{{ selected_form.pk }}" />{% endif %}
+	{% if selected_homeroom %}<input type="hidden" name="homeroom" value="{{ selected_homeroom.pk }}" />{% endif %}
+	{% if show_all %}<input type="hidden" name="all" value="1" />{% endif %}
+	<input type="hidden" name="status" value="{{ status }}" />
+	<div class="flex gap-2">
+		<input type="text" name="q" value="{{ query }}"
+			placeholder="Search by name or student ID..."
+			class="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm
+					focus:outline-none focus:ring-2 focus:ring-blue-500" />
+		<button type="submit" class="btn-primary px-4 py-2 rounded-lg text-sm font-medium">
+			Search
+		</button>
+		{% if query %}
+		<a href="?{% if selected_form %}form={{ selected_form.pk }}{% elif selected_homeroom %}homeroom={{ selected_homeroom.pk }}{% else %}all=1{% endif %}&status={{ status }}"
+		class="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 text-gray-600 hover:bg-gray-50 transition">
+			Clear
+		</a>
+		{% endif %}
+	</div>
+</form>
+
+<!-- Table -->
+<div class="bg-white rounded-xl shadow overflow-hidden">
+	<div class="px-5 py-3 border-b bg-gray-50 flex items-center justify-between">
+		<span class="text-sm text-gray-500">
+			{% if selected_form %}
+				{{ selected_form.name }}
+			{% elif selected_homeroom %}
+				Homeroom {{ selected_homeroom.name }}
+			{% else %}
+				All Students
+			{% endif %}
+			— <strong>{{ students.count }}</strong> student{{ students.count|pluralize }}
+			{% if query %} matching <em>"{{ query }}"</em>{% endif %}
+		</span>
+	</div>
+	<table class="min-w-full text-sm">
+		<thead class="bg-gray-50 text-gray-500 uppercase text-xs tracking-wide">
+			<tr>
+				<th class="px-4 py-3 text-left">ID</th>
+				<th class="px-4 py-3 text-left">Name</th>
+				<th class="px-4 py-3 text-left">Form</th>
+				<th class="px-4 py-3 text-left">Homeroom</th>
+				<th class="px-4 py-3 text-left">House</th>
+				<th class="px-4 py-3 text-left">Status</th>
+				<th class="px-4 py-3 text-left">Actions</th>
+			</tr>
+		</thead>
+		<tbody class="divide-y divide-gray-100">
+			{% for student in students %}
+			<tr class="hover:bg-gray-50 transition">
+				<td class="px-4 py-3 font-mono text-gray-500 text-xs">{{ student.student_id }}</td>
+				<td class="px-4 py-3 font-medium text-gray-800">
+					<a href="{% url 'students:detail' student.pk %}" class="hover:underline">
+						{{ student.get_full_name }}
+					</a>
+				</td>
+				<td class="px-4 py-3 text-gray-600">{{ student.form|default:"—" }}</td>
+				<td class="px-4 py-3 text-gray-600">{{ student.homeroom|default:"—" }}</td>
+				<td class="px-4 py-3 text-gray-600">{{ student.house|default:"—" }}</td>
+				<td class="px-4 py-3">
+					{% with s=student.current_status %}
+					{% if s == "enrolled" %}
+						<span class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full">Enrolled</span>
+					{% elif s == "suspended" %}
+						<span class="bg-yellow-100 text-yellow-700 text-xs px-2 py-1 rounded-full">Suspended</span>
+					{% elif s == "withdrawn" or s == "transferred" %}
+						<span class="bg-red-100 text-red-700 text-xs px-2 py-1 rounded-full">{{ student.current_status_display }}</span>
+					{% elif s == "graduated" %}
+						<span class="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded-full">Graduated</span>
+					{% else %}
+						<span class="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full">{{ student.current_status_display }}</span>
+					{% endif %}
+					{% endwith %}
+				</td>
+				<td class="px-4 py-3 flex gap-2">
+					<a href="{% url 'students:detail' student.pk %}"
+					class="text-blue-600 hover:underline text-xs">View</a>
+					{% if is_admin %}
+					<a href="{% url 'students:edit' student.pk %}"
+					class="text-gray-500 hover:underline text-xs">Edit</a>
+					{% endif %}
+				</td>
+			</tr>
+			{% empty %}
+			<tr>
+				<td colspan="7" class="px-4 py-8 text-center text-gray-400">
+					{% if query %}
+						No students found matching "{{ query }}".
+					{% else %}
+						No students found.
+					{% endif %}
+				</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+</div>
+
+{% else %}
+
+<!-- Empty state — nothing selected yet -->
+<div class="bg-white rounded-xl shadow p-16 text-center text-gray-400">
+	<p class="text-lg font-medium text-gray-600 mb-1">Select a form or homeroom above</p>
+	<p class="text-sm">Or click "All Students" to view everyone</p>
+</div>
+
+{% endif %}
+
+{% endblock %}

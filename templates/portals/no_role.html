@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}No Access — {{ school.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto text-center py-16">
+	<div class="text-6xl mb-4">🔒</div>
+	<h1 class="text-2xl font-bold text-gray-800 mb-2">No Role Assigned</h1>
+	<p class="text-gray-500 text-sm mb-6">
+		Your account has no role assigned at {{ school.name }}.
+		Please contact your school administrator.
+	</p>
+	<a href="{% url 'accounts:logout' %}"
+	   class="btn-primary px-6 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition">
+		Sign Out
+	</a>
+</div>
+{% endblock %}

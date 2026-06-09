@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% block title %}Merits & Demerits — {{ school.name }}{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+	<h1 class="text-2xl font-bold text-gray-800">Merits & Demerits</h1>
+	<div class="flex gap-2">
+		<a href="{% url 'merits:add' %}"
+		   class="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition">
+			+ Award Merit
+		</a>
+		<a href="{% url 'merits:demerit_add' %}"
+		   class="bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-700 transition">
+			+ Issue Demerit
+		</a>
+		<a href="{% url 'merits:summary' %}"
+		   class="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 text-gray-600 hover:bg-gray-50 transition">
+			School Summary
+		</a>
+	</div>
+</div>
+
+<!-- Search -->
+<form method="get" class="mb-4">
+	<div class="flex gap-2">
+		<input type="text" name="q" value="{{ query }}"
+			   placeholder="Search by student name..."
+			   class="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm
+					  focus:outline-none focus:ring-2 focus:ring-blue-500" />
+		<button type="submit"
+				class="btn-primary px-4 py-2 rounded-lg text-sm font-medium">
+			Search
+		</button>
+	</div>
+</form>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+	<!-- Merits -->
+	<div class="bg-white rounded-xl shadow overflow-hidden">
+		<div class="px-5 py-4 bg-green-50 border-b border-green-100 flex items-center justify-between">
+			<h2 class="font-semibold text-green-800">Merits</h2>
+			<span class="text-xs text-green-600">{{ merits.count }} record{{ merits.count|pluralize }}</span>
+		</div>
+		<table class="min-w-full text-sm">
+			<thead class="bg-gray-50 text-gray-400 uppercase text-xs">
+				<tr>
+					<th class="px-4 py-2 text-left">Student</th>
+					<th class="px-4 py-2 text-left">Category</th>
+					<th class="px-4 py-2 text-right">Pts</th>
+					<th class="px-4 py-2 text-left">Date</th>
+					<th class="px-4 py-2"></th>
+				</tr>
+			</thead>
+			<tbody class="divide-y divide-gray-100">
+				{% for merit in merits %}
+				<tr class="hover:bg-gray-50">
+					<td class="px-4 py-2 font-medium text-gray-800">
+						<a href="{% url 'merits:student_report' merit.student.pk %}" class="hover:underline">
+							{{ merit.student.get_full_name }}
+						</a>
+					</td>
+					<td class="px-4 py-2 text-gray-500 text-xs">{{ merit.get_category_display }}</td>
+					<td class="px-4 py-2 text-right font-bold text-green-600">+{{ merit.points }}</td>
+					<td class="px-4 py-2 text-gray-400 text-xs">{{ merit.date }}</td>
+					<td class="px-4 py-2">
+						<a href="{% url 'merits:delete' merit.pk %}"
+						   class="text-red-400 hover:underline text-xs"
+						   onclick="return confirm('Delete this merit?')">Del</a>
+					</td>
+				</tr>
+				{% empty %}
+				<tr>
+					<td colspan="5" class="px-4 py-6 text-center text-gray-400">No merit records.</td>
+				</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+	</div>
+
+	<!-- Demerits -->
+	<div class="bg-white rounded-xl shadow overflow-hidden">
+		<div class="px-5 py-4 bg-red-50 border-b border-red-100 flex items-center justify-between">
+			<h2 class="font-semibold text-red-800">Demerits</h2>
+			<span class="text-xs text-red-600">{{ demerits.count }} record{{ demerits.count|pluralize }}</span>
+		</div>
+		<table class="min-w-full text-sm">
+			<thead class="bg-gray-50 text-gray-400 uppercase text-xs">
+				<tr>
+					<th class="px-4 py-2 text-left">Student</th>
+					<th class="px-4 py-2 text-left">Category</th>
+					<th class="px-4 py-2 text-right">Pts</th>
+					<th class="px-4 py-2 text-left">Date</th>
+					<th class="px-4 py-2"></th>
+				</tr>
+			</thead>
+			<tbody class="divide-y divide-gray-100">
+				{% for demerit in demerits %}
+				<tr class="hover:bg-gray-50">
+					<td class="px-4 py-2 font-medium text-gray-800">
+						<a href="{% url 'merits:student_report' demerit.student.pk %}" class="hover:underline">
+							{{ demerit.student.get_full_name }}
+						</a>
+					</td>
+					<td class="px-4 py-2 text-gray-500 text-xs">{{ demerit.get_category_display }}</td>
+					<td class="px-4 py-2 text-right font-bold text-red-600">-{{ demerit.points }}</td>
+					<td class="px-4 py-2 text-gray-400 text-xs">{{ demerit.date }}</td>
+					<td class="px-4 py-2">
+						<a href="{% url 'merits:demerit_delete' demerit.pk %}"
+						   class="text-red-400 hover:underline text-xs"
+						   onclick="return confirm('Delete this demerit?')">Del</a>
+					</td>
+				</tr>
+				{% empty %}
+				<tr>
+					<td colspan="5" class="px-4 py-6 text-center text-gray-400">No demerit records.</td>
+				</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+	</div>
+
+</div>
+{% endblock %}

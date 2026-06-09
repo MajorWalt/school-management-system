@@ -1,0 +1,21 @@
+<div class="bg-white rounded-xl shadow overflow-hidden">
+	<div class="px-5 py-3 bg-gray-50 border-b font-semibold text-gray-700 text-sm uppercase tracking-wide">
+		{{ title }}
+	</div>
+	<div class="p-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
+		{% for field in form %}
+			{% if field.name in fields %}
+			<div class="{% if field.name == 'address' or field.name == 'notes' or field.name == 'photo' %}col-span-2{% endif %}">
+				<label class="block text-xs font-medium text-gray-600 mb-1">
+					{{ field.label }}
+					{% if field.field.required %}<span class="text-red-500">*</span>{% endif %}
+				</label>
+				{{ field }}
+				{% if field.errors %}
+					<p class="text-red-500 text-xs mt-1">{{ field.errors.0 }}</p>
+				{% endif %}
+			</div>
+			{% endif %}
+		{% endfor %}
+	</div>
+</div>

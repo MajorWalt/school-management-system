@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}Attendance — {{ school.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto space-y-6">
+
+	<h1 class="text-2xl font-bold text-gray-800">Attendance</h1>
+
+	<!-- Date selector -->
+	<div class="bg-white rounded-xl shadow p-6">
+		<h2 class="font-semibold text-gray-700 mb-4">Select Date to Mark Attendance</h2>
+		<form method="post" novalidate>
+			{% csrf_token %}
+			<div class="flex gap-3 items-end">
+				<div class="flex-1">
+					<label class="block text-xs font-medium text-gray-600 mb-1">Date</label>
+					{{ form.date }}
+					{% if form.date.errors %}
+						<p class="text-red-500 text-xs mt-1">{{ form.date.errors.0 }}</p>
+					{% endif %}
+				</div>
+				<button type="submit"
+						class="btn-primary px-5 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition">
+					Continue
+				</button>
+			</div>
+		</form>
+	</div>
+
+	<!-- Homeroom overview -->
+	{% if recent %}
+	<div class="bg-white rounded-xl shadow overflow-hidden">
+		<div class="px-5 py-4 border-b bg-gray-50">
+			<h2 class="font-semibold text-gray-700">Today's Overview — {{ today }}</h2>
+		</div>
+		<table class="min-w-full text-sm">
+			<thead class="text-gray-400 uppercase text-xs bg-gray-50">
+				<tr>
+					<th class="px-4 py-3 text-left">Homeroom</th>
+					<th class="px-4 py-3 text-left">Form</th>
+					<th class="px-4 py-3 text-right">Students</th>
+					<th class="px-4 py-3 text-right">Absences Today</th>
+					<th class="px-4 py-3 text-left">Last Marked</th>
+					<th class="px-4 py-3 text-left">Actions</th>
+				</tr>
+			</thead>
+			<tbody class="divide-y divide-gray-100">
+				{% for row in recent %}
+				<tr class="hover:bg-gray-50">
+					<td class="px-4 py-3 font-medium text-gray-800">{{ row.homeroom.name }}</td>
+					<td class="px-4 py-3 text-gray-600">{{ row.homeroom.form }}</td>
+					<td class="px-4 py-3 text-right text-gray-600">{{ row.students }}</td>
+					<td class="px-4 py-3 text-right">
+						<span class="{% if row.absences_today > 0 %}text-red-600 font-bold{% else %}text-gray-400{% endif %}">
+							{{ row.absences_today }}
+						</span>
+					</td>
+					<td class="px-4 py-3 text-gray-400 text-xs">{{ row.last_marked|default:"Never" }}</td>
+					<td class="px-4 py-3 flex gap-3">
+						<a href="{% url 'attendance:mark' date=today|date:'Y-m-d' homeroom_pk=row.homeroom.pk %}"
+						   class="text-blue-600 hover:underline text-xs font-medium">
+							Mark Today
+						</a>
+						<a href="{% url 'attendance:report' row.homeroom.pk %}"
+						   class="text-gray-500 hover:underline text-xs">
+							Report
+						</a>
+					</td>
+				</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+	</div>
+	{% endif %}
+
+</div>
+{% endblock %}

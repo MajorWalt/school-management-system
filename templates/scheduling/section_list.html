@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Sections — {{ school.name }}{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+	<h1 class="text-2xl font-bold text-gray-800">Sections</h1>
+	<a href="{% url 'scheduling:section_add' %}"
+	   class="btn-primary px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition">
+		+ Add Section
+	</a>
+</div>
+
+<!-- Filters -->
+<form method="get" class="flex gap-3 mb-4 flex-wrap">
+	<select name="year" class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+		<option value="">All Years</option>
+		{% for year in years %}
+		<option value="{{ year.pk }}" {% if selected_year == year.pk|stringformat:"s" %}selected{% endif %}>
+			{{ year.name }}
+		</option>
+		{% endfor %}
+	</select>
+	<select name="term" class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+		<option value="">All Terms</option>
+		<option value="1" {% if selected_term == "1" %}selected{% endif %}>Term 1</option>
+		<option value="2" {% if selected_term == "2" %}selected{% endif %}>Term 2</option>
+		<option value="3" {% if selected_term == "3" %}selected{% endif %}>Term 3</option>
+	</select>
+	<button type="submit" class="btn-primary px-4 py-2 rounded-lg text-sm font-medium">Filter</button>
+</form>
+
+<div class="bg-white rounded-xl shadow overflow-hidden">
+	<table class="min-w-full text-sm">
+		<thead class="bg-gray-50 text-gray-500 uppercase text-xs tracking-wide">
+			<tr>
+				<th class="px-4 py-3 text-left">Course</th>
+				<th class="px-4 py-3 text-left">Form</th>
+				<th class="px-4 py-3 text-left">Term</th>
+				<th class="px-4 py-3 text-left">Year</th>
+				<th class="px-4 py-3 text-left">Teacher</th>
+				<th class="px-4 py-3 text-left">Room</th>
+				<th class="px-4 py-3 text-left">Actions</th>
+			</tr>
+		</thead>
+		<tbody class="divide-y divide-gray-100">
+			{% for section in sections %}
+			<tr class="hover:bg-gray-50 transition">
+				<td class="px-4 py-3 font-medium text-gray-800">
+					<a href="{% url 'scheduling:section_detail' section.pk %}" class="hover:underline">
+						{{ section.course.name }}
+					</a>
+				</td>
+				<td class="px-4 py-3 text-gray-600">{{ section.form }}</td>
+				<td class="px-4 py-3 text-gray-600">Term {{ section.term_number }}</td>
+				<td class="px-4 py-3 text-gray-600">{{ section.academic_year.name }}</td>
+				<td class="px-4 py-3 text-gray-600">{{ section.teacher|default:"—" }}</td>
+				<td class="px-4 py-3 text-gray-600">{{ section.room|default:"—" }}</td>
+				<td class="px-4 py-3">
+					<a href="{% url 'scheduling:section_edit' section.pk %}"
+					   class="text-blue-600 hover:underline text-xs">Edit</a>
+				</td>
+			</tr>
+			{% empty %}
+			<tr>
+				<td colspan="7" class="px-4 py-8 text-center text-gray-400">No sections found.</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+</div>
+{% endblock %}

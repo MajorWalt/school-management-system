@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Non-School Days — {{ school.name }}{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+	<h1 class="text-2xl font-bold text-gray-800">Non-School Days</h1>
+	<a href="{% url 'scheduling:nsd_add' %}"
+	   class="btn-primary px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition">
+		+ Add Day
+	</a>
+</div>
+
+<div class="bg-white rounded-xl shadow overflow-hidden">
+	<table class="min-w-full text-sm">
+		<thead class="bg-gray-50 text-gray-500 uppercase text-xs tracking-wide">
+			<tr>
+				<th class="px-4 py-3 text-left">Date</th>
+				<th class="px-4 py-3 text-left">Label</th>
+				<th class="px-4 py-3 text-left">Type</th>
+				<th class="px-4 py-3 text-left">Actions</th>
+			</tr>
+		</thead>
+		<tbody class="divide-y divide-gray-100">
+			{% for day in days %}
+			<tr class="hover:bg-gray-50 transition">
+				<td class="px-4 py-3 font-mono text-gray-600">{{ day.date }}</td>
+				<td class="px-4 py-3 font-medium text-gray-800">{{ day.label }}</td>
+				<td class="px-4 py-3">
+					<span class="text-xs px-2 py-1 rounded-full
+						{% if day.type == 'holiday' %}bg-blue-100 text-blue-700
+						{% elif day.type == 'impromptu' %}bg-yellow-100 text-yellow-700
+						{% else %}bg-purple-100 text-purple-700{% endif %}">
+						{{ day.get_type_display }}
+					</span>
+				</td>
+				<td class="px-4 py-3">
+					<a href="{% url 'scheduling:nsd_delete' day.pk %}"
+					   class="text-red-500 hover:underline text-xs"
+					   onclick="return confirm('Remove {{ day.label }}?')">
+						Remove
+					</a>
+				</td>
+			</tr>
+			{% empty %}
+			<tr>
+				<td colspan="4" class="px-4 py-8 text-center text-gray-400">No non-school days added yet.</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+</div>
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} — {{ school.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto">
+	<h1 class="text-2xl font-bold text-gray-800 mb-6">{{ title }}</h1>
+	<div class="bg-white rounded-xl shadow p-6">
+		<form method="post" novalidate>
+			{% csrf_token %}
+			<div class="space-y-4">
+				{% for field in form %}
+				<div>
+					<label class="block text-xs font-medium text-gray-600 mb-1">{{ field.label }}</label>
+					{{ field }}
+					{% if field.errors %}<p class="text-red-500 text-xs mt-1">{{ field.errors.0 }}</p>{% endif %}
+				</div>
+				{% endfor %}
+			</div>
+			<div class="flex gap-3 mt-6">
+				<button type="submit" class="btn-primary px-5 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition">Save</button>
+				<a href="{% url 'scheduling:nsd_list' %}" class="px-5 py-2 rounded-lg text-sm font-medium border border-gray-300 text-gray-600 hover:bg-gray-50 transition">Cancel</a>
+			</div>
+		</form>
+	</div>
+</div>
+{% endblock %}

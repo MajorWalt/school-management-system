@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login — {{ school.name|default:"School Portal" }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --primary: {{ primary_color|default:"#1e40af" }};
+            --primary-text: {{ primary_text_color|default:"#ffffff" }};
+        }
+        .bg-primary { background-color: var(--primary); }
+        .btn-primary { background-color: var(--primary); color: var(--primary-text); }
+        .btn-primary:hover { opacity: 0.9; }
+    </style>
+</head>
+<body class="min-h-screen bg-gray-100 flex items-center justify-center px-4">
+
+    <div class="w-full max-w-md">
+
+        <!-- School branding -->
+        <div class="text-center mb-8">
+            {% if school_logo %}
+                <img src="{{ school_logo.url }}" alt="Logo" class="h-16 w-auto mx-auto mb-3 rounded" />
+            {% else %}
+                <div class="h-16 w-16 rounded-full bg-primary mx-auto mb-3 flex items-center justify-center">
+                    <span class="text-white text-2xl font-bold">
+                        {{ school.name|default:"S"|first }}
+                    </span>
+                </div>
+            {% endif %}
+            <h1 class="text-2xl font-bold text-gray-800">
+                {{ school.name|default:"School Portal" }}
+            </h1>
+            {% if school_tagline %}
+                <p class="text-sm text-gray-500 mt-1">{{ school_tagline }}</p>
+            {% endif %}
+        </div>
+
+        <!-- Login card -->
+        <div class="bg-white rounded-2xl shadow-lg p-8">
+            <h2 class="text-lg font-semibold text-gray-700 mb-6 text-center">Sign in to your account</h2>
+
+            {% if messages %}
+                {% for message in messages %}
+                <div class="mb-4 px-4 py-3 rounded-lg text-sm
+                    {% if message.tags == 'error' %}bg-red-50 text-red-700 border border-red-200
+                    {% else %}bg-blue-50 text-blue-700 border border-blue-200{% endif %}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="post" novalidate>
+                {% csrf_token %}
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Email address</label>
+                        <input type="email" name="email" required autofocus
+                               value="{{ request.POST.email }}"
+                               class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm
+                                      focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Password</label>
+                        <input type="password" name="password" required
+                               class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm
+                                      focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                </div>
+
+                <button type="submit"
+                        class="btn-primary w-full mt-6 py-2.5 rounded-lg text-sm font-semibold
+                               hover:opacity-90 transition">
+                    Sign In
+                </button>
+            </form>
+        </div>
+
+        <p class="text-center text-xs text-gray-400 mt-6">
+            Powered by Edara
+        </p>
+    </div>
+
+    {% load django_browser_reload %}
+    {% django_browser_reload_script %}
+</body>
+</html>

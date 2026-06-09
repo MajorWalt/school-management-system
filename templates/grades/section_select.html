@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Grades — {{ school.name }}{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+	<h1 class="text-2xl font-bold text-gray-800">Enter Grades</h1>
+	<a href="{% url 'grades:report_card_list' %}"
+	   class="btn-primary px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition">
+		Report Cards
+	</a>
+</div>
+
+<div class="bg-white rounded-xl shadow overflow-hidden">
+	<table class="min-w-full text-sm">
+		<thead class="bg-gray-50 text-gray-500 uppercase text-xs tracking-wide">
+			<tr>
+				<th class="px-4 py-3 text-left">Course</th>
+				<th class="px-4 py-3 text-left">Form</th>
+				<th class="px-4 py-3 text-left">Term</th>
+				<th class="px-4 py-3 text-left">Year</th>
+				<th class="px-4 py-3 text-left">Actions</th>
+			</tr>
+		</thead>
+		<tbody class="divide-y divide-gray-100">
+			{% for section in sections %}
+			<tr class="hover:bg-gray-50 transition">
+				<td class="px-4 py-3 font-medium text-gray-800">{{ section.course.name }}</td>
+				<td class="px-4 py-3 text-gray-600">{{ section.form }}</td>
+				<td class="px-4 py-3 text-gray-600">Term {{ section.term_number }}</td>
+				<td class="px-4 py-3 text-gray-600">{{ section.academic_year.name }}</td>
+				<td class="px-4 py-3 flex gap-3">
+					<a href="{% url 'grades:section_overview' section.pk %}"
+					   class="text-blue-600 hover:underline text-xs font-medium">
+						View Grades
+					</a>
+					<a href="{% url 'grades:report_card_generate' section.pk %}"
+					   class="text-green-600 hover:underline text-xs"
+					   onclick="return confirm('Generate report cards for this section?')">
+						Generate Report Cards
+					</a>
+				</td>
+			</tr>
+			{% empty %}
+			<tr>
+				<td colspan="5" class="px-4 py-8 text-center text-gray-400">
+					No sections found.
+				</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+</div>
+{% endblock %}

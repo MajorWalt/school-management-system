@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}Staff — {{ school.name }}{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold text-gray-800">Staff</h1>
+    <a href="{% url 'staff:add' %}"
+       class="btn-primary px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition">
+        + Add Staff
+    </a>
+</div>
+
+<!-- Search -->
+<form method="get" class="mb-4">
+    <div class="flex gap-2">
+        <input type="text" name="q" value="{{ query }}"
+               placeholder="Search by name or employee number..."
+               class="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        <button type="submit"
+                class="btn-primary px-4 py-2 rounded-lg text-sm font-medium">
+            Search
+        </button>
+    </div>
+</form>
+
+<!-- Table -->
+<div class="bg-white rounded-xl shadow overflow-hidden">
+    <table class="min-w-full text-sm">
+        <thead class="bg-gray-50 text-gray-500 uppercase text-xs tracking-wide">
+            <tr>
+                <th class="px-4 py-3 text-left">Employee #</th>
+                <th class="px-4 py-3 text-left">Name</th>
+                <th class="px-4 py-3 text-left">Department</th>
+                <th class="px-4 py-3 text-left">Role</th>
+                <th class="px-4 py-3 text-left">Status</th>
+                <th class="px-4 py-3 text-left">Actions</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+            {% for member in staff %}
+            <tr class="hover:bg-gray-50 transition">
+                <td class="px-4 py-3 font-mono text-gray-500">{{ member.employee_number }}</td>
+                <td class="px-4 py-3 font-medium text-gray-800">
+                    <a href="{% url 'staff:detail' member.pk %}" class="hover:underline">
+                        {{ member.get_full_name }}
+                    </a>
+                </td>
+                <td class="px-4 py-3 text-gray-600">{{ member.department|default:"—" }}</td>
+                <td class="px-4 py-3 text-gray-600">{{ member.role_title|default:"—" }}</td>
+                <td class="px-4 py-3">
+                    {% if member.active %}
+                        <span class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full">Active</span>
+                    {% else %}
+                        <span class="bg-red-100 text-red-700 text-xs px-2 py-1 rounded-full">Inactive</span>
+                    {% endif %}
+                </td>
+                <td class="px-4 py-3 flex gap-2">
+                    <a href="{% url 'staff:edit' member.pk %}"
+                       class="text-blue-600 hover:underline text-xs">Edit</a>
+                    {% if member.active %}
+                        <a href="{% url 'staff:deactivate' member.pk %}"
+                           class="text-red-500 hover:underline text-xs"
+                           onclick="return confirm('Deactivate {{ member.get_full_name }}?')">
+                            Deactivate
+                        </a>
+                    {% else %}
+                        <a href="{% url 'staff:reactivate' member.pk %}"
+                           class="text-green-600 hover:underline text-xs">
+                            Reactivate
+                        </a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" class="px-4 py-8 text-center text-gray-400">
+                    No staff members found.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
