@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% block title %}Student Roster — {{ school.name }}{% endblock %}
+{% block page_title %}Student Roster{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-5 flex-wrap gap-3">
+	<h1 class="text-xl font-bold text-gray-800">Student Roster</h1>
+	<div class="flex gap-2">
+		{% if students %}
+		<a href="?{% if form_pk %}form={{ form_pk }}&{% endif %}{% if homeroom_pk %}homeroom={{ homeroom_pk }}&{% endif %}status={{ status }}&pdf=1"
+		   class="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium bg-red-600 text-white hover:bg-red-700 transition">
+			<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+				<path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+			</svg>
+			Download PDF
+		</a>
+		{% endif %}
+		<a href="{% url 'reports:home' %}"
+		   class="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 text-gray-600 hover:bg-gray-50 transition">
+			Back
+		</a>
+	</div>
+</div>
+
+<!-- Filters -->
+<form method="get" class="bg-white rounded-xl border border-gray-200 p-4 mb-5 flex flex-wrap gap-3 items-end">
+	<div>
+		<label class="block text-xs font-medium text-gray-600 mb-1">Form</label>
+		<select name="form"
+				class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+			<option value="">All Forms</option>
+			{% for f in forms %}
+			<option value="{{ f.pk }}" {% if form_pk == f.pk|stringformat:"s" %}selected{% endif %}>{{ f.name }}</option>
+			{% endfor %}
+		</select>
+	</div>
+	<div>
+		<label class="block text-xs font-medium text-gray-600 mb-1">Homeroom</label>
+		<select name="homeroom"
+				class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+			<option value="">All Homerooms</option>
+			{% for hr in homerooms %}
+			<option value="{{ hr.pk }}" {% if homeroom_pk == hr.pk|stringformat:"s" %}selected{% endif %}>{{ hr.name }}</option>
+			{% endfor %}
+		</select>
+	</div>
+	<div>
+		<label class="block text-xs font-medium text-gray-600 mb-1">Status</label>
+		<select name="status"
+				class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+			<option value="enrolled" {% if status == "enrolled" %}selected{% endif %}>Enrolled</option>
+			<option value="withdrawn" {% if status == "withdrawn" %}selected{% endif %}>Withdrawn</option>
+			<option value="graduated" {% if status == "graduated" %}selected{% endif %}>Graduated</option>
+			<option value="all" {% if status == "all" %}selected{% endif %}>All</option>
+		</select>
+	</div>
+	<button type="submit" class="btn-primary px-4 py-2 rounded-lg text-sm font-medium">Generate</button>
+</form>
+
+{% if students is not None %}
+<div class="bg-white rounded-xl shadow overflow-hidden">
+	<div class="px-5 py-3 border-b bg-gray-50 flex items-center justify-between">
+		<span class="text-sm font-semibold text-gray-700">
+			{% if selected_form %}{{ selected_form.name }}{% elif selected_homeroom %}Homeroom {{ selected_homeroom.name }}{% else %}All Students{% endif %}
+		</span>
+		<span class="text-xs text-gray-400">{{ students|length }} student{{ students|length|pluralize }}</span>
+	</div>
+	<table class="min-w-full text-sm">
+		<thead class="bg-gray-50 text-gray-500 uppercase text-xs tracking-wide">
+			<tr>
+				<th class="px-4 py-3 text-left">#</th>
+				<th class="px-4 py-3 text-left">Student ID</th>
+				<th class="px-4 py-3 text-left">Name</th>
+				<th class="px-4 py-3 text-left">Gender</th>
+				<th class="px-4 py-3 text-left">Form</th>
+				<th class="px-4 py-3 text-left">Homeroom</th>
+				<th class="px-4 py-3 text-left">House</th>
+				<th class="px-4 py-3 text-left">Status</th>
+			</tr>
+		</thead>
+		<tbody class="divide-y divide-gray-100">
+			{% for student in students %}
+			<tr class="hover:bg-gray-50">
+				<td class="px-4 py-2.5 text-gray-400 text-xs">{{ forloop.counter }}</td>
+				<td class="px-4 py-2.5 font-mono text-gray-500 text-xs">{{ student.student_id }}</td>
+				<td class="px-4 py-2.5 font-medium text-gray-800">
+					<a href="{% url 'students:detail' student.pk %}" class="hover:underline">
+						{{ student.get_full_name }}
+					</a>
+				</td>
+				<td class="px-4 py-2.5 text-gray-500">{{ student.get_gender_display|default:"—" }}</td>
+				<td class="px-4 py-2.5 text-gray-500">{{ student.form|default:"—" }}</td>
+				<td class="px-4 py-2.5 text-gray-500">{{ student.homeroom|default:"—" }}</td>
+				<td class="px-4 py-2.5 text-gray-500">{{ student.house|default:"—" }}</td>
+				<td class="px-4 py-2.5">
+					<span class="text-xs px-2 py-0.5 rounded-full
+						{% if student.current_status == 'enrolled' %}bg-green-100 text-green-700
+						{% elif student.current_status == 'withdrawn' %}bg-red-100 text-red-700
+						{% elif student.current_status == 'graduated' %}bg-blue-100 text-blue-700
+						{% else %}bg-gray-100 text-gray-500{% endif %}">
+						{{ student.current_status_display }}
+					</span>
+				</td>
+			</tr>
+			{% empty %}
+			<tr>
+				<td colspan="8" class="px-4 py-8 text-center text-gray-400">No students found.</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+</div>
+{% endif %}
+{% endblock %}

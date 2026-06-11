@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8"/>
+<style>
+	body { font-family: Arial, sans-serif; font-size: 11px; color: #1f2937; margin: 0; }
+	.header { text-align: center; border-bottom: 2px solid #1e40af; padding-bottom: 12px; margin-bottom: 16px; }
+	.header h1 { font-size: 18px; color: #1e40af; margin: 0 0 4px; }
+	.header p { margin: 2px 0; color: #6b7280; font-size: 10px; }
+	.meta { background: #f9fafb; padding: 10px 12px; border-radius: 6px; margin-bottom: 14px; font-size: 10px; }
+	.meta span { color: #6b7280; }
+	table { width: 100%; border-collapse: collapse; }
+	th { background: #1e40af; color: white; padding: 6px 8px; text-align: left; font-size: 10px; text-transform: uppercase; }
+	td { padding: 5px 8px; border-bottom: 1px solid #e5e7eb; }
+	tr:nth-child(even) td { background: #f9fafb; }
+	.footer { margin-top: 16px; font-size: 9px; color: #9ca3af; text-align: right; }
+</style>
+</head>
+<body>
+<div class="header">
+	<h1>{{ school.name }}</h1>
+	<p>{% if school_profile %}{{ school_profile.address }}{% endif %}</p>
+	<p>Course Enrolment List</p>
+</div>
+
+<div class="meta">
+	<strong>{{ section.course.name }}</strong> &nbsp;·&nbsp;
+	<span>{{ section.form }}</span> &nbsp;·&nbsp;
+	<span>Term {{ section.term_number }}</span> &nbsp;·&nbsp;
+	<span>{{ section.academic_year.name }}</span>
+	{% if section.teacher %}&nbsp;·&nbsp;<span>{{ section.teacher.get_full_name }}</span>{% endif %}
+</div>
+
+<table>
+	<thead>
+		<tr>
+			<th>#</th>
+			<th>Student ID</th>
+			<th>Name</th>
+			<th>Homeroom</th>
+			<th>Gender</th>
+			<th>Date of Birth</th>
+		</tr>
+	</thead>
+	<tbody>
+		{% for enrolment in enrolments %}
+		<tr>
+			<td>{{ forloop.counter }}</td>
+			<td>{{ enrolment.student.student_id }}</td>
+			<td>{{ enrolment.student.get_full_name }}</td>
+			<td>{{ enrolment.student.homeroom|default:"—" }}</td>
+			<td>{{ enrolment.student.get_gender_display|default:"—" }}</td>
+			<td>{{ enrolment.student.date_of_birth|default:"—" }}</td>
+		</tr>
+		{% endfor %}
+	</tbody>
+</table>
+
+<div class="footer">
+	{{ enrolments|length }} student{{ enrolments|length|pluralize }} enrolled &nbsp;·&nbsp;
+	Generated: {% now "d M Y H:i" %}
+</div>
+</body>
+</html>

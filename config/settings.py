@@ -64,6 +64,7 @@ INSTALLED_APPS = [
 	'merits',
 	'portals',
 	'backups',
+	'reports',
 ]
 
 MIDDLEWARE = [
@@ -169,9 +170,9 @@ CRISPY_TEMPLATE_PACK = 'tailwind'
 
 # Redis Cache
 CACHES = {
-    "default": {
-        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
-    }
+	"default": {
+		"BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+	}
 }
 
 # Debug Toolbar
