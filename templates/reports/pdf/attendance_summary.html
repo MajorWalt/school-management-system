@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8"/>
+<style>
+	@page { size: A4 landscape; margin: 1.2cm; }
+	body  { font-family: Arial, sans-serif; font-size: 9px; color: #1f2937; margin: 0; }
+
+	.header-top   { font-size: 13px; font-weight: bold; }
+	.header-meta  { font-size: 10px; color: #374151; margin-top: 2px; margin-bottom: 12px; }
+
+	.section-title {
+		background: #1e40af; color: white;
+		padding: 5px 8px; font-size: 10px; font-weight: bold;
+		margin-bottom: 0;
+	}
+
+	table { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
+
+	th {
+		background: #374151; color: white;
+		padding: 4px 5px; text-align: center;
+		font-size: 8px; border: 1px solid #4b5563;
+		line-height: 1.3;
+	}
+	th.name-th { text-align: left; min-width: 160px; }
+
+	td { padding: 3px 5px; border: 1px solid #d1d5db; font-size: 8px; }
+	td.name-cell { font-size: 8px; }
+	tr:nth-child(even) td { background: #f9fafb; }
+	tr.withdrawn td { background: #fee2e2; color: #991b1b; }
+
+	.total-row td { background: #e5e7eb; font-weight: bold; font-size: 8px; }
+
+	.grand-title {
+		background: #1f2937; color: white;
+		padding: 5px 8px; font-size: 10px; font-weight: bold;
+		text-align: center; margin-top: 12px; margin-bottom: 0;
+	}
+
+	.footer { margin-top: 10px; font-size: 8px; color: #9ca3af; text-align: right; }
+
+	.red   { color: #dc2626; font-weight: bold; }
+	.orange{ color: #d97706; font-weight: bold; }
+</style>
+</head>
+<body>
+
+<div class="header-top">{{ school.name }} — Attendance Summary</div>
+<div class="header-meta">
+	{{ month_name }} &nbsp;/&nbsp; Days Open: {{ days_open }} &nbsp;·&nbsp;
+	Red = Withdrawn &nbsp;·&nbsp; Generated: {{ generated_at }}
+</div>
+
+{% for hr_name, rows in homeroom_groups.items %}
+
+<div class="section-title">Homeroom: {{ hr_name }}</div>
+
+<table>
+	<thead>
+		<tr>
+			<th class="name-th">Name</th>
+			<th>Grade/<br>Homeroom</th>
+			<th>Enrolled</th>
+			<th>Attended<br>(Days)</th>
+			<th>Absent<br>Unexec<br>(Days)</th>
+			<th>Absent<br>Excuse<br>(Days)</th>
+			<th>Absent<br>Other<br>(Days)</th>
+			<th>Absent<br>Total<br>(Days)</th>
+			<th>Late<br>Unexec<br>(Times)</th>
+			<th>Late<br>Excuse<br>(Times)</th>
+		</tr>
+	</thead>
+	<tbody>
+		{% for row in rows %}
+		<tr {% if row.student.current_status == 'withdrawn' %}class="withdrawn"{% endif %}>
+			<td class="name-cell">
+				<strong>{{ row.student.last_name }}</strong>, {{ row.student.first_name }}
+				({{ row.student.student_id }})
+			</td>
+			<td style="text-align:center;">{{ row.grade_homeroom }}</td>
+			<td style="text-align:center;">{{ row.enrolled }}.00</td>
+			<td style="text-align:center;">
+				{{ row.attended }}.00<br>({{ row.att_pct }}%)
+			</td>
+			<td style="text-align:center;" {% if row.absent_unexec > 0 %}class="red"{% endif %}>
+				{{ row.absent_unexec }}.00<br>({{ row.abs_unexec_pct }}%)
+			</td>
+			<td style="text-align:center;">
+				{{ row.absent_excused }}.00<br>({{ row.abs_excused_pct }}%)
+			</td>
+			<td style="text-align:center;">
+				{{ row.absent_other }}.00<br>({{ row.abs_other_pct }}%)
+			</td>
+			<td style="text-align:center;" {% if row.absent_total > 0 %}class="orange"{% endif %}>
+				{{ row.absent_total }}.00<br>({{ row.abs_pct }}%)
+			</td>
+			<td style="text-align:center;" {% if row.late_unexec > 0 %}class="orange"{% endif %}>
+				{{ row.late_unexec }}.00
+			</td>
+			<td style="text-align:center;">{{ row.late_excused }}.00</td>
+		</tr>
+		{% endfor %}
+		<tr class="total-row">
+			<td colspan="2" style="text-align:right;">Total — (Student-Days)</td>
+			<td style="text-align:center;">{{ rows|length }}</td>
+			<td style="text-align:center;">—</td>
+			<td style="text-align:center;">—</td>
+			<td style="text-align:center;">—</td>
+			<td style="text-align:center;">—</td>
+			<td style="text-align:center;">—</td>
+			<td style="text-align:center;">—</td>
+			<td style="text-align:center;">—</td>
+		</tr>
+	</tbody>
+</table>
+
+{% endfor %}
+
+<!-- Grand totals -->
+<div class="grand-title">Grand Totals</div>
+<table>
+	<thead>
+		<tr>
+			<th class="name-th">Name</th>
+			<th>Enrolled</th>
+			<th>Attended<br>(Days)</th>
+			<th>Absent<br>Unexec</th>
+			<th>Absent<br>Excuse</th>
+			<th>Absent<br>Other</th>
+			<th>Absent<br>Total</th>
+			<th>Late<br>Unexec</th>
+			<th>Late<br>Excuse</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr class="total-row">
+			<td>Grand Totals (Student-Days)</td>
+			<td style="text-align:center;">{{ grand.enrolled }}</td>
+			<td style="text-align:center;">{{ grand.attended }} Days<br>({{ grand.att_pct }}%)</td>
+			<td style="text-align:center;">{{ grand.absent_unexec }} Days<br>(0.00%)</td>
+			<td style="text-align:center;">{{ grand.absent_excused }} Days<br>(0.00%)</td>
+			<td style="text-align:center;">{{ grand.absent_other }} Days<br>(0.00%)</td>
+			<td style="text-align:center;">{{ grand.absent_total }} Days<br>({{ grand.abs_pct }}%)</td>
+			<td style="text-align:center;">{{ grand.late_unexec }}</td>
+			<td style="text-align:center;">{{ grand.late_excused }}</td>
+		</tr>
+	</tbody>
+</table>
+
+<div class="footer">
+	Generated: {{ generated_at }} &nbsp;·&nbsp; {{ school.name }}
+</div>
+
+</body>
+</html>

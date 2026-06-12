@@ -1,13 +1,15 @@
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse
+from django.shortcuts import redirect, render
 from core.decorators import tenant_required
 from accounts.models import UserRole
 from students.models import Student
 from staff.models import Staff
-from scheduling.models import Form, Homeroom, Section, AcademicYear
-from scheduling.models import Enrolment
-
+from scheduling.models import AcademicYear, Enrolment, Form, Homeroom, Section
+from attendance.models import Attendance
+import datetime
+import calendar
 
 def get_roles(user, school):
 	return list(UserRole.objects.filter(
@@ -39,12 +41,9 @@ def reports_home(request):
 	roles  = get_roles(request.user, school)
 
 	if not admin and "teacher" not in roles:
-		from django.contrib import messages
 		messages.error(request, "Access denied.")
-		from django.shortcuts import redirect
 		return redirect("portals:dashboard")
 
-	# For teacher: get their sections and homerooms
 	teacher_sections  = []
 	teacher_homerooms = []
 	if staff and not admin:
@@ -77,9 +76,7 @@ def reports_home(request):
 def student_roster(request):
 	school = request.school
 	if not is_admin(request.user, school):
-		from django.contrib import messages
 		messages.error(request, "Access denied.")
-		from django.shortcuts import redirect
 		return redirect("reports:home")
 
 	form_pk     = request.GET.get("form")
@@ -88,8 +85,7 @@ def student_roster(request):
 
 	forms     = Form.objects.filter(school=school)
 	homerooms = Homeroom.objects.filter(school=school).select_related("form")
-
-	students = Student.objects.filter(school=school).select_related("form", "homeroom", "house")
+	students  = Student.objects.filter(school=school).select_related("form", "homeroom", "house")
 
 	if form_pk:
 		students = students.filter(form_id=form_pk)
@@ -98,7 +94,7 @@ def student_roster(request):
 	if status != "all":
 		students = [s for s in students if s.current_status() == status]
 
-	selected_form     = forms.filter(pk=form_pk).first() if form_pk else None
+	selected_form     = forms.filter(pk=form_pk).first()     if form_pk     else None
 	selected_homeroom = homerooms.filter(pk=homeroom_pk).first() if homeroom_pk else None
 
 	as_pdf = request.GET.get("pdf") == "1"
@@ -131,13 +127,11 @@ def student_roster(request):
 def staff_list_report(request):
 	school = request.school
 	if not is_admin(request.user, school):
-		from django.contrib import messages
 		messages.error(request, "Access denied.")
-		from django.shortcuts import redirect
 		return redirect("reports:home")
 
-	dept    = request.GET.get("dept", "")
-	active  = request.GET.get("active", "1")
+	dept   = request.GET.get("dept", "")
+	active = request.GET.get("active", "1")
 
 	staff = Staff.objects.filter(school=school)
 	if dept:
@@ -160,10 +154,10 @@ def staff_list_report(request):
 		}, filename="staff_list.pdf")
 
 	return render(request, "reports/staff_list.html", {
-		"staff":       staff,
-		"departments": departments,
-		"selected_dept":   dept,
-		"selected_active": active,
+		"staff":            staff,
+		"departments":      departments,
+		"selected_dept":    dept,
+		"selected_active":  active,
 	})
 
 
@@ -178,14 +172,11 @@ def class_list(request):
 	roles  = get_roles(request.user, school)
 
 	if not admin and "teacher" not in roles:
-		from django.contrib import messages
 		messages.error(request, "Access denied.")
-		from django.shortcuts import redirect
 		return redirect("reports:home")
 
 	homeroom_pk = request.GET.get("homeroom")
 
-	# Teachers only see their own homerooms
 	if admin:
 		homerooms = Homeroom.objects.filter(school=school).select_related("form")
 	else:
@@ -207,18 +198,19 @@ def class_list(request):
 	as_pdf = request.GET.get("pdf") == "1"
 	if as_pdf and selected_homeroom:
 		return _render_pdf(request, "reports/pdf/class_list.html", {
-			"students":        students,
-			"homeroom":        selected_homeroom,
-			"school":          school,
-			"school_profile":  request.school_profile,
-		}, filename=f"class_list_{selected_homeroom.name}.pdf")
+			"students":       students,
+			"homeroom":       selected_homeroom,
+			"school":         school,
+			"school_profile": request.school_profile,
+			"empty_cols":     range(20),
+		}, filename=f"classlist_{selected_homeroom.name}.pdf")
 
 	return render(request, "reports/class_list.html", {
-		"homerooms":        homerooms,
+		"homerooms":         homerooms,
 		"selected_homeroom": selected_homeroom,
-		"students":         students,
-		"homeroom_pk":      homeroom_pk,
-		"is_admin":         admin,
+		"students":          students,
+		"homeroom_pk":       homeroom_pk,
+		"is_admin":          admin,
 	})
 
 
@@ -233,16 +225,13 @@ def course_list_report(request):
 	roles  = get_roles(request.user, school)
 
 	if not admin and "teacher" not in roles:
-		from django.contrib import messages
 		messages.error(request, "Access denied.")
-		from django.shortcuts import redirect
 		return redirect("reports:home")
 
 	section_pk = request.GET.get("section")
 	year_pk    = request.GET.get("year")
 	view       = request.GET.get("view", "kanban")
 
-	# Filter sections by role
 	if admin:
 		sections = Section.objects.filter(school=school).select_related(
 			"course", "form", "academic_year", "teacher"
@@ -275,17 +264,18 @@ def course_list_report(request):
 			"enrolments":     enrolments,
 			"school":         school,
 			"school_profile": request.school_profile,
-		}, filename=f"course_list_{selected_section.course.code or selected_section.course.name}.pdf")
+			"empty_cols":     range(20),
+		}, filename=f"courselist_{selected_section.course.code or selected_section.course.name}.pdf")
 
 	return render(request, "reports/course_list.html", {
-		"sections":         sections,
-		"selected_section": selected_section,
-		"enrolments":       enrolments,
-		"years":            years,
-		"selected_year":    year_pk,
-		"section_pk":       section_pk,
-		"view":             view,
-		"is_admin":         admin,
+		"sections":          sections,
+		"selected_section":  selected_section,
+		"enrolments":        enrolments,
+		"years":             years,
+		"selected_year":     year_pk,
+		"section_pk":        section_pk,
+		"view":              view,
+		"is_admin":          admin,
 	})
 
 
@@ -296,12 +286,11 @@ def _render_pdf(request, template_name, context, filename="report.pdf"):
 	import io
 	import datetime
 
-	# Inject generated_at so PDF templates don't need {% now %}
-	context["generated_at"] = datetime.datetime.now().strftime("%d %b %Y %H:%M")
+	context["generated_at"] = datetime.datetime.now().strftime("%A, %B %d, %Y")
 
 	html_string = render_to_string(template_name, context, request=request)
 
-	# Try WeasyPrint first (Linux/production)
+	# Try WeasyPrint first (Linux / production)
 	try:
 		import weasyprint
 		pdf      = weasyprint.HTML(string=html_string).write_pdf()
@@ -311,7 +300,7 @@ def _render_pdf(request, template_name, context, filename="report.pdf"):
 	except Exception:
 		pass
 
-	# Fall back to xhtml2pdf (Windows/dev)
+	# Fall back to xhtml2pdf (Windows / dev)
 	try:
 		from xhtml2pdf import pisa
 		buf = io.BytesIO()
@@ -321,6 +310,206 @@ def _render_pdf(request, template_name, context, filename="report.pdf"):
 		response["Content-Disposition"] = f'attachment; filename="{filename}"'
 		return response
 	except ImportError:
-		return HttpResponse("No PDF library available. Run: pip install xhtml2pdf", status=500)
+		return HttpResponse(
+			"No PDF library available. Run: pip install xhtml2pdf",
+			status=500
+		)
 	except Exception as e:
 		return HttpResponse(f"PDF generation error: {e}", status=500)
+	
+
+	# ── Attendance Summary Report ─────────────────────────────────────────────────
+
+@login_required
+@tenant_required
+def attendance_summary(request):
+	school = request.school
+	admin  = is_admin(request.user, school)
+	staff  = get_staff_profile(request.user)
+	roles  = get_roles(request.user, school)
+
+	if not admin and "teacher" not in roles:
+		messages.error(request, "Access denied.")
+		return redirect("reports:home")
+
+	# Filters
+	today       = datetime.date.today()
+	month       = int(request.GET.get("month", today.month))
+	year        = int(request.GET.get("year",  today.year))
+	homeroom_pk = request.GET.get("homeroom")
+	form_pk     = request.GET.get("form")
+
+	if admin:
+		homerooms = Homeroom.objects.filter(school=school).select_related("form")
+	else:
+		homerooms = Homeroom.objects.filter(
+			school=school, staff_members=staff
+		).select_related("form")
+
+	forms = Form.objects.filter(school=school)
+
+	selected_homeroom = homerooms.filter(pk=homeroom_pk).first() if homeroom_pk else None
+	selected_form     = forms.filter(pk=form_pk).first()         if form_pk     else None
+
+	# Date range for selected month
+	first_day  = datetime.date(year, month, 1)
+	last_day   = datetime.date(year, month, calendar.monthrange(year, month)[1])
+	month_name = first_day.strftime("%B %Y")
+
+	# Count school days in the month (Mon–Fri, excluding non-school days)
+	from scheduling.models import NonSchoolDay
+	non_school_days = set(
+		NonSchoolDay.objects.filter(
+			school=school, date__gte=first_day, date__lte=last_day
+		).values_list("date", flat=True)
+	)
+
+	school_days = []
+	d = first_day
+	while d <= last_day:
+		if d.weekday() < 5 and d not in non_school_days:
+			school_days.append(d)
+		d += datetime.timedelta(days=1)
+
+	days_open = len(school_days)
+
+	# Get students
+	students_qs = Student.objects.filter(school=school).select_related(
+		"form", "homeroom"
+	).order_by("last_name", "first_name")
+
+	if selected_homeroom:
+		students_qs = students_qs.filter(homeroom=selected_homeroom)
+	elif selected_form:
+		students_qs = students_qs.filter(form=selected_form)
+	else:
+		students_qs = students_qs.none()
+
+	students_qs = [s for s in students_qs if s.current_status() in ("enrolled", "withdrawn")]
+
+	# Get all attendance records for these students in this month
+	if students_qs:
+		att_records = Attendance.objects.filter(
+			school=school,
+			student__in=students_qs,
+			date__gte=first_day,
+			date__lte=last_day,
+		)
+		# key: (student_pk, date) → record
+		att_map = {}
+		for rec in att_records:
+			att_map[(rec.student_id, rec.date)] = rec
+	else:
+		att_map = {}
+
+	# Build rows grouped by homeroom
+	from collections import defaultdict
+	homeroom_groups = defaultdict(list)
+
+	for student in students_qs:
+		absent_unexec  = 0
+		absent_excused = 0
+		absent_other   = 0
+		late_unexec    = 0
+		late_excused   = 0
+
+		for day in school_days:
+			rec = att_map.get((student.pk, day))
+			if rec is None:
+				continue  # present (exception-based — no record = present)
+			if rec.status == "absent":
+				# Categorise by note presence as a simple proxy
+				note = (rec.note or "").lower()
+				if "excuse" in note or "sick" in note or "medical" in note:
+					absent_excused += 1
+				elif note:
+					absent_other += 1
+				else:
+					absent_unexec += 1
+			elif rec.status == "late":
+				note = (rec.note or "").lower()
+				if "excuse" in note:
+					late_excused += 1
+				else:
+					late_unexec += 1
+
+		absent_total = absent_unexec + absent_excused + absent_other
+		attended     = days_open - absent_total
+
+		def pct(n, total):
+			if total == 0:
+				return 0.0
+			return round(n / total * 100, 2)
+
+		hr_key = student.homeroom.name if student.homeroom else "No Homeroom"
+		homeroom_groups[hr_key].append({
+			"student":        student,
+			"grade_homeroom": f"{student.form}/{student.homeroom}" if student.form and student.homeroom else "—",
+			"enrolled":       days_open,
+			"attended":       attended,
+			"absent_unexec":  absent_unexec,
+			"absent_excused": absent_excused,
+			"absent_other":   absent_other,
+			"absent_total":   absent_total,
+			"late_unexec":    late_unexec,
+			"late_excused":   late_excused,
+			"att_pct":        pct(attended, days_open),
+			"abs_pct":        pct(absent_total, days_open),
+			"abs_unexec_pct": pct(absent_unexec, days_open),
+			"abs_excused_pct":pct(absent_excused, days_open),
+			"abs_other_pct":  pct(absent_other, days_open),
+			"late_u_pct":     pct(late_unexec, days_open),
+			"late_e_pct":     pct(late_excused, days_open),
+		})
+
+	# Grand totals
+	all_rows = [row for rows in homeroom_groups.values() for row in rows]
+	grand = {
+		"enrolled":       sum(r["enrolled"]       for r in all_rows),
+		"attended":       sum(r["attended"]        for r in all_rows),
+		"absent_unexec":  sum(r["absent_unexec"]   for r in all_rows),
+		"absent_excused": sum(r["absent_excused"]  for r in all_rows),
+		"absent_other":   sum(r["absent_other"]    for r in all_rows),
+		"absent_total":   sum(r["absent_total"]    for r in all_rows),
+		"late_unexec":    sum(r["late_unexec"]     for r in all_rows),
+		"late_excused":   sum(r["late_excused"]    for r in all_rows),
+	}
+	if grand["enrolled"] > 0:
+		grand["att_pct"] = round(grand["attended"] / grand["enrolled"] * 100, 2)
+		grand["abs_pct"] = round(grand["absent_total"] / grand["enrolled"] * 100, 2)
+	else:
+		grand["att_pct"] = grand["abs_pct"] = 0.0
+
+	# Month/year options for selector
+	month_choices = [(i, datetime.date(2000, i, 1).strftime("%B")) for i in range(1, 13)]
+	year_choices  = list(range(today.year - 2, today.year + 2))
+
+	context = {
+		"homeroom_groups":   dict(homeroom_groups),
+		"grand":             grand,
+		"days_open":         days_open,
+		"month_name":        month_name,
+		"month":             month,
+		"year":              year,
+		"month_choices":     month_choices,
+		"year_choices":      year_choices,
+		"homerooms":         homerooms,
+		"forms":             forms,
+		"selected_homeroom": selected_homeroom,
+		"selected_form":     selected_form,
+		"homeroom_pk":       homeroom_pk,
+		"form_pk":           form_pk,
+		"is_admin":          admin,
+		"all_rows":          all_rows,
+	}
+
+	as_pdf = request.GET.get("pdf") == "1"
+	if as_pdf and all_rows:
+		return _render_pdf(
+			request,
+			"reports/pdf/attendance_summary.html",
+			context,
+			filename=f"attendance_{month_name.replace(' ', '_')}.pdf"
+		)
+
+	return render(request, "reports/attendance_summary.html", context)

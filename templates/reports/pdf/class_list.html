@@ -3,59 +3,64 @@
 <head>
 <meta charset="UTF-8"/>
 <style>
+	@page { size: A4 landscape; margin: 1.5cm; }
 	body { font-family: Arial, sans-serif; font-size: 11px; color: #1f2937; margin: 0; }
-	.header { text-align: center; border-bottom: 2px solid #1e40af; padding-bottom: 12px; margin-bottom: 16px; }
-	.header h1 { font-size: 18px; color: #1e40af; margin: 0 0 4px; }
-	.header p { margin: 2px 0; color: #6b7280; font-size: 10px; }
-	table { width: 100%; border-collapse: collapse; }
-	th { background: #1e40af; color: white; padding: 6px 8px; text-align: left; font-size: 10px; text-transform: uppercase; }
-	td { padding: 5px 8px; border-bottom: 1px solid #e5e7eb; }
-	tr:nth-child(even) td { background: #f9fafb; }
-	.footer { margin-top: 16px; font-size: 9px; color: #9ca3af; text-align: right; }
-	.sig-line { border-bottom: 1px solid #9ca3af; width: 200px; display: inline-block; margin-top: 40px; }
+
+	.school-name { font-size: 14px; font-weight: bold; }
+	.report-date { font-size: 11px; color: #6b7280; margin-top: 2px; }
+	.section-title { font-size: 22px; font-weight: normal; margin: 14px 0 10px; }
+
+	table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+
+	.name-col { width: 200px; }
+
+	td, th {
+		border: 1px solid #d1d5db;
+		padding: 0;
+		height: 22px;
+	}
+
+	td.name-cell {
+		padding: 3px 6px;
+		border-right: 2px solid #374151;
+		font-size: 11px;
+		white-space: nowrap;
+		overflow: hidden;
+	}
+
+	tr:nth-child(even) td { background-color: #e5e7eb; }
+	tr:nth-child(odd)  td { background-color: #ffffff; }
+
+	td.empty-cell { background-color: inherit; }
+
+	.footer { margin-top: 10px; font-size: 9px; color: #9ca3af; text-align: right; }
 </style>
 </head>
 <body>
-<div class="header">
-	<h1>{{ school.name }}</h1>
-	<p>{% if school_profile %}{{ school_profile.address }}{% endif %}</p>
-	<p>Class List — Homeroom {{ homeroom.name }} ({{ homeroom.form }})</p>
-</div>
+
+<div class="school-name">{{ school.name }} Classlist</div>
+<div class="report-date">{{ generated_at }}</div>
+<div class="section-title">{{ homeroom.form.name }} — Homeroom {{ homeroom.name }}</div>
 
 <table>
-	<thead>
-		<tr>
-			<th>#</th>
-			<th>Student ID</th>
-			<th>Name</th>
-			<th>Gender</th>
-			<th>Date of Birth</th>
-			<th>House</th>
-			<th>Phone</th>
-		</tr>
-	</thead>
 	<tbody>
 		{% for student in students %}
 		<tr>
-			<td>{{ forloop.counter }}</td>
-			<td>{{ student.student_id }}</td>
-			<td>{{ student.get_full_name }}</td>
-			<td>{{ student.get_gender_display|default:"—" }}</td>
-			<td>{{ student.date_of_birth|default:"—" }}</td>
-			<td>{{ student.house|default:"—" }}</td>
-			<td>{{ student.phone|default:"—" }}</td>
+			<td class="name-cell name-col">
+				<strong>{{ student.last_name }}</strong>, {{ student.first_name }}
+				{% if student.middle_name %} {{ student.middle_name }}{% endif %}
+			</td>
+			{% for i in empty_cols %}
+			<td class="empty-cell"></td>
+			{% endfor %}
 		</tr>
 		{% endfor %}
 	</tbody>
 </table>
 
-<div style="margin-top: 32px; font-size: 10px; color: #6b7280;">
-	<p>Teacher Signature: <span class="sig-line"></span></p>
+<div class="footer">
+	{{ students|length }} student{{ students|length|pluralize }} &nbsp;·&nbsp; Generated: {{ generated_at }}
 </div>
 
-<div class="footer">
-	{{ students|length }} student{{ students|length|pluralize }} &nbsp;·&nbsp;
-	Generated: {% now "d M Y H:i" %}
-</div>
 </body>
 </html>

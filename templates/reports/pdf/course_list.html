@@ -3,62 +3,69 @@
 <head>
 <meta charset="UTF-8"/>
 <style>
+	@page { size: A4 landscape; margin: 1.5cm; }
 	body { font-family: Arial, sans-serif; font-size: 11px; color: #1f2937; margin: 0; }
-	.header { text-align: center; border-bottom: 2px solid #1e40af; padding-bottom: 12px; margin-bottom: 16px; }
-	.header h1 { font-size: 18px; color: #1e40af; margin: 0 0 4px; }
-	.header p { margin: 2px 0; color: #6b7280; font-size: 10px; }
-	.meta { background: #f9fafb; padding: 10px 12px; border-radius: 6px; margin-bottom: 14px; font-size: 10px; }
-	.meta span { color: #6b7280; }
-	table { width: 100%; border-collapse: collapse; }
-	th { background: #1e40af; color: white; padding: 6px 8px; text-align: left; font-size: 10px; text-transform: uppercase; }
-	td { padding: 5px 8px; border-bottom: 1px solid #e5e7eb; }
-	tr:nth-child(even) td { background: #f9fafb; }
-	.footer { margin-top: 16px; font-size: 9px; color: #9ca3af; text-align: right; }
+
+	.school-name { font-size: 14px; font-weight: bold; }
+	.report-date { font-size: 11px; color: #6b7280; margin-top: 2px; }
+	.section-title { font-size: 22px; font-weight: normal; margin: 14px 0 4px; }
+	.section-meta { font-size: 11px; color: #6b7280; margin-bottom: 10px; }
+
+	table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+
+	.name-col { width: 200px; }
+
+	td, th {
+		border: 1px solid #d1d5db;
+		padding: 0;
+		height: 22px;
+	}
+
+	td.name-cell {
+		padding: 3px 6px;
+		border-right: 2px solid #374151;
+		font-size: 11px;
+		white-space: nowrap;
+		overflow: hidden;
+	}
+
+	tr:nth-child(even) td { background-color: #e5e7eb; }
+	tr:nth-child(odd)  td { background-color: #ffffff; }
+
+	td.empty-cell { background-color: inherit; }
+
+	.footer { margin-top: 10px; font-size: 9px; color: #9ca3af; text-align: right; }
 </style>
 </head>
 <body>
-<div class="header">
-	<h1>{{ school.name }}</h1>
-	<p>{% if school_profile %}{{ school_profile.address }}{% endif %}</p>
-	<p>Course Enrolment List</p>
-</div>
 
-<div class="meta">
-	<strong>{{ section.course.name }}</strong> &nbsp;·&nbsp;
-	<span>{{ section.form }}</span> &nbsp;·&nbsp;
-	<span>Term {{ section.term_number }}</span> &nbsp;·&nbsp;
-	<span>{{ section.academic_year.name }}</span>
-	{% if section.teacher %}&nbsp;·&nbsp;<span>{{ section.teacher.get_full_name }}</span>{% endif %}
+<div class="school-name">{{ school.name }} Course List</div>
+<div class="report-date">{{ generated_at }}</div>
+<div class="section-title">{{ section.course.name }}</div>
+<div class="section-meta">
+	{{ section.form }} &nbsp;·&nbsp; Term {{ section.term_number }} &nbsp;·&nbsp; {{ section.academic_year.name }}
+	{% if section.teacher %}&nbsp;·&nbsp; {{ section.teacher.get_full_name }}{% endif %}
 </div>
 
 <table>
-	<thead>
-		<tr>
-			<th>#</th>
-			<th>Student ID</th>
-			<th>Name</th>
-			<th>Homeroom</th>
-			<th>Gender</th>
-			<th>Date of Birth</th>
-		</tr>
-	</thead>
 	<tbody>
 		{% for enrolment in enrolments %}
 		<tr>
-			<td>{{ forloop.counter }}</td>
-			<td>{{ enrolment.student.student_id }}</td>
-			<td>{{ enrolment.student.get_full_name }}</td>
-			<td>{{ enrolment.student.homeroom|default:"—" }}</td>
-			<td>{{ enrolment.student.get_gender_display|default:"—" }}</td>
-			<td>{{ enrolment.student.date_of_birth|default:"—" }}</td>
+			<td class="name-cell name-col">
+				<strong>{{ enrolment.student.last_name }}</strong>, {{ enrolment.student.first_name }}
+				{% if enrolment.student.middle_name %} {{ enrolment.student.middle_name }}{% endif %}
+			</td>
+			{% for i in empty_cols %}
+			<td class="empty-cell"></td>
+			{% endfor %}
 		</tr>
 		{% endfor %}
 	</tbody>
 </table>
 
 <div class="footer">
-	{{ enrolments|length }} student{{ enrolments|length|pluralize }} enrolled &nbsp;·&nbsp;
-	Generated: {% now "d M Y H:i" %}
+	{{ enrolments|length }} student{{ enrolments|length|pluralize }} enrolled &nbsp;·&nbsp; Generated: {{ generated_at }}
 </div>
+
 </body>
 </html>

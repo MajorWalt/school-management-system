@@ -1,0 +1,238 @@
+{% extends "base.html" %}
+{% block title %}Attendance Summary — {{ school.name }}{% endblock %}
+{% block page_title %}Attendance Summary{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-5 flex-wrap gap-3">
+	<div>
+		<h1 class="text-xl font-bold text-gray-800">Attendance Summary</h1>
+		{% if month_name and all_rows %}
+		<p class="text-sm text-gray-500">{{ month_name }} &nbsp;·&nbsp; {{ days_open }} school day{{ days_open|pluralize }}</p>
+		{% endif %}
+	</div>
+	<div class="flex gap-2 flex-wrap">
+		{% if all_rows %}
+		<a href="?month={{ month }}&year={{ year }}{% if homeroom_pk %}&homeroom={{ homeroom_pk }}{% endif %}{% if form_pk %}&form={{ form_pk }}{% endif %}&pdf=1"
+		class="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium bg-red-600 text-white hover:bg-red-700 transition">
+			<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+				<path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+			</svg>
+			Download PDF
+		</a>
+		{% endif %}
+		<a href="{% url 'reports:home' %}"
+		class="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 text-gray-600 hover:bg-gray-50 transition">
+			Back
+		</a>
+	</div>
+</div>
+
+<!-- Filters -->
+<form method="get" class="bg-white rounded-xl border border-gray-200 p-4 mb-5 flex flex-wrap gap-3 items-end">
+	<div>
+		<label class="block text-xs font-medium text-gray-600 mb-1">Month</label>
+		<select name="month"
+				class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+			{% for num, name in month_choices %}
+			<option value="{{ num }}" {% if month == num %}selected{% endif %}>{{ name }}</option>
+			{% endfor %}
+		</select>
+	</div>
+	<div>
+		<label class="block text-xs font-medium text-gray-600 mb-1">Year</label>
+		<select name="year"
+				class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+			{% for y in year_choices %}
+			<option value="{{ y }}" {% if year == y %}selected{% endif %}>{{ y }}</option>
+			{% endfor %}
+		</select>
+	</div>
+	<div>
+		<label class="block text-xs font-medium text-gray-600 mb-1">Homeroom</label>
+		<select name="homeroom"
+				class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+			<option value="">— Select Homeroom —</option>
+			{% for hr in homerooms %}
+			<option value="{{ hr.pk }}" {% if homeroom_pk == hr.pk|stringformat:"s" %}selected{% endif %}>
+				{{ hr.name }} ({{ hr.form }})
+			</option>
+			{% endfor %}
+		</select>
+	</div>
+	{% if is_admin %}
+	<div>
+		<label class="block text-xs font-medium text-gray-600 mb-1">— or Form —</label>
+		<select name="form"
+				class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+			<option value="">All Forms</option>
+			{% for f in forms %}
+			<option value="{{ f.pk }}" {% if form_pk == f.pk|stringformat:"s" %}selected{% endif %}>{{ f.name }}</option>
+			{% endfor %}
+		</select>
+	</div>
+	{% endif %}
+	<button type="submit" class="btn-primary px-4 py-2 rounded-lg text-sm font-medium">Generate</button>
+</form>
+
+{% if all_rows %}
+
+<!-- Legend -->
+<p class="text-xs text-gray-400 mb-3">
+	Red = Withdrawn &nbsp;·&nbsp; Percentages based on {{ days_open }} school day{{ days_open|pluralize }}
+</p>
+
+{% for hr_name, rows in homeroom_groups.items %}
+<div class="bg-white rounded-xl shadow overflow-hidden mb-6">
+
+	<!-- Homeroom header -->
+	<div class="px-5 py-3 border-b text-white text-sm font-semibold" style="background-color:var(--accent);">
+		Homeroom: {{ hr_name }}
+	</div>
+
+	<div class="overflow-x-auto">
+	<table class="min-w-full text-xs border-collapse">
+		<thead>
+			<tr class="bg-gray-700 text-white">
+				<th class="px-3 py-2 text-left border border-gray-600 min-w-48">Name</th>
+				<th class="px-2 py-2 text-center border border-gray-600 whitespace-nowrap">Grade/<br>Homeroom</th>
+				<th class="px-2 py-2 text-center border border-gray-600">Enrolled</th>
+				<th class="px-2 py-2 text-center border border-gray-600">Attended<br>(Days)</th>
+				<th class="px-2 py-2 text-center border border-gray-600">Absent<br>Unexec<br>(Days)</th>
+				<th class="px-2 py-2 text-center border border-gray-600">Absent<br>Excuse<br>(Days)</th>
+				<th class="px-2 py-2 text-center border border-gray-600">Absent<br>Other<br>(Days)</th>
+				<th class="px-2 py-2 text-center border border-gray-600">Absent<br>Total<br>(Days)</th>
+				<th class="px-2 py-2 text-center border border-gray-600">Late<br>Unexec<br>(Times)</th>
+				<th class="px-2 py-2 text-center border border-gray-600">Late<br>Excuse<br>(Times)</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for row in rows %}
+			<tr class="{% if row.student.current_status == 'withdrawn' %}bg-red-50 text-red-700
+						{% elif forloop.counter|divisibleby:2 %}bg-gray-50{% else %}bg-white{% endif %}
+						hover:bg-blue-50 transition border-b border-gray-100">
+				<td class="px-3 py-2 border border-gray-200 font-medium">
+					<strong>{{ row.student.last_name }}</strong>, {{ row.student.first_name }}
+					<span class="text-gray-400 font-normal">({{ row.student.student_id }})</span>
+				</td>
+				<td class="px-2 py-2 border border-gray-200 text-center">{{ row.grade_homeroom }}</td>
+				<td class="px-2 py-2 border border-gray-200 text-center font-medium">{{ row.enrolled }}.00</td>
+				<td class="px-2 py-2 border border-gray-200 text-center font-medium">
+					{{ row.attended }}.00
+					<br><span class="text-gray-400">({{ row.att_pct }}%)</span>
+				</td>
+				<td class="px-2 py-2 border border-gray-200 text-center
+					{% if row.absent_unexec > 0 %}font-bold text-red-600{% endif %}">
+					{{ row.absent_unexec }}.00
+					<br><span class="text-gray-400 font-normal">({{ row.abs_unexec_pct }}%)</span>
+				</td>
+				<td class="px-2 py-2 border border-gray-200 text-center">
+					{{ row.absent_excused }}.00
+					<br><span class="text-gray-400">({{ row.abs_excused_pct }}%)</span>
+				</td>
+				<td class="px-2 py-2 border border-gray-200 text-center">
+					{{ row.absent_other }}.00
+					<br><span class="text-gray-400">({{ row.abs_other_pct }}%)</span>
+				</td>
+				<td class="px-2 py-2 border border-gray-200 text-center
+					{% if row.absent_total > 0 %}font-bold text-orange-600{% endif %}">
+					{{ row.absent_total }}.00
+					<br><span class="text-gray-400 font-normal">({{ row.abs_pct }}%)</span>
+				</td>
+				<td class="px-2 py-2 border border-gray-200 text-center
+					{% if row.late_unexec > 0 %}font-bold text-yellow-700{% endif %}">
+					{{ row.late_unexec }}.00
+					<br><span class="text-gray-400 font-normal">({{ row.late_u_pct }}%)</span>
+				</td>
+				<td class="px-2 py-2 border border-gray-200 text-center">
+					{{ row.late_excused }}.00
+					<br><span class="text-gray-400">({{ row.late_e_pct }}%)</span>
+				</td>
+			</tr>
+			{% endfor %}
+
+			<!-- Homeroom total row -->
+			{% with t_enrolled=0 t_attended=0 t_absent=0 %}
+			<tr class="bg-gray-100 font-semibold text-gray-700 border-t-2 border-gray-400">
+				<td class="px-3 py-2 border border-gray-300 text-right text-xs" colspan="2">
+					Total — (Student-Days)
+				</td>
+				<td class="px-2 py-2 border border-gray-300 text-center">
+					{{ rows|length }}
+				</td>
+				<td class="px-2 py-2 border border-gray-300 text-center">—</td>
+				<td class="px-2 py-2 border border-gray-300 text-center">—</td>
+				<td class="px-2 py-2 border border-gray-300 text-center">—</td>
+				<td class="px-2 py-2 border border-gray-300 text-center">—</td>
+				<td class="px-2 py-2 border border-gray-300 text-center">—</td>
+				<td class="px-2 py-2 border border-gray-300 text-center">—</td>
+				<td class="px-2 py-2 border border-gray-300 text-center">—</td>
+			</tr>
+			{% endwith %}
+		</tbody>
+	</table>
+	</div>
+</div>
+{% endfor %}
+
+<!-- Grand Totals -->
+<div class="bg-white rounded-xl shadow overflow-hidden mb-6">
+	<div class="px-5 py-3 border-b bg-gray-800 text-white text-sm font-semibold text-center">
+		Grand Totals
+	</div>
+	<div class="overflow-x-auto">
+	<table class="min-w-full text-xs border-collapse">
+		<thead>
+			<tr class="bg-gray-700 text-white">
+				<th class="px-3 py-2 text-left border border-gray-600">Name</th>
+				<th class="px-2 py-2 text-center border border-gray-600">Enrolled</th>
+				<th class="px-2 py-2 text-center border border-gray-600">Attended<br>(Days)</th>
+				<th class="px-2 py-2 text-center border border-gray-600">Absent<br>Unexec</th>
+				<th class="px-2 py-2 text-center border border-gray-600">Absent<br>Excuse</th>
+				<th class="px-2 py-2 text-center border border-gray-600">Absent<br>Other</th>
+				<th class="px-2 py-2 text-center border border-gray-600">Absent<br>Total</th>
+				<th class="px-2 py-2 text-center border border-gray-600">Late<br>Unexec</th>
+				<th class="px-2 py-2 text-center border border-gray-600">Late<br>Excuse</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr class="bg-gray-50 font-semibold text-gray-700">
+				<td class="px-3 py-2 border border-gray-200">Grand Totals (Student-Days)</td>
+				<td class="px-2 py-2 border border-gray-200 text-center">{{ grand.enrolled }}</td>
+				<td class="px-2 py-2 border border-gray-200 text-center">
+					{{ grand.attended }} Days<br>
+					<span class="text-gray-500 font-normal">({{ grand.att_pct }}%)</span>
+				</td>
+				<td class="px-2 py-2 border border-gray-200 text-center {% if grand.absent_unexec > 0 %}text-red-600{% endif %}">
+					{{ grand.absent_unexec }} Days<br>
+					<span class="font-normal text-gray-500">({{ grand.abs_pct }}%)</span>
+				</td>
+				<td class="px-2 py-2 border border-gray-200 text-center">{{ grand.absent_excused }} Days</td>
+				<td class="px-2 py-2 border border-gray-200 text-center">{{ grand.absent_other }} Days</td>
+				<td class="px-2 py-2 border border-gray-200 text-center {% if grand.absent_total > 0 %}text-orange-600{% endif %}">
+					{{ grand.absent_total }} Days<br>
+					<span class="font-normal text-gray-500">({{ grand.abs_pct }}%)</span>
+				</td>
+				<td class="px-2 py-2 border border-gray-200 text-center">{{ grand.late_unexec }}</td>
+				<td class="px-2 py-2 border border-gray-200 text-center">{{ grand.late_excused }}</td>
+			</tr>
+		</tbody>
+	</table>
+	</div>
+</div>
+
+{% elif homeroom_pk or form_pk %}
+<div class="bg-white rounded-xl border border-gray-200 p-12 text-center text-gray-400">
+	<p class="text-base font-medium text-gray-500 mb-1">No data found</p>
+	<p class="text-sm">No students or attendance records for the selected period.</p>
+</div>
+{% else %}
+<div class="bg-white rounded-xl border border-gray-200 p-12 text-center text-gray-400">
+	<svg class="w-10 h-10 mx-auto mb-3 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+		<path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+	</svg>
+	<p class="text-base font-medium text-gray-500 mb-1">Select a month and homeroom or form above</p>
+	<p class="text-sm">to generate the attendance summary</p>
+</div>
+{% endif %}
+
+{% endblock %}
