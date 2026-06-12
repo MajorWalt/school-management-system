@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8"/>
+<style>
+	@page { size: A4 portrait; margin: 1.5cm; }
+	body  { font-family: Arial, sans-serif; font-size: 9px; color: #1f2937; margin: 0; }
+
+	.header-top  { font-size: 14px; font-weight: bold; }
+	.header-meta { font-size: 9px; color: #6b7280; margin-top: 2px; margin-bottom: 12px; }
+
+	.group-title {
+		padding: 5px 8px; font-size: 9px; font-weight: bold;
+		color: white; margin-bottom: 0;
+	}
+	.merit-title   { background: #047857; }
+	.demerit-title { background: #be123c; }
+
+	table { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
+
+	th {
+		padding: 4px 6px; text-align: left;
+		font-size: 8px; text-transform: uppercase;
+		background: #374151; color: white; border: 1px solid #4b5563;
+	}
+	th.center { text-align: center; }
+
+	td { padding: 3px 6px; border: 1px solid #e5e7eb; font-size: 8px; vertical-align: top; }
+	tr:nth-child(even) td { background: #f9fafb; }
+	tr.highlight-merit   td { background: #ecfdf5; }
+	tr.highlight-demerit td { background: #fff1f2; }
+	tr.subtotal td { background: #e5e7eb; font-weight: bold; font-size: 8px; }
+
+	.grand-box {
+		margin-top: 12px; padding: 8px 12px;
+		background: #1f2937; color: white;
+		font-size: 10px; font-weight: bold;
+	}
+	.grand-detail { font-size: 9px; color: #d1d5db; font-weight: normal; }
+	.footer { margin-top: 14px; font-size: 8px; color: #9ca3af; text-align: right; }
+	.pts-merit   { color: #047857; font-weight: bold; }
+	.pts-demerit { color: #be123c; font-weight: bold; }
+</style>
+</head>
+<body>
+
+<div class="header-top">
+	{{ school.name }} —
+	{% if report_type == "merit" %}Merit Report{% else %}Demerit Report{% endif %}
+</div>
+<div class="header-meta">
+	{{ month_name }}
+	{% if threshold_on %}&nbsp;·&nbsp; Filter: {{ threshold_label }}{% endif %}
+	&nbsp;·&nbsp; Generated: {{ generated_at }}
+</div>
+
+{% for hr_name, rows in groups.items %}
+
+<div class="group-title {% if report_type == 'merit' %}merit-title{% else %}demerit-title{% endif %}">
+	Homeroom {{ hr_name }}
+	&nbsp;·&nbsp; {{ rows|length }} student{{ rows|length|pluralize }}
+</div>
+
+<table>
+	<thead>
+		<tr>
+			<th>Student</th>
+			<th>ID</th>
+			<th class="center">Total</th>
+			<th class="center">Records</th>
+			<th>Details</th>
+		</tr>
+	</thead>
+	<tbody>
+		{% for row in rows %}
+		<tr class="{% if row.threshold %}{% if report_type == 'merit' %}highlight-merit{% else %}highlight-demerit{% endif %}{% endif %}">
+			<td>
+				<strong>{{ row.student.last_name }}</strong>, {{ row.student.first_name }}
+				{% if row.threshold %} ★{% endif %}
+			</td>
+			<td>{{ row.student.student_id }}</td>
+			<td style="text-align:center;"
+				class="{% if report_type == 'merit' %}pts-merit{% else %}pts-demerit{% endif %}">
+				{{ row.points }}
+			</td>
+			<td style="text-align:center;">{{ row.records|length }}</td>
+			<td>
+				{% for rec in row.records %}
+				{{ rec.date|date:"d/m" }} · {{ rec.get_category_display }} · {{ rec.count }}
+				{% if rec.reason %} — {{ rec.reason|truncatechars:40 }}{% endif %}
+				{% if not forloop.last %}<br>{% endif %}
+				{% endfor %}
+			</td>
+		</tr>
+		{% endfor %}
+		<tr class="subtotal">
+			<td colspan="2" style="text-align:right;">Subtotal</td>
+			<td style="text-align:center;">—</td>
+			<td style="text-align:center;">{{ rows|length }}</td>
+			<td>{% if threshold_on %}★ = {{ threshold_label }}{% endif %}</td>
+		</tr>
+	</tbody>
+</table>
+
+{% endfor %}
+
+<div class="grand-box">
+	Grand Total &nbsp;·&nbsp;
+	<span class="grand-detail">
+		{{ grand_students }} student{{ grand_students|pluralize }}
+		&nbsp;·&nbsp; {{ grand_points }} total
+		&nbsp;·&nbsp; {{ month_name }}
+		{% if threshold_on %}&nbsp;·&nbsp; Filter: {{ threshold_label }}{% endif %}
+	</span>
+</div>
+
+<div class="footer">Generated: {{ generated_at }} &nbsp;·&nbsp; {{ school.name }}</div>
+
+</body>
+</html>

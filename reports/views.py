@@ -7,9 +7,11 @@ from accounts.models import UserRole
 from students.models import Student
 from staff.models import Staff
 from scheduling.models import AcademicYear, Enrolment, Form, Homeroom, Section
+from merits.models import MeritRecord, DemeritRecord
 from attendance.models import Attendance
 import datetime
 import calendar
+
 
 def get_roles(user, school):
 	return list(UserRole.objects.filter(
@@ -94,7 +96,7 @@ def student_roster(request):
 	if status != "all":
 		students = [s for s in students if s.current_status() == status]
 
-	selected_form     = forms.filter(pk=form_pk).first()     if form_pk     else None
+	selected_form     = forms.filter(pk=form_pk).first()         if form_pk     else None
 	selected_homeroom = homerooms.filter(pk=homeroom_pk).first() if homeroom_pk else None
 
 	as_pdf = request.GET.get("pdf") == "1"
@@ -154,10 +156,10 @@ def staff_list_report(request):
 		}, filename="staff_list.pdf")
 
 	return render(request, "reports/staff_list.html", {
-		"staff":            staff,
-		"departments":      departments,
-		"selected_dept":    dept,
-		"selected_active":  active,
+		"staff":           staff,
+		"departments":     departments,
+		"selected_dept":   dept,
+		"selected_active": active,
 	})
 
 
@@ -279,46 +281,7 @@ def course_list_report(request):
 	})
 
 
-# ── PDF helper ────────────────────────────────────────────────────────────────
-
-def _render_pdf(request, template_name, context, filename="report.pdf"):
-	from django.template.loader import render_to_string
-	import io
-	import datetime
-
-	context["generated_at"] = datetime.datetime.now().strftime("%A, %B %d, %Y")
-
-	html_string = render_to_string(template_name, context, request=request)
-
-	# Try WeasyPrint first (Linux / production)
-	try:
-		import weasyprint
-		pdf      = weasyprint.HTML(string=html_string).write_pdf()
-		response = HttpResponse(pdf, content_type="application/pdf")
-		response["Content-Disposition"] = f'attachment; filename="{filename}"'
-		return response
-	except Exception:
-		pass
-
-	# Fall back to xhtml2pdf (Windows / dev)
-	try:
-		from xhtml2pdf import pisa
-		buf = io.BytesIO()
-		pisa.CreatePDF(html_string, dest=buf)
-		buf.seek(0)
-		response = HttpResponse(buf.read(), content_type="application/pdf")
-		response["Content-Disposition"] = f'attachment; filename="{filename}"'
-		return response
-	except ImportError:
-		return HttpResponse(
-			"No PDF library available. Run: pip install xhtml2pdf",
-			status=500
-		)
-	except Exception as e:
-		return HttpResponse(f"PDF generation error: {e}", status=500)
-	
-
-	# ── Attendance Summary Report ─────────────────────────────────────────────────
+# ── Attendance Summary ────────────────────────────────────────────────────────
 
 @login_required
 @tenant_required
@@ -332,7 +295,6 @@ def attendance_summary(request):
 		messages.error(request, "Access denied.")
 		return redirect("reports:home")
 
-	# Filters
 	today       = datetime.date.today()
 	month       = int(request.GET.get("month", today.month))
 	year        = int(request.GET.get("year",  today.year))
@@ -351,12 +313,10 @@ def attendance_summary(request):
 	selected_homeroom = homerooms.filter(pk=homeroom_pk).first() if homeroom_pk else None
 	selected_form     = forms.filter(pk=form_pk).first()         if form_pk     else None
 
-	# Date range for selected month
 	first_day  = datetime.date(year, month, 1)
 	last_day   = datetime.date(year, month, calendar.monthrange(year, month)[1])
 	month_name = first_day.strftime("%B %Y")
 
-	# Count school days in the month (Mon–Fri, excluding non-school days)
 	from scheduling.models import NonSchoolDay
 	non_school_days = set(
 		NonSchoolDay.objects.filter(
@@ -373,7 +333,6 @@ def attendance_summary(request):
 
 	days_open = len(school_days)
 
-	# Get students
 	students_qs = Student.objects.filter(school=school).select_related(
 		"form", "homeroom"
 	).order_by("last_name", "first_name")
@@ -387,7 +346,6 @@ def attendance_summary(request):
 
 	students_qs = [s for s in students_qs if s.current_status() in ("enrolled", "withdrawn")]
 
-	# Get all attendance records for these students in this month
 	if students_qs:
 		att_records = Attendance.objects.filter(
 			school=school,
@@ -395,14 +353,12 @@ def attendance_summary(request):
 			date__gte=first_day,
 			date__lte=last_day,
 		)
-		# key: (student_pk, date) → record
 		att_map = {}
 		for rec in att_records:
 			att_map[(rec.student_id, rec.date)] = rec
 	else:
 		att_map = {}
 
-	# Build rows grouped by homeroom
 	from collections import defaultdict
 	homeroom_groups = defaultdict(list)
 
@@ -416,9 +372,8 @@ def attendance_summary(request):
 		for day in school_days:
 			rec = att_map.get((student.pk, day))
 			if rec is None:
-				continue  # present (exception-based — no record = present)
+				continue
 			if rec.status == "absent":
-				# Categorise by note presence as a simple proxy
 				note = (rec.note or "").lower()
 				if "excuse" in note or "sick" in note or "medical" in note:
 					absent_excused += 1
@@ -443,26 +398,25 @@ def attendance_summary(request):
 
 		hr_key = student.homeroom.name if student.homeroom else "No Homeroom"
 		homeroom_groups[hr_key].append({
-			"student":        student,
-			"grade_homeroom": f"{student.form}/{student.homeroom}" if student.form and student.homeroom else "—",
-			"enrolled":       days_open,
-			"attended":       attended,
-			"absent_unexec":  absent_unexec,
-			"absent_excused": absent_excused,
-			"absent_other":   absent_other,
-			"absent_total":   absent_total,
-			"late_unexec":    late_unexec,
-			"late_excused":   late_excused,
-			"att_pct":        pct(attended, days_open),
-			"abs_pct":        pct(absent_total, days_open),
-			"abs_unexec_pct": pct(absent_unexec, days_open),
-			"abs_excused_pct":pct(absent_excused, days_open),
-			"abs_other_pct":  pct(absent_other, days_open),
-			"late_u_pct":     pct(late_unexec, days_open),
-			"late_e_pct":     pct(late_excused, days_open),
+			"student":         student,
+			"grade_homeroom":  f"{student.form}/{student.homeroom}" if student.form and student.homeroom else "—",
+			"enrolled":        days_open,
+			"attended":        attended,
+			"absent_unexec":   absent_unexec,
+			"absent_excused":  absent_excused,
+			"absent_other":    absent_other,
+			"absent_total":    absent_total,
+			"late_unexec":     late_unexec,
+			"late_excused":    late_excused,
+			"att_pct":         pct(attended,       days_open),
+			"abs_pct":         pct(absent_total,   days_open),
+			"abs_unexec_pct":  pct(absent_unexec,  days_open),
+			"abs_excused_pct": pct(absent_excused, days_open),
+			"abs_other_pct":   pct(absent_other,   days_open),
+			"late_u_pct":      pct(late_unexec,    days_open),
+			"late_e_pct":      pct(late_excused,   days_open),
 		})
 
-	# Grand totals
 	all_rows = [row for rows in homeroom_groups.values() for row in rows]
 	grand = {
 		"enrolled":       sum(r["enrolled"]       for r in all_rows),
@@ -474,13 +428,9 @@ def attendance_summary(request):
 		"late_unexec":    sum(r["late_unexec"]     for r in all_rows),
 		"late_excused":   sum(r["late_excused"]    for r in all_rows),
 	}
-	if grand["enrolled"] > 0:
-		grand["att_pct"] = round(grand["attended"] / grand["enrolled"] * 100, 2)
-		grand["abs_pct"] = round(grand["absent_total"] / grand["enrolled"] * 100, 2)
-	else:
-		grand["att_pct"] = grand["abs_pct"] = 0.0
+	grand["att_pct"] = round(grand["attended"]     / grand["enrolled"] * 100, 2) if grand["enrolled"] else 0.0
+	grand["abs_pct"] = round(grand["absent_total"] / grand["enrolled"] * 100, 2) if grand["enrolled"] else 0.0
 
-	# Month/year options for selector
 	month_choices = [(i, datetime.date(2000, i, 1).strftime("%B")) for i in range(1, 13)]
 	year_choices  = list(range(today.year - 2, today.year + 2))
 
@@ -513,3 +463,163 @@ def attendance_summary(request):
 		)
 
 	return render(request, "reports/attendance_summary.html", context)
+
+
+# ── Merit / Demerit Report ────────────────────────────────────────────────────
+
+@login_required
+@tenant_required
+def merit_demerit_report(request):
+	school = request.school
+	if not is_admin(request.user, school):
+		messages.error(request, "Access denied.")
+		return redirect("reports:home")
+
+	today        = datetime.date.today()
+	month        = int(request.GET.get("month", today.month))
+	year         = int(request.GET.get("year",  today.year))
+	report_type  = request.GET.get("type", "merit")
+	threshold_on = request.GET.get("threshold") == "1"
+
+	first_day  = datetime.date(year, month, 1)
+	last_day   = datetime.date(year, month, calendar.monthrange(year, month)[1])
+	month_name = first_day.strftime("%B %Y")
+
+	MIN_MERITS   = 10
+	MIN_DEMERITS = 5
+
+	from django.db.models import Sum
+	from collections import OrderedDict
+
+	if report_type == "merit":
+		records_qs = MeritRecord.objects.filter(
+			school=school, date__gte=first_day, date__lte=last_day
+		).select_related("student", "awarded_by")
+
+		student_totals = {
+			r["student_id"]: r["total"]
+			for r in records_qs.values("student_id").annotate(total=Sum("count"))
+		}
+		student_records = {}
+		for rec in records_qs.order_by("student__last_name", "date"):
+			student_records.setdefault(rec.student_id, []).append(rec)
+
+		threshold       = MIN_MERITS
+		threshold_label = f"{MIN_MERITS}+ merits"
+
+	else:
+		records_qs = DemeritRecord.objects.filter(
+			school=school, date__gte=first_day, date__lte=last_day
+		).select_related("student", "awarded_by")
+
+		student_totals = {
+			r["student_id"]: r["total"]
+			for r in records_qs.values("student_id").annotate(total=Sum("count"))
+		}
+		student_records = {}
+		for rec in records_qs.order_by("student__last_name", "date"):
+			student_records.setdefault(rec.student_id, []).append(rec)
+
+		threshold       = MIN_DEMERITS
+		threshold_label = f"{MIN_DEMERITS}+ demerits"
+
+	# Students who have records this month
+	students = Student.objects.filter(
+		school=school, pk__in=student_totals.keys()
+	).select_related("form", "homeroom").order_by(
+		"homeroom__name", "last_name", "first_name"
+	)
+
+	groups = OrderedDict()
+
+	for student in students:
+		pts = student_totals.get(student.pk, 0)
+
+		if threshold_on and pts < threshold:
+			continue
+
+		hr_name = student.homeroom.name if student.homeroom else "No Homeroom"
+		key     = hr_name
+
+		if key not in groups:
+			groups[key] = []
+
+		groups[key].append({
+			"student":   student,
+			"points":    pts,
+			"records":   student_records.get(student.pk, []),
+			"threshold": pts >= threshold,
+		})
+
+	grand_points   = sum(student_totals.values())
+	grand_students = len(student_totals)
+
+	month_choices = [(i, datetime.date(2000, i, 1).strftime("%B")) for i in range(1, 13)]
+	year_choices  = list(range(today.year - 2, today.year + 2))
+
+	context = {
+		"groups":          groups,
+		"month_name":      month_name,
+		"month":           month,
+		"year":            year,
+		"report_type":     report_type,
+		"threshold_on":    threshold_on,
+		"threshold":       threshold,
+		"threshold_label": threshold_label,
+		"grand_points":    grand_points,
+		"grand_students":  grand_students,
+		"month_choices":   month_choices,
+		"year_choices":    year_choices,
+		"min_merits":      MIN_MERITS,
+		"min_demerits":    MIN_DEMERITS,
+		"is_admin":        True,
+	}
+
+	as_pdf = request.GET.get("pdf") == "1"
+	if as_pdf and groups:
+		return _render_pdf(
+			request,
+			"reports/pdf/merit_demerit.html",
+			context,
+			filename=f"{'merits' if report_type == 'merit' else 'demerits'}_{month_name.replace(' ', '_')}.pdf"
+		)
+
+	return render(request, "reports/merit_demerit.html", context)
+
+
+# ── PDF helper ────────────────────────────────────────────────────────────────
+
+def _render_pdf(request, template_name, context, filename="report.pdf"):
+	from django.template.loader import render_to_string
+	import io
+
+	context["generated_at"] = datetime.datetime.now().strftime("%A, %B %d, %Y")
+
+	html_string = render_to_string(template_name, context, request=request)
+
+	# Try WeasyPrint first (Linux / production)
+	try:
+		import weasyprint
+		pdf      = weasyprint.HTML(string=html_string).write_pdf()
+		response = HttpResponse(pdf, content_type="application/pdf")
+		response["Content-Disposition"] = f'attachment; filename="{filename}"'
+		return response
+	except Exception:
+		pass
+
+	# Fall back to xhtml2pdf (Windows / dev)
+	try:
+		from xhtml2pdf import pisa
+		buf = io.BytesIO()
+		pisa.CreatePDF(html_string, dest=buf)
+		buf.seek(0)
+		response = HttpResponse(buf.read(), content_type="application/pdf")
+		response["Content-Disposition"] = f'attachment; filename="{filename}"'
+		return response
+	except ImportError:
+		return HttpResponse(
+			"No PDF library available. Run: pip install xhtml2pdf",
+			status=500
+		)
+	except Exception as e:
+		return HttpResponse(f"PDF generation error: {e}", status=500)
