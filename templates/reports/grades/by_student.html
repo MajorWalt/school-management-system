@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% block title %}Grade Report by Student — {{ school.name }}{% endblock %}
+{% block page_title %}Grade Report by Student{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-5 flex-wrap gap-3">
+	<h1 class="text-xl font-bold text-gray-800">Grade Report — By Student</h1>
+	<div class="flex gap-2 flex-wrap">
+		{% if selected_student and course_rows %}
+		<a href="?student={{ student_pk }}&year={{ year_pk }}&term={{ term }}&pdf=1"
+		   class="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium bg-red-600 text-white hover:bg-red-700 transition">
+			<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+				<path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+			</svg>
+			Download PDF
+		</a>
+		{% endif %}
+		<a href="{% url 'reports:grade_reports_home' %}"
+		   class="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 text-gray-600 hover:bg-gray-50 transition">
+			Back
+		</a>
+	</div>
+</div>
+
+<!-- Filters -->
+<form method="get" class="bg-white rounded-xl border border-gray-200 p-4 mb-5 flex flex-wrap gap-3 items-end">
+	<div>
+		<label class="block text-xs font-medium text-gray-600 mb-1">Year</label>
+		<select name="year" class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+			<option value="">— Select Year —</option>
+			{% for year in years %}
+			<option value="{{ year.pk }}" {% if year_pk == year.pk|stringformat:"s" %}selected{% endif %}>{{ year.name }}</option>
+			{% endfor %}
+		</select>
+	</div>
+	<div>
+		<label class="block text-xs font-medium text-gray-600 mb-1">Term</label>
+		<select name="term" class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+			<option value="" {% if not term %}selected{% endif %}>All Terms (YTD)</option>
+			<option value="1" {% if term == "1" %}selected{% endif %}>Term 1</option>
+			<option value="2" {% if term == "2" %}selected{% endif %}>Term 2</option>
+			<option value="3" {% if term == "3" %}selected{% endif %}>Term 3</option>
+		</select>
+	</div>
+	<div>
+		<label class="block text-xs font-medium text-gray-600 mb-1">Form</label>
+		<select name="form" class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="this.form.submit()">
+			<option value="">All Forms</option>
+			{% for f in forms %}
+			<option value="{{ f.pk }}" {% if form_pk == f.pk|stringformat:"s" %}selected{% endif %}>{{ f.name }}</option>
+			{% endfor %}
+		</select>
+	</div>
+	<div>
+		<label class="block text-xs font-medium text-gray-600 mb-1">Homeroom</label>
+		<select name="homeroom" class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="this.form.submit()">
+			<option value="">All Homerooms</option>
+			{% for hr in homerooms %}
+			<option value="{{ hr.pk }}" {% if homeroom_pk == hr.pk|stringformat:"s" %}selected{% endif %}>{{ hr.name }}</option>
+			{% endfor %}
+		</select>
+	</div>
+	<div>
+		<label class="block text-xs font-medium text-gray-600 mb-1">Student</label>
+		<select name="student" class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+			<option value="">— Select Student —</option>
+			{% for s in students_qs %}
+			<option value="{{ s.pk }}" {% if student_pk == s.pk|stringformat:"s" %}selected{% endif %}>
+				{{ s.get_full_name }} ({{ s.student_id }})
+			</option>
+			{% endfor %}
+		</select>
+	</div>
+	<button type="submit" class="btn-primary px-4 py-2 rounded-lg text-sm font-medium">Generate</button>
+</form>
+
+{% if selected_student %}
+
+<!-- Student card -->
+<div class="bg-white rounded-xl border border-gray-200 p-4 mb-5 flex items-center gap-4">
+	<div class="h-12 w-12 rounded-full bg-primary flex items-center justify-center text-white font-bold">
+		{{ selected_student.first_name.0 }}{{ selected_student.last_name.0 }}
+	</div>
+	<div>
+		<p class="font-semibold text-gray-800">{{ selected_student.get_full_name }}</p>
+		<p class="text-sm text-gray-500">
+			{{ selected_student.student_id }}
+			{% if selected_student.form %}&bull; {{ selected_student.form }}{% endif %}
+			{% if selected_student.homeroom %}&bull; Homeroom {{ selected_student.homeroom }}{% endif %}
+		</p>
+	</div>
+	{% if not term %}
+	<span class="ml-auto text-xs bg-blue-100 text-blue-700 px-3 py-1 rounded-full">Year-to-Date</span>
+	{% else %}
+	<span class="ml-auto text-xs bg-gray-100 text-gray-700 px-3 py-1 rounded-full">Term {{ term }}</span>
+	{% endif %}
+</div>
+
+{% if course_rows %}
+{% for cr in course_rows %}
+<div class="bg-white rounded-xl shadow overflow-hidden mb-4">
+	<div class="px-5 py-2.5 bg-gray-700 text-white flex items-center justify-between">
+		<span class="font-semibold text-sm">{{ cr.section.course.name }}</span>
+		<span class="text-gray-300 text-xs">
+			Term {{ cr.section.term_number }} · {{ cr.section.academic_year.name }}
+			{% if cr.section.teacher %} · {{ cr.section.teacher.get_full_name }}{% endif %}
+		</span>
+	</div>
+	<div class="overflow-x-auto">
+	<table class="min-w-full text-sm">
+		<thead class="bg-gray-50 text-gray-500 uppercase text-xs tracking-wide">
+			<tr>
+				{% for ev in cr.evaluations %}
+				<th class="px-3 py-2 text-center border-r border-gray-200 min-w-28">
+					<div class="font-medium">{{ ev.title }}</div>
+					<div class="text-xs font-normal text-gray-400">/{{ ev.max_marks }} · wt {{ ev.weight }}</div>
+				</th>
+				{% endfor %}
+				<th class="px-4 py-2 text-center bg-gray-100 min-w-20">Average</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				{% for cell in cr.cells %}
+				<td class="px-3 py-3 text-center border-r border-gray-100">
+					{% if cell.absent %}
+						<span class="text-xs text-gray-400 italic">ABS</span>
+					{% elif cell.pct is not None %}
+						<span class="font-semibold {% if cell.pct < 55 %}text-red-600{% else %}text-gray-800{% endif %}">
+							{{ cell.entry.marks_earned }}
+						</span>
+						<span class="block text-xs {% if cell.pct < 55 %}text-red-400{% else %}text-gray-400{% endif %}">
+							{{ cell.pct }}%
+						</span>
+					{% else %}
+						<span class="text-gray-300">—</span>
+					{% endif %}
+				</td>
+				{% endfor %}
+				<td class="px-4 py-3 text-center bg-gray-50">
+					{% if cr.avg is not None %}
+					<span class="font-bold text-base
+						{% if cr.avg < 55 %}text-red-600
+						{% elif cr.avg < 70 %}text-yellow-600
+						{% else %}text-green-600{% endif %}">
+						{{ cr.avg }}%
+					</span>
+					{% else %}
+					<span class="text-gray-300">—</span>
+					{% endif %}
+				</td>
+			</tr>
+		</tbody>
+	</table>
+	</div>
+</div>
+{% endfor %}
+{% else %}
+<div class="bg-white rounded-xl border border-gray-200 p-8 text-center text-gray-400">
+	No grades found for this student in the selected period.
+</div>
+{% endif %}
+
+{% else %}
+<div class="bg-white rounded-xl border border-gray-200 p-12 text-center text-gray-400">
+	<p class="text-base font-medium text-gray-500 mb-1">Select a year and student above</p>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8"/>
+<style>
+	@page { size: A4 landscape; margin: 1.2cm; }
+	body  { font-family: Arial, sans-serif; font-size: 9px; color: #1f2937; margin: 0; }
+	.header-top  { font-size: 13px; font-weight: bold; }
+	.header-meta { font-size: 9px; color: #6b7280; margin: 2px 0 12px; }
+	.section-bar {
+		background: #1e3a5f; color: white;
+		padding: 5px 8px; font-size: 10px; font-weight: bold;
+		margin-bottom: 0;
+	}
+	table { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
+	th {
+		background: #374151; color: white;
+		padding: 4px 5px; text-align: center; font-size: 8px;
+		border: 1px solid #4b5563;
+	}
+	th.name-th { text-align: left; min-width: 130px; }
+	td { padding: 3px 5px; border: 1px solid #e5e7eb; font-size: 8px; }
+	tr:nth-child(even) td { background: #f9fafb; }
+	.red    { color: #dc2626; font-weight: bold; }
+	.yellow { color: #d97706; font-weight: bold; }
+	.green  { color: #059669; font-weight: bold; }
+	.avg-col { background: #f3f4f6; font-weight: bold; }
+	.footer { margin-top: 10px; font-size: 8px; color: #9ca3af; text-align: right; }
+</style>
+</head>
+<body>
+<div class="header-top">{{ school.name }}</div>
+<div class="header-meta">
+	Grade Report by Course &nbsp;·&nbsp; Generated: {{ generated_at }}
+</div>
+
+{% if selected_section %}
+<div class="section-bar">
+	{{ selected_section.course.name }}
+	&nbsp;·&nbsp; {{ selected_section.form }}
+	&nbsp;·&nbsp; Term {{ selected_section.term_number }}
+	&nbsp;·&nbsp; {{ selected_section.academic_year.name }}
+	{% if selected_section.teacher %}&nbsp;·&nbsp; {{ selected_section.teacher.get_full_name }}{% endif %}
+</div>
+
+<table>
+	<thead>
+		<tr>
+			<th class="name-th">Student</th>
+			{% for ev in evaluations %}
+			<th>{{ ev.title }}<br>/{{ ev.max_marks }}</th>
+			{% endfor %}
+			<th class="avg-col">Avg %</th>
+		</tr>
+	</thead>
+	<tbody>
+		{% for row in rows %}
+		<tr>
+			<td>
+				<strong>{{ row.student.last_name }}</strong>, {{ row.student.first_name }}
+				({{ row.student.student_id }})
+			</td>
+			{% for cell in row.cells %}
+			<td style="text-align:center;">
+				{% if cell.absent %}ABS
+				{% elif cell.pct is not None %}
+					{{ cell.entry.marks_earned }}<br>({{ cell.pct }}%)
+				{% else %}—{% endif %}
+			</td>
+			{% endfor %}
+			<td style="text-align:center;" class="avg-col
+				{% if row.avg is not None %}{% if row.avg < 55 %}red{% elif row.avg < 70 %}yellow{% else %}green{% endif %}{% endif %}">
+				{% if row.avg is not None %}{{ row.avg }}%{% else %}—{% endif %}
+			</td>
+		</tr>
+		{% endfor %}
+	</tbody>
+</table>
+{% endif %}
+
+<div class="footer">{{ rows|length }} students &nbsp;·&nbsp; Generated: {{ generated_at }}</div>
+</body>
+</html>

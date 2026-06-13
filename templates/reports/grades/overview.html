@@ -1,0 +1,232 @@
+{% extends "base.html" %}
+{% load accounts_tags %}
+{% block title %}Class Grade Overview — {{ school.name }}{% endblock %}
+{% block page_title %}Class Grade Overview{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-5 flex-wrap gap-3">
+	<div>
+		<h1 class="text-xl font-bold text-gray-800">Class Grade Overview</h1>
+		{% if matrix_rows %}
+		<p class="text-sm text-gray-500">
+			{% if is_ytd %}Year-to-Date averages{% else %}Term {{ term }} averages{% endif %}
+			{% if selected_form %}&nbsp;·&nbsp; {{ selected_form.name }}{% endif %}
+			{% if selected_homeroom %}&nbsp;·&nbsp; Homeroom {{ selected_homeroom.name }}{% endif %}
+		</p>
+		{% endif %}
+	</div>
+	<div class="flex gap-2 flex-wrap">
+		{% if matrix_rows %}
+		<a href="?year={{ year_pk }}&term={{ term }}&form={{ form_pk }}&homeroom={{ homeroom_pk }}&pdf=1"
+		class="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium bg-red-600 text-white hover:bg-red-700 transition">
+			<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+				<path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+			</svg>
+			Download PDF
+		</a>
+		{% endif %}
+		<a href="{% url 'reports:grade_reports_home' %}"
+		class="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 text-gray-600 hover:bg-gray-50 transition">
+			Back
+		</a>
+	</div>
+</div>
+
+<!-- Filters -->
+<form method="get" class="bg-white rounded-xl border border-gray-200 p-4 mb-5 flex flex-wrap gap-3 items-end">
+	<div>
+		<label class="block text-xs font-medium text-gray-600 mb-1">Year</label>
+		<select name="year"
+				class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+			<option value="">— Select Year —</option>
+			{% for year in years %}
+			<option value="{{ year.pk }}"
+					{% if year_pk == year.pk|stringformat:"s" %}selected{% endif %}>
+				{{ year.name }}
+			</option>
+			{% endfor %}
+		</select>
+	</div>
+
+	<div>
+		<label class="block text-xs font-medium text-gray-600 mb-1">Term</label>
+		<select name="term"
+				class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+			<option value="" {% if not term %}selected{% endif %}>All Terms (YTD)</option>
+			<option value="1" {% if term == "1" %}selected{% endif %}>Term 1</option>
+			<option value="2" {% if term == "2" %}selected{% endif %}>Term 2</option>
+			<option value="3" {% if term == "3" %}selected{% endif %}>Term 3</option>
+		</select>
+	</div>
+
+	<div>
+		<label class="block text-xs font-medium text-gray-600 mb-1">Form</label>
+		<select name="form"
+				class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+			<option value="">— Select Form —</option>
+			{% for f in forms %}
+			<option value="{{ f.pk }}"
+					{% if form_pk == f.pk|stringformat:"s" %}selected{% endif %}>
+				{{ f.name }}
+			</option>
+			{% endfor %}
+		</select>
+	</div>
+
+	<div>
+		<label class="block text-xs font-medium text-gray-600 mb-1">— or Homeroom —</label>
+		<select name="homeroom"
+				class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+			<option value="">— Select Homeroom —</option>
+			{% for hr in homerooms %}
+			<option value="{{ hr.pk }}"
+					{% if homeroom_pk == hr.pk|stringformat:"s" %}selected{% endif %}>
+				{{ hr.name }} ({{ hr.form }})
+			</option>
+			{% endfor %}
+		</select>
+	</div>
+
+	<button type="submit" class="btn-primary px-4 py-2 rounded-lg text-sm font-medium">
+		Generate
+	</button>
+</form>
+
+{% if matrix_rows %}
+
+<!-- Legend -->
+<div class="flex gap-4 mb-3 text-xs text-gray-500 flex-wrap">
+	<span class="flex items-center gap-1.5">
+		<span class="w-3 h-3 rounded-full bg-green-500 inline-block"></span> 70%+
+	</span>
+	<span class="flex items-center gap-1.5">
+		<span class="w-3 h-3 rounded-full bg-yellow-400 inline-block"></span> 55–69%
+	</span>
+	<span class="flex items-center gap-1.5">
+		<span class="w-3 h-3 rounded-full bg-red-500 inline-block"></span> Below 55%
+	</span>
+	<span class="text-gray-400">— = no grades entered</span>
+</div>
+
+<div class="bg-white rounded-xl shadow overflow-hidden">
+
+	<!-- Table header bar -->
+	<div class="px-5 py-3 bg-gray-800 text-white text-sm font-semibold flex items-center justify-between flex-wrap gap-2">
+		<span>
+			{% if selected_homeroom %}
+				Homeroom {{ selected_homeroom.name }}
+			{% elif selected_form %}
+				{{ selected_form.name }}
+			{% endif %}
+			&nbsp;·&nbsp;
+			{% if is_ytd %}
+				Year-to-Date ({{ selected_year.name }})
+			{% else %}
+				Term {{ term }} · {{ selected_year.name }}
+			{% endif %}
+		</span>
+		<span class="text-gray-300 text-xs">
+			{{ matrix_rows|length }} student{{ matrix_rows|length|pluralize }}
+			&nbsp;·&nbsp;
+			{{ courses|length }} course{{ courses|length|pluralize }}
+		</span>
+	</div>
+
+	<div class="overflow-x-auto">
+	<table class="text-xs border-collapse w-full">
+		<thead>
+			<tr class="bg-gray-700 text-white">
+				<!-- Sticky student column -->
+				<th class="px-4 py-2.5 text-left font-medium sticky left-0 bg-gray-700 z-10 min-w-52 border-r border-gray-600">
+					Student
+				</th>
+				{% for course in courses %}
+				<th class="px-2 py-2 text-center font-medium border-l border-gray-600 min-w-20">
+					<div class="truncate max-w-20 mx-auto leading-tight" title="{{ course }}">
+						{{ course }}
+					</div>
+				</th>
+				{% endfor %}
+				<th class="px-3 py-2.5 text-center font-medium border-l border-gray-600 bg-gray-900 min-w-20">
+					Overall
+				</th>
+			</tr>
+		</thead>
+		<tbody class="divide-y divide-gray-100">
+			{% for row in matrix_rows %}
+			<tr class="hover:bg-blue-50 transition
+					{% if forloop.counter|divisibleby:2 %}bg-slate-50{% else %}bg-white{% endif %}">
+
+				<!-- Sticky student name -->
+				<td class="px-4 py-2.5 font-medium text-gray-800 sticky left-0 z-10 border-r border-gray-100
+						{% if forloop.counter|divisibleby:2 %}bg-slate-50{% else %}bg-white{% endif %}">
+					<a href="{% url 'students:detail' row.student.pk %}" class="hover:underline">
+						<span class="font-semibold">{{ row.student.last_name }}</span>,
+						{{ row.student.first_name }}
+					</a>
+					<span class="block text-xs text-gray-400 font-mono mt-0.5">
+						{{ row.student.student_id }}
+					</span>
+				</td>
+
+				{% for course in courses %}
+				{% with avg=row.course_avgs|get_item:course %}
+				<td class="px-2 py-2.5 text-center border-l border-gray-100">
+					{% if avg is not None %}
+						<span class="font-semibold
+							{% if avg < 55 %}text-red-600
+							{% elif avg < 70 %}text-yellow-600
+							{% else %}text-green-600{% endif %}">
+							{{ avg }}%
+						</span>
+					{% else %}
+						<span class="text-gray-200">—</span>
+					{% endif %}
+				</td>
+				{% endwith %}
+				{% endfor %}
+
+				<!-- Overall average -->
+				<td class="px-3 py-2.5 text-center border-l border-gray-200 bg-gray-50">
+					{% if row.overall is not None %}
+					<span class="font-bold text-sm
+						{% if row.overall < 55 %}text-red-600
+						{% elif row.overall < 70 %}text-yellow-600
+						{% else %}text-green-600{% endif %}">
+						{{ row.overall }}%
+					</span>
+					{% else %}
+					<span class="text-gray-300">—</span>
+					{% endif %}
+				</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+	</div>
+
+</div>
+
+{% elif year_pk and form_pk or year_pk and homeroom_pk %}
+<div class="bg-white rounded-xl border border-gray-200 p-12 text-center text-gray-400">
+	<svg class="w-10 h-10 mx-auto mb-3 text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+		<path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+	</svg>
+	<p class="text-base font-medium text-gray-500 mb-1">No grade data found</p>
+	<p class="text-sm">No grades have been entered for this selection yet.</p>
+</div>
+
+{% else %}
+<div class="bg-white rounded-xl border border-gray-200 p-12 text-center text-gray-400">
+	<svg class="w-10 h-10 mx-auto mb-3 text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+		<path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+	</svg>
+	<p class="text-base font-medium text-gray-500 mb-1">Select a year and form or homeroom above</p>
+	<p class="text-sm text-gray-400">
+		Choose <span class="font-medium text-gray-500">All Terms (YTD)</span>
+		for a full-year average across all terms, or pick a specific term.
+	</p>
+</div>
+{% endif %}
+
+{% endblock %}

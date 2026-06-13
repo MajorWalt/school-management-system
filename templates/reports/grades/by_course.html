@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+{% block title %}Grade Report by Course — {{ school.name }}{% endblock %}
+{% block page_title %}Grade Report by Course{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-5 flex-wrap gap-3">
+	<h1 class="text-xl font-bold text-gray-800">Grade Report — By Course</h1>
+	<div class="flex gap-2 flex-wrap">
+		{% if selected_section and rows %}
+		<a href="?section={{ section_pk }}&year={{ year_pk }}&term={{ term }}&pdf=1"
+		   class="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium bg-red-600 text-white hover:bg-red-700 transition">
+			<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+				<path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+			</svg>
+			Download PDF
+		</a>
+		{% endif %}
+		<a href="{% url 'reports:grade_reports_home' %}"
+		   class="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 text-gray-600 hover:bg-gray-50 transition">
+			Back
+		</a>
+	</div>
+</div>
+
+<!-- Filters -->
+<form method="get" class="bg-white rounded-xl border border-gray-200 p-4 mb-5 flex flex-wrap gap-3 items-end">
+	<div>
+		<label class="block text-xs font-medium text-gray-600 mb-1">Year</label>
+		<select name="year" class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+			<option value="">All Years</option>
+			{% for year in years %}
+			<option value="{{ year.pk }}" {% if year_pk == year.pk|stringformat:"s" %}selected{% endif %}>{{ year.name }}</option>
+			{% endfor %}
+		</select>
+	</div>
+	<div>
+		<label class="block text-xs font-medium text-gray-600 mb-1">Term</label>
+		<select name="term" class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+			<option value="">All Terms</option>
+			<option value="1" {% if term == "1" %}selected{% endif %}>Term 1</option>
+			<option value="2" {% if term == "2" %}selected{% endif %}>Term 2</option>
+			<option value="3" {% if term == "3" %}selected{% endif %}>Term 3</option>
+		</select>
+	</div>
+	<div>
+		<label class="block text-xs font-medium text-gray-600 mb-1">Section</label>
+		<select name="section" class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+			<option value="">— Select Section —</option>
+			{% for sec in sections %}
+			<option value="{{ sec.pk }}" {% if section_pk == sec.pk|stringformat:"s" %}selected{% endif %}>
+				{{ sec.course.name }} — {{ sec.form }} — Term {{ sec.term_number }} ({{ sec.academic_year.name }})
+			</option>
+			{% endfor %}
+		</select>
+	</div>
+	<button type="submit" class="btn-primary px-4 py-2 rounded-lg text-sm font-medium">Generate</button>
+</form>
+
+{% if selected_section %}
+<div class="bg-white rounded-xl shadow overflow-hidden mb-5">
+	<!-- Section info -->
+	<div class="px-5 py-3 bg-gray-800 text-white flex items-center justify-between flex-wrap gap-2">
+		<div>
+			<span class="font-semibold">{{ selected_section.course.name }}</span>
+			<span class="text-gray-300 text-sm ml-2">
+				— {{ selected_section.form }} · Term {{ selected_section.term_number }} · {{ selected_section.academic_year.name }}
+			</span>
+		</div>
+		{% if selected_section.teacher %}
+		<span class="text-gray-300 text-sm">Teacher: {{ selected_section.teacher.get_full_name }}</span>
+		{% endif %}
+	</div>
+
+	{% if rows %}
+	<div class="overflow-x-auto">
+	<table class="min-w-full text-xs border-collapse">
+		<thead>
+			<tr class="bg-gray-700 text-white">
+				<th class="px-4 py-2.5 text-left font-medium sticky left-0 bg-gray-700 z-10 min-w-48">Student</th>
+				{% for ev in evaluations %}
+				<th class="px-3 py-2 text-center font-medium min-w-24 border-l border-gray-600">
+					<div class="truncate max-w-24 mx-auto text-xs" title="{{ ev.title }}">{{ ev.title }}</div>
+					<div class="text-gray-400 font-normal text-xs">/{{ ev.max_marks }}</div>
+					<div class="text-xs mt-0.5">
+						<span class="px-1 rounded text-xs
+							{% if ev.category == 'exam' %}bg-purple-700 text-purple-200
+							{% else %}bg-blue-700 text-blue-200{% endif %}">
+							{{ ev.get_subcategory_display }}
+						</span>
+					</div>
+				</th>
+				{% endfor %}
+				<th class="px-4 py-2.5 text-center font-medium border-l border-gray-600 bg-gray-900 min-w-20">
+					Avg %
+				</th>
+			</tr>
+		</thead>
+		<tbody class="divide-y divide-gray-100">
+			{% for row in rows %}
+			<tr class="hover:bg-gray-50 transition {% if forloop.counter|divisibleby:2 %}bg-slate-50{% endif %}">
+				<td class="px-4 py-2.5 font-medium text-gray-800 sticky left-0 {% if forloop.counter|divisibleby:2 %}bg-slate-50{% else %}bg-white{% endif %} z-10 border-r border-gray-100">
+					<a href="{% url 'students:detail' row.student.pk %}" class="hover:underline text-sm">
+						{{ row.student.get_full_name }}
+					</a>
+					<span class="block text-xs text-gray-400 font-mono">{{ row.student.student_id }}</span>
+				</td>
+				{% for cell in row.cells %}
+				<td class="px-2 py-2 text-center border-l border-gray-100">
+					{% if cell.absent %}
+						<span class="text-xs text-gray-400 italic">ABS</span>
+					{% elif cell.pct is not None %}
+						<span class="font-medium text-sm {% if cell.pct < 55 %}text-red-600{% else %}text-gray-800{% endif %}">
+							{{ cell.entry.marks_earned }}
+						</span>
+						<span class="block text-xs {% if cell.pct < 55 %}text-red-400{% else %}text-gray-400{% endif %}">
+							{{ cell.pct }}%
+						</span>
+					{% else %}
+						<span class="text-gray-300 text-xs">—</span>
+					{% endif %}
+				</td>
+				{% endfor %}
+				<td class="px-4 py-2 text-center border-l border-gray-200 bg-gray-50">
+					{% if row.avg is not None %}
+					<span class="font-bold text-sm
+						{% if row.avg < 55 %}text-red-600
+						{% elif row.avg < 70 %}text-yellow-600
+						{% else %}text-green-600{% endif %}">
+						{{ row.avg }}%
+					</span>
+					{% else %}
+					<span class="text-gray-300 text-xs">—</span>
+					{% endif %}
+				</td>
+			</tr>
+			{% empty %}
+			<tr>
+				<td colspan="{{ evaluations|length|add:2 }}" class="px-4 py-8 text-center text-gray-400">
+					No enrolled students.
+				</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+	</div>
+	{% else %}
+	<div class="p-8 text-center text-gray-400">No grade entries found for this section.</div>
+	{% endif %}
+</div>
+{% else %}
+<div class="bg-white rounded-xl border border-gray-200 p-12 text-center text-gray-400">
+	<p class="text-base font-medium text-gray-500 mb-1">Select a section above to generate the report</p>
+</div>
+{% endif %}
+{% endblock %}

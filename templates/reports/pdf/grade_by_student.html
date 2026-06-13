@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8"/>
+<style>
+	@page { size: A4 portrait; margin: 1.5cm; }
+	body  { font-family: Arial, sans-serif; font-size: 9px; color: #1f2937; margin: 0; }
+	.header-top  { font-size: 13px; font-weight: bold; }
+	.header-meta { font-size: 9px; color: #6b7280; margin: 2px 0 4px; }
+	.student-bar {
+		background: #1e3a5f; color: white;
+		padding: 5px 8px; font-size: 10px; font-weight: bold;
+		margin-bottom: 10px;
+	}
+	.course-title {
+		background: #374151; color: white;
+		padding: 4px 8px; font-size: 9px; font-weight: bold;
+		margin-bottom: 0;
+	}
+	table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+	th {
+		background: #4b5563; color: white;
+		padding: 3px 5px; text-align: center; font-size: 8px;
+		border: 1px solid #6b7280;
+	}
+	td { padding: 3px 5px; border: 1px solid #e5e7eb; font-size: 8px; text-align: center; }
+	.avg-col { background: #f3f4f6; font-weight: bold; }
+	.red    { color: #dc2626; font-weight: bold; }
+	.yellow { color: #d97706; font-weight: bold; }
+	.green  { color: #059669; font-weight: bold; }
+	.footer { margin-top: 10px; font-size: 8px; color: #9ca3af; text-align: right; }
+</style>
+</head>
+<body>
+<div class="header-top">{{ school.name }}</div>
+<div class="header-meta">Grade Report by Student &nbsp;·&nbsp; Generated: {{ generated_at }}</div>
+
+{% if selected_student %}
+<div class="student-bar">
+	{{ selected_student.get_full_name }} ({{ selected_student.student_id }})
+	{% if selected_student.form %}&nbsp;·&nbsp; {{ selected_student.form }}{% endif %}
+	{% if selected_student.homeroom %}&nbsp;·&nbsp; Homeroom {{ selected_student.homeroom }}{% endif %}
+	&nbsp;·&nbsp; {% if not term %}Year-to-Date{% else %}Term {{ term }}{% endif %}
+</div>
+
+{% for cr in course_rows %}
+<div class="course-title">
+	{{ cr.section.course.name }}
+	&nbsp;·&nbsp; Term {{ cr.section.term_number }}
+	&nbsp;·&nbsp; {{ cr.section.academic_year.name }}
+	{% if cr.section.teacher %}&nbsp;·&nbsp; {{ cr.section.teacher.get_full_name }}{% endif %}
+</div>
+<table>
+	<thead>
+		<tr>
+			{% for ev in cr.evaluations %}
+			<th>{{ ev.title }}<br>/{{ ev.max_marks }}</th>
+			{% endfor %}
+			<th class="avg-col">Average</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			{% for cell in cr.cells %}
+			<td>
+				{% if cell.absent %}ABS
+				{% elif cell.pct is not None %}
+					{{ cell.entry.marks_earned }} ({{ cell.pct }}%)
+				{% else %}—{% endif %}
+			</td>
+			{% endfor %}
+			<td class="avg-col
+				{% if cr.avg is not None %}{% if cr.avg < 55 %}red{% elif cr.avg < 70 %}yellow{% else %}green{% endif %}{% endif %}">
+				{% if cr.avg is not None %}{{ cr.avg }}%{% else %}—{% endif %}
+			</td>
+		</tr>
+	</tbody>
+</table>
+{% endfor %}
+{% endif %}
+
+<div class="footer">Generated: {{ generated_at }} &nbsp;·&nbsp; {{ school.name }}</div>
+</body>
+</html>

@@ -8,6 +8,8 @@ from students.models import Student
 from staff.models import Staff
 from scheduling.models import AcademicYear, Enrolment, Form, Homeroom, Section
 from merits.models import MeritRecord, DemeritRecord
+from grades.models import Evaluation, GradeEntry, GradeWindow
+from grades.utils import compute_student_average
 from attendance.models import Attendance
 import datetime
 import calendar
@@ -623,3 +625,456 @@ def _render_pdf(request, template_name, context, filename="report.pdf"):
 		)
 	except Exception as e:
 		return HttpResponse(f"PDF generation error: {e}", status=500)
+	
+# ── Grade Reports Home ────────────────────────────────────────────────────────
+
+@login_required
+@tenant_required
+def grade_reports_home(request):
+	school = request.school
+	admin  = is_admin(request.user, school)
+	if not admin:
+		messages.error(request, "Access denied.")
+		return redirect("reports:home")
+	return render(request, "reports/grades/home.html", {"is_admin": admin})
+
+
+# ── Grade Report by Course ────────────────────────────────────────────────────
+
+@login_required
+@tenant_required
+def grade_by_course(request):
+	school = request.school
+	admin  = is_admin(request.user, school)
+	if not admin:
+		messages.error(request, "Access denied.")
+		return redirect("reports:home")
+
+	years      = AcademicYear.objects.filter(school=school).order_by("-name")
+	year_pk    = request.GET.get("year")
+	term       = request.GET.get("term")
+	section_pk = request.GET.get("section")
+
+	sections = Section.objects.filter(school=school).select_related(
+		"course", "form", "academic_year", "teacher"
+	)
+	if year_pk:
+		sections = sections.filter(academic_year_id=year_pk)
+	if term:
+		sections = sections.filter(term_number=term)
+
+	selected_section = None
+	rows             = []
+	evaluations      = []
+
+	if section_pk:
+		selected_section = Section.objects.filter(
+			pk=section_pk, school=school
+		).select_related("course", "form", "academic_year", "teacher").first()
+
+		if selected_section:
+			evaluations = Evaluation.objects.filter(
+				school=school, section=selected_section
+			).order_by("date", "created_at")
+
+			enrolments = Enrolment.objects.filter(
+				section=selected_section
+			).select_related("student").order_by(
+				"student__last_name", "student__first_name"
+			)
+
+			entries = GradeEntry.objects.filter(
+				school=school, evaluation__section=selected_section
+			).select_related("evaluation", "student")
+			grade_map = {(e.evaluation_id, e.student_id): e for e in entries}
+
+			for enrolment in enrolments:
+				student = enrolment.student
+				cells   = []
+				for ev in evaluations:
+					entry = grade_map.get((ev.pk, student.pk))
+					cells.append({
+						"ev":     ev,
+						"entry":  entry,
+						"pct":    entry.percentage if entry else None,
+						"absent": entry.is_absent  if entry else False,
+					})
+				avg = compute_student_average(student, evaluations, grade_map)
+				rows.append({
+					"student": student,
+					"cells":   cells,
+					"avg":     avg,
+				})
+
+	context = {
+		"years":            years,
+		"sections":         sections,
+		"selected_section": selected_section,
+		"evaluations":      evaluations,
+		"rows":             rows,
+		"year_pk":          year_pk,
+		"term":             term,
+		"section_pk":       section_pk,
+		"is_admin":         admin,
+	}
+
+	as_pdf = request.GET.get("pdf") == "1"
+	if as_pdf and selected_section and rows:
+		return _render_pdf(
+			request,
+			"reports/pdf/grade_by_course.html",
+			context,
+			filename=f"grades_{selected_section.course.code or selected_section.course.name}_term{selected_section.term_number}.pdf"
+		)
+
+	return render(request, "reports/grades/by_course.html", context)
+
+
+# ── Grade Report by Student ───────────────────────────────────────────────────
+
+@login_required
+@tenant_required
+def grade_by_student(request):
+	school     = request.school
+	admin      = is_admin(request.user, school)
+	if not admin:
+		messages.error(request, "Access denied.")
+		return redirect("reports:home")
+
+	years      = AcademicYear.objects.filter(school=school).order_by("-name")
+	year_pk    = request.GET.get("year")
+	term       = request.GET.get("term")
+	student_pk = request.GET.get("student")
+	forms      = Form.objects.filter(school=school)
+	homerooms  = Homeroom.objects.filter(school=school)
+	form_pk    = request.GET.get("form")
+	homeroom_pk= request.GET.get("homeroom")
+
+	students_qs = Student.objects.filter(school=school).select_related(
+		"form", "homeroom"
+	).order_by("last_name", "first_name")
+	if form_pk:
+		students_qs = students_qs.filter(form_id=form_pk)
+	if homeroom_pk:
+		students_qs = students_qs.filter(homeroom_id=homeroom_pk)
+
+	selected_student = Student.objects.filter(
+		pk=student_pk, school=school
+	).select_related("form", "homeroom").first() if student_pk else None
+
+	course_rows = []
+
+	if selected_student and year_pk:
+		enrolments = Enrolment.objects.filter(
+			student=selected_student,
+			section__school=school,
+			section__academic_year_id=year_pk,
+		).select_related("section__course", "section__academic_year", "section__teacher")
+
+		if term:
+			enrolments = enrolments.filter(section__term_number=term)
+
+		for enrolment in enrolments:
+			section     = enrolment.section
+			evaluations = Evaluation.objects.filter(
+				school=school, section=section
+			).order_by("date", "created_at")
+
+			entries  = GradeEntry.objects.filter(
+				school=school,
+				evaluation__section=section,
+				student=selected_student
+			).select_related("evaluation")
+			grade_map = {(e.evaluation_id, e.student_id): e for e in entries}
+
+			cells = []
+			for ev in evaluations:
+				entry = grade_map.get((ev.pk, selected_student.pk))
+				cells.append({
+					"ev":     ev,
+					"entry":  entry,
+					"pct":    entry.percentage if entry else None,
+					"absent": entry.is_absent  if entry else False,
+				})
+			avg = compute_student_average(selected_student, evaluations, grade_map)
+			course_rows.append({
+				"section":     section,
+				"evaluations": evaluations,
+				"cells":       cells,
+				"avg":         avg,
+			})
+
+	context = {
+		"years":            years,
+		"forms":            forms,
+		"homerooms":        homerooms,
+		"students_qs":      students_qs,
+		"selected_student": selected_student,
+		"course_rows":      course_rows,
+		"year_pk":          year_pk,
+		"term":             term,
+		"student_pk":       student_pk,
+		"form_pk":          form_pk,
+		"homeroom_pk":      homeroom_pk,
+		"is_admin":         admin,
+	}
+
+	as_pdf = request.GET.get("pdf") == "1"
+	if as_pdf and selected_student and course_rows:
+		return _render_pdf(
+			request,
+			"reports/pdf/grade_by_student.html",
+			context,
+			filename=f"grades_{selected_student.last_name}_{selected_student.first_name}.pdf"
+		)
+
+	return render(request, "reports/grades/by_student.html", context)
+
+
+# ── Teacher Gradebook (admin view) ────────────────────────────────────────────
+
+@login_required
+@tenant_required
+def teacher_gradebook(request):
+	school = request.school
+	admin  = is_admin(request.user, school)
+	if not admin:
+		messages.error(request, "Access denied.")
+		return redirect("reports:home")
+
+	years      = AcademicYear.objects.filter(school=school).order_by("-name")
+	year_pk    = request.GET.get("year")
+	term       = request.GET.get("term")
+	section_pk = request.GET.get("section")
+
+	# Group sections by teacher
+	sections = Section.objects.filter(school=school).select_related(
+		"course", "form", "academic_year", "teacher"
+	).order_by("teacher__last_name", "course__name")
+
+	if year_pk:
+		sections = sections.filter(academic_year_id=year_pk)
+	if term:
+		sections = sections.filter(term_number=term)
+
+	from collections import defaultdict
+	teacher_sections = defaultdict(list)
+	for sec in sections:
+		tname = sec.teacher.get_full_name() if sec.teacher else "Unassigned"
+		teacher_sections[tname].append(sec)
+
+	selected_section = None
+	rows             = []
+	evaluations      = []
+
+	if section_pk:
+		selected_section = Section.objects.filter(
+			pk=section_pk, school=school
+		).select_related("course", "form", "academic_year", "teacher").first()
+
+		if selected_section:
+			evaluations = Evaluation.objects.filter(
+				school=school, section=selected_section
+			).order_by("date", "created_at")
+
+			enrolments = Enrolment.objects.filter(
+				section=selected_section
+			).select_related("student").order_by(
+				"student__last_name", "student__first_name"
+			)
+
+			entries   = GradeEntry.objects.filter(
+				school=school, evaluation__section=selected_section
+			).select_related("evaluation", "student")
+			grade_map = {(e.evaluation_id, e.student_id): e for e in entries}
+
+			for enrolment in enrolments:
+				student = enrolment.student
+				cells   = []
+				for ev in evaluations:
+					entry = grade_map.get((ev.pk, student.pk))
+					cells.append({
+						"ev":     ev,
+						"entry":  entry,
+						"pct":    entry.percentage if entry else None,
+						"absent": entry.is_absent  if entry else False,
+					})
+				avg = compute_student_average(student, evaluations, grade_map)
+				rows.append({
+					"student": student,
+					"cells":   cells,
+					"avg":     avg,
+				})
+
+	context = {
+		"years":            years,
+		"teacher_sections": dict(teacher_sections),
+		"selected_section": selected_section,
+		"evaluations":      evaluations,
+		"rows":             rows,
+		"year_pk":          year_pk,
+		"term":             term,
+		"section_pk":       section_pk,
+		"is_admin":         admin,
+	}
+
+	as_pdf = request.GET.get("pdf") == "1"
+	if as_pdf and selected_section and rows:
+		return _render_pdf(
+			request,
+			"reports/pdf/grade_by_course.html",
+			context,
+			filename=f"gradebook_{selected_section.teacher.last_name if selected_section.teacher else 'unassigned'}_{selected_section.course.code or selected_section.course.name}.pdf"
+		)
+
+	return render(request, "reports/grades/teacher_gradebook.html", context)
+
+
+# ── Grade Overview (form/homeroom matrix) ─────────────────────────────────────
+@login_required
+@tenant_required
+def grade_overview(request):
+	school      = request.school
+	admin       = is_admin(request.user, school)
+	if not admin:
+		messages.error(request, "Access denied.")
+		return redirect("reports:home")
+
+	years       = AcademicYear.objects.filter(school=school).order_by("-name")
+	year_pk     = request.GET.get("year")
+	term        = request.GET.get("term")
+	form_pk     = request.GET.get("form")
+	homeroom_pk = request.GET.get("homeroom")
+	forms       = Form.objects.filter(school=school)
+	homerooms   = Homeroom.objects.filter(school=school).select_related("form")
+
+	selected_form     = forms.filter(pk=form_pk).first()         if form_pk     else None
+	selected_homeroom = homerooms.filter(pk=homeroom_pk).first() if homeroom_pk else None
+	selected_year     = AcademicYear.objects.filter(
+		pk=year_pk, school=school
+	).first() if year_pk else None
+
+	matrix_rows = []
+	courses     = []
+
+	if selected_year and (selected_form or selected_homeroom):
+		students_qs = Student.objects.filter(school=school).select_related(
+			"form", "homeroom"
+		).order_by("last_name", "first_name")
+
+		if selected_homeroom:
+			students_qs = students_qs.filter(homeroom=selected_homeroom)
+		elif selected_form:
+			students_qs = students_qs.filter(form=selected_form)
+
+		students_list = [s for s in students_qs if s.current_status() == "enrolled"]
+
+		section_filter = Section.objects.filter(
+			school=school, academic_year=selected_year
+		)
+		if selected_homeroom:
+			section_filter = section_filter.filter(form=selected_homeroom.form)
+		elif selected_form:
+			section_filter = section_filter.filter(form=selected_form)
+		if term:
+			section_filter = section_filter.filter(term_number=term)
+
+		section_filter = section_filter.select_related("course").order_by(
+			"course__sequence", "course__name"
+		)
+
+		# Unique courses in order
+		seen = {}
+		for sec in section_filter:
+			cname = sec.course.name
+			if cname not in seen:
+				seen[cname] = sec.course
+		courses = list(seen.keys())
+
+		# Pre-fetch all evaluations and grade entries
+		all_evals = Evaluation.objects.filter(
+			school=school, section__in=section_filter
+		).select_related("section__course")
+
+		all_entries = GradeEntry.objects.filter(
+			school=school,
+			evaluation__section__in=section_filter,
+			student__in=students_list,
+		).select_related("evaluation", "student")
+
+		from collections import defaultdict
+		ev_by_section_course = defaultdict(list)
+		for ev in all_evals:
+			ev_by_section_course[(ev.section_id, ev.section.course.name)].append(ev)
+
+		entries_map = {}
+		for ent in all_entries:
+			entries_map[(ent.evaluation_id, ent.student_id)] = ent
+
+		for student in students_list:
+			course_avgs = {}
+
+			for sec in section_filter:
+				cname = sec.course.name
+				evs   = ev_by_section_course.get((sec.pk, cname), [])
+				if not evs:
+					if cname not in course_avgs:
+						course_avgs[cname] = None
+					continue
+
+				gmap = {}
+				for ev in evs:
+					ent = entries_map.get((ev.pk, student.pk))
+					if ent:
+						gmap[(ev.pk, student.pk)] = ent
+
+				avg = compute_student_average(student, evs, gmap)
+
+				# If same course appears across multiple terms, average them
+				if cname in course_avgs and course_avgs[cname] is not None and avg is not None:
+					course_avgs[cname] = round(
+						(course_avgs[cname] + avg) / 2, 1
+					)
+				else:
+					course_avgs[cname] = avg
+
+			valid_avgs = [v for v in course_avgs.values() if v is not None]
+			overall    = round(sum(valid_avgs) / len(valid_avgs), 1) if valid_avgs else None
+
+			# Pre-flatten for PDF (avoids needing get_item in plain HTML templates)
+			course_avgs_list = [course_avgs.get(c) for c in courses]
+
+			matrix_rows.append({
+				"student":          student,
+				"course_avgs":      course_avgs,
+				"course_avgs_list": course_avgs_list,
+				"overall":          overall,
+			})
+
+	context = {
+		"years":             years,
+		"forms":             forms,
+		"homerooms":         homerooms,
+		"selected_year":     selected_year,
+		"selected_form":     selected_form,
+		"selected_homeroom": selected_homeroom,
+		"year_pk":           year_pk,
+		"form_pk":           form_pk,
+		"homeroom_pk":       homeroom_pk,
+		"term":              term,
+		"courses":           courses,
+		"matrix_rows":       matrix_rows,
+		"is_admin":          admin,
+		"is_ytd":            not bool(term),
+	}
+
+	as_pdf = request.GET.get("pdf") == "1"
+	if as_pdf and matrix_rows:
+		return _render_pdf(
+			request,
+			"reports/pdf/grade_overview.html",
+			context,
+			filename=f"grade_overview_{'ytd' if not term else 'term' + term}.pdf"
+		)
+
+	return render(request, "reports/grades/overview.html", context)

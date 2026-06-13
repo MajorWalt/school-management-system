@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8"/>
+<style>
+    @page { size: A4 landscape; margin: 1.2cm; }
+    body  { font-family: Arial, sans-serif; font-size: 9px; color: #1f2937; margin: 0; }
+    .header-top  { font-size: 13px; font-weight: bold; }
+    .header-meta { font-size: 9px; color: #6b7280; margin: 2px 0 12px; }
+    .matrix-bar {
+        background: #1e3a5f; color: white;
+        padding: 5px 8px; font-size: 10px; font-weight: bold;
+        margin-bottom: 0;
+    }
+    table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    th {
+        background: #374151; color: white;
+        padding: 4px 3px; font-size: 7px; text-align: center;
+        border: 1px solid #4b5563; word-wrap: break-word;
+    }
+    th.name-th { text-align: left; width: 120px; }
+    td { padding: 3px 3px; border: 1px solid #e5e7eb; font-size: 8px; text-align: center; }
+    td.name-cell { text-align: left; font-size: 8px; }
+    tr:nth-child(even) td { background: #f9fafb; }
+    .avg-col { background: #f3f4f6; font-weight: bold; }
+    .red    { color: #dc2626; font-weight: bold; }
+    .yellow { color: #d97706; font-weight: bold; }
+    .green  { color: #059669; font-weight: bold; }
+    .footer { margin-top: 10px; font-size: 8px; color: #9ca3af; text-align: right; }
+</style>
+</head>
+<body>
+
+<div class="header-top">{{ school.name }}</div>
+<div class="header-meta">
+    Class Grade Overview &nbsp;·&nbsp;
+    {% if is_ytd %}Year-to-Date ({{ selected_year.name }}){% else %}Term {{ term }} &nbsp;·&nbsp; {{ selected_year.name }}{% endif %}
+    &nbsp;·&nbsp; Generated: {{ generated_at }}
+</div>
+
+<div class="matrix-bar">
+    {% if selected_homeroom %}Homeroom {{ selected_homeroom.name }}
+    {% elif selected_form %}{{ selected_form.name }}{% endif %}
+    &nbsp;·&nbsp; {{ matrix_rows|length }} student{{ matrix_rows|length|pluralize }}
+    &nbsp;·&nbsp; {{ courses|length }} course{{ courses|length|pluralize }}
+</div>
+
+<table>
+    <thead>
+        <tr>
+            <th class="name-th">Student</th>
+            {% for course in courses %}
+            <th>{{ course }}</th>
+            {% endfor %}
+            <th class="avg-col">Overall</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in matrix_rows %}
+        <tr>
+            <td class="name-cell">
+                <strong>{{ row.student.last_name }}</strong>, {{ row.student.first_name }}
+            </td>
+            {% for avg in row.course_avgs_list %}
+            <td class="{% if avg is not None %}{% if avg < 55 %}red{% elif avg < 70 %}yellow{% else %}green{% endif %}{% endif %}">
+                {% if avg is not None %}{{ avg }}%{% else %}—{% endif %}
+            </td>
+            {% endfor %}
+            <td class="avg-col {% if row.overall is not None %}{% if row.overall < 55 %}red{% elif row.overall < 70 %}yellow{% else %}green{% endif %}{% endif %}">
+                {% if row.overall is not None %}{{ row.overall }}%{% else %}—{% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<div class="footer">Generated: {{ generated_at }} &nbsp;·&nbsp; {{ school.name }}</div>
+
+</body>
+</html>
