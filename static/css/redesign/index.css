@@ -935,3 +935,269 @@ textarea:focus {
 		grid-template-columns: 1fr;
 	}
 }
+
+/* Teacher dashboard migration */
+
+.teacher-panel {
+	margin-bottom: 1.5rem;
+}
+
+.teacher-table th,
+.teacher-table td {
+	padding: 1rem 1.35rem;
+}
+
+.teacher-table th {
+	background: #fbfcfe;
+}
+
+.teacher-table td {
+	font-size: 0.875rem;
+}
+
+.teacher-table a {
+	font-weight: 700;
+	text-decoration: none;
+}
+
+.teacher-table a:hover {
+	text-decoration: underline;
+}
+
+.teacher-empty-state {
+	background: var(--surface);
+	border: 1px solid var(--border-soft);
+	border-radius: 1rem;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 10px 24px rgba(15, 23, 42, 0.045);
+	padding: 2rem;
+	text-align: center;
+	color: var(--text-muted);
+	font-size: 0.9rem;
+	font-weight: 600;
+}
+
+/* Table action links */
+.table-action-link {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 118px;
+	padding: 0.5rem 0.85rem;
+	border-radius: 0.55rem;
+	background: #eef2f7;
+	color: var(--text-main);
+	font-size: 0.75rem;
+	font-weight: 800;
+	text-decoration: none;
+	border: 1px solid var(--border-soft);
+	transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.table-action-link:hover {
+	background: #ffffff;
+	border-color: #cbd5e1;
+	transform: translateY(-1px);
+	box-shadow: var(--shadow-card);
+	text-decoration: none;
+	color: var(--text-main);
+}
+
+/* Student dashboard migration */
+.student-dashboard-page {
+	max-width: 1120px;
+	margin: 0 auto;
+	display: flex;
+	flex-direction: column;
+	gap: 1.5rem;
+}
+
+.student-attendance-panel {
+	overflow: hidden;
+}
+
+.student-attendance-body {
+	padding: 1rem 1.25rem 1.15rem;
+}
+
+.student-attendance-body > .flex {
+	padding: 0.15rem 0 0.75rem;
+}
+
+.student-attendance-body .text-3xl {
+	font-family: 'Manrope', 'Inter', system-ui, sans-serif;
+	font-size: 2.3rem;
+	line-height: 1;
+	letter-spacing: -0.045em;
+}
+
+.student-attendance-body .bg-gray-100 {
+	background: #e2e8f0;
+	height: 0.7rem;
+}
+
+.student-attendance-body .rounded-full {
+	border-radius: 999px;
+}
+
+.student-mini-table {
+	width: 100%;
+	margin-top: 0.75rem;
+	font-size: 0.78rem;
+	border-collapse: collapse;
+}
+
+.student-mini-table th {
+	padding: 0.45rem 0;
+	background: transparent;
+	color: var(--text-muted);
+	font-size: 0.72rem;
+	font-weight: 800;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	border-bottom: 0;
+}
+
+.student-mini-table td {
+	padding: 0.35rem 0;
+	border-bottom: 0;
+	color: var(--text-main);
+}
+
+.student-mini-table tr:hover td {
+	background: transparent;
+}
+
+@media (max-width: 760px) {
+	.student-dashboard-page {
+		max-width: none;
+	}
+
+	.student-attendance-body > .flex {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.student-attendance-body .text-center {
+		text-align: left;
+	}
+}
+
+.student-conduct-grid {
+	margin-top: 0.15rem;
+}
+
+.student-conduct-grid > div {
+	border-radius: 0.9rem;
+	padding: 1rem 1.25rem;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.035);
+}
+
+.student-conduct-grid p:first-child {
+	font-size: 0.7rem;
+	font-weight: 800;
+	letter-spacing: 0.06em;
+}
+
+.student-conduct-grid p:nth-child(2) {
+	font-family: 'Manrope', 'Inter', system-ui, sans-serif;
+	font-size: 2rem;
+	line-height: 1;
+	letter-spacing: -0.04em;
+}
+
+.student-conduct-grid a {
+	margin-top: 0.65rem;
+	font-weight: 700;
+	text-decoration: none;
+}
+
+.student-conduct-grid a:hover {
+	text-decoration: underline;
+}
+
+/* No role page */
+
+.no-role-page {
+	min-height: calc(100vh - 120px);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 2rem;
+}
+
+.no-role-card {
+	width: 100%;
+	max-width: 460px;
+	background: var(--surface);
+	border: 1px solid var(--border-soft);
+	border-radius: 1.15rem;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 16px 34px rgba(15, 23, 42, 0.06);
+	padding: 2.25rem;
+	text-align: center;
+}
+
+.no-role-icon {
+	width: 4.25rem;
+	height: 4.25rem;
+	margin: 0 auto 1.25rem;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 1.15rem;
+	background: #fff7ed;
+	color: var(--accent);
+	border: 1px solid #fed7aa;
+}
+
+.no-role-icon svg {
+	width: 2.1rem;
+	height: 2.1rem;
+}
+
+.no-role-title {
+	color: var(--text-main);
+	font-size: 1.65rem;
+	line-height: 1.15;
+	font-weight: 800;
+	letter-spacing: -0.045em;
+}
+
+.no-role-text {
+	max-width: 350px;
+	margin: 0.75rem auto 1.5rem;
+	color: var(--text-muted);
+	font-size: 0.92rem;
+	line-height: 1.55;
+}
+
+.no-role-button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 120px;
+	padding: 0.75rem 1.25rem;
+	border-radius: 0.75rem;
+	background: var(--accent);
+	color: #ffffff;
+	font-size: 0.88rem;
+	font-weight: 800;
+	text-decoration: none;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.12);
+	transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+}
+
+.no-role-button:hover {
+	transform: translateY(-1px);
+	box-shadow: 0 8px 18px rgba(15, 23, 42, 0.16);
+	opacity: 0.95;
+}
+
+@media (max-width: 640px) {
+	.no-role-page {
+		padding: 1rem;
+	}
+
+	.no-role-card {
+		padding: 1.75rem;
+	}
+}
