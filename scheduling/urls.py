@@ -1,5 +1,8 @@
 from django.urls import path
+
+from scheduling.calendar_settings import calendar_settings
 from . import views
+from . import timetable_views as tv
 
 app_name = "scheduling"
 
@@ -38,4 +41,15 @@ urlpatterns = [
 	# Enrolments
 	path("sections/<int:section_pk>/enrol/",        views.enrol_student,          name="enrol"),
 	path("enrolments/<int:pk>/remove/",             views.enrolment_remove,       name="enrolment_remove"),
+    
+	# Timetable
+	path('timetable/settings/', tv.timetable_settings, name='timetable_settings'),
+    path('timetable/periods/', tv.manage_periods, name='manage_periods'),
+    path('timetable/calendar/', tv.cycle_calendar, name='cycle_calendar'),
+    path('timetable/builder/', tv.timetable_grid, name='timetable_grid'),
+    path('timetable/builder/', tv.timetable_grid, name='timetable_grid'),
+	path('timetable/<int:pk>/copy/', tv.timetable_copy, name='timetable_copy'),
+    
+	# Timetable slots
+	path("settings/calendar/", calendar_settings, name="calendar_settings"),
 ]

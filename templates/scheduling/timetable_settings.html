@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block title %}Timetable Settings{% endblock %}
+{% block content %}
+<div class="max-w-xl mx-auto p-6">
+  <h1 class="text-2xl font-semibold mb-1">Timetable Settings</h1>
+  <p class="text-gray-500 mb-6">Today is <strong>{{ settings.school }}</strong> —
+     current day: <strong>{{ request.school|default:"" }}</strong></p>
+
+  <form method="post" class="space-y-5 bg-white rounded-xl shadow p-6">
+    {% csrf_token %}
+    <div>
+      <label class="block font-medium mb-1">Schedule type</label>
+      {{ form.mode }}
+      <p class="text-sm text-gray-500 mt-1">
+        Choose the rotating 6-day cycle or a regular Monday–Friday week.</p>
+    </div>
+    <div>
+      <label class="block font-medium mb-1">Cycle length</label>
+      {{ form.cycle_length }}
+      <p class="text-sm text-gray-500 mt-1">Number of days in the rotation (6 for Day 1–Day 6). Ignored in weekly mode.</p>
+    </div>
+    <div>
+      <label class="block font-medium mb-1">Day 1 anchor date</label>
+      {{ form.anchor_date }}
+      <p class="text-sm text-gray-500 mt-1">The first school day on or after this date counts as Day 1. Set it to the first day of the academic year.</p>
+    </div>
+    <button class="bg-blue-600 text-white px-4 py-2 rounded-lg">Save</button>
+  </form>
+</div>
+{% endblock %}

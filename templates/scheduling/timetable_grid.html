@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% block title %}Timetable Builder{% endblock %}
+{% block page_title %}Timetable{% endblock %}
+{% block content %}
+<div class="max-w-6xl mx-auto p-6">
+  <h1 class="text-2xl font-semibold mb-4">Timetable Builder</h1>
+
+  <form method="get" class="app-card p-4 mb-6 flex flex-wrap gap-4 items-end">
+    <div>
+      <label class="block text-sm font-medium mb-1">Form</label>
+      <select name="form" class="border rounded-lg px-3 py-2 text-sm">
+        <option value="">— choose form —</option>
+        {% for f in forms %}
+          <option value="{{ f.id }}" {% if selected_form.id == f.id %}selected{% endif %}>{{ f }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1">Term</label>
+      <select name="term" class="border rounded-lg px-3 py-2 text-sm">
+        <option value="">— choose term —</option>
+        {% for t in term_opts %}
+          <option value="{{ t.value }}" {% if selected_term_value == t.value %}selected{% endif %}>{{ t.label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button class="btn-primary px-4 py-2">Open timetable</button>
+
+    {% if timetable %}
+      <a href="{% url 'scheduling:timetable_copy' timetable.id %}"
+         class="ml-auto text-sm px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200">
+        Copy from another term
+      </a>
+    {% endif %}
+  </form>
+
+  {% if timetable %}
+  <p class="app-muted text-sm mb-3">
+    Editing <strong>{{ timetable.form }}</strong> — {{ timetable.academic_year }} Term {{ timetable.term_number }}.
+    Add several sections to one cell for a switch/split period.
+  </p>
+
+  <div class="app-card overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead class="border-b text-left app-muted">
+        <tr>
+          <th class="p-3 w-40">Period</th>
+          {% for n, lbl in day_headers %}<th class="p-3 text-center">{{ lbl }}</th>{% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in grid %}
+        <tr class="border-b align-top">
+          <td class="p-3 font-medium">
+            {{ row.period.name }}
+            {% if row.period.start_time %}
+              <span class="block text-xs app-muted">{{ row.period.start_time }}–{{ row.period.end_time }}</span>
+            {% endif %}
+          </td>
+
+          {% for cell in row.cells %}
+          <td class="p-2 min-w-44">
+            {% if row.period.is_break %}
+              <div class="text-xs app-muted italic text-center py-2">{{ row.period.name }}</div>
+            {% else %}
+              {% for slot in cell.slots %}
+                <div class="flex items-center justify-between gap-1 mb-1 px-2 py-1 rounded-lg bg-emerald-50 border border-emerald-200">
+                  <span class="text-xs leading-tight">
+                    <strong>{{ slot.section.course.code|default:slot.section.course }}</strong>
+                    {% if slot.section.teacher %}<span class="app-muted block">{{ slot.section.teacher.last_name }}</span>{% endif %}
+                  </span>
+                  <form method="post" class="shrink-0">
+                    {% csrf_token %}
+                    <input type="hidden" name="form" value="{{ timetable.form_id }}">
+                    <input type="hidden" name="term" value="{{ selected_term_value }}">
+                    <input type="hidden" name="action" value="remove">
+                    <input type="hidden" name="slot_id" value="{{ slot.id }}">
+                    <button class="text-red-500 hover:text-red-700 text-xs leading-none" title="Remove">✕</button>
+                  </form>
+                </div>
+              {% endfor %}
+
+              <details class="mt-1">
+                <summary class="text-xs text-blue-600 cursor-pointer select-none">+ add</summary>
+                <form method="post" class="mt-1 flex gap-1">
+                  {% csrf_token %}
+                  <input type="hidden" name="form" value="{{ timetable.form_id }}">
+                  <input type="hidden" name="term" value="{{ selected_term_value }}">
+                  <input type="hidden" name="action" value="add">
+                  <input type="hidden" name="day_number" value="{{ cell.day }}">
+                  <input type="hidden" name="period" value="{{ cell.period_id }}">
+                  <select name="section" class="border rounded px-1 py-1 text-xs w-full">
+                    <option value="">section…</option>
+                    {% for s in available_sections %}
+                      <option value="{{ s.id }}">{{ s.course.code|default:s.course }}{% if s.teacher %} — {{ s.teacher.last_name }}{% endif %}</option>
+                    {% endfor %}
+                  </select>
+                  <button class="text-xs px-2 rounded bg-blue-600 text-white">✓</button>
+                </form>
+              </details>
+            {% endif %}
+          </td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+    <div class="app-card p-8 text-center app-muted">Choose a form and term to open its timetable.</div>
+  {% endif %}
+</div>
+{% endblock %}

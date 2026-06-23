@@ -79,57 +79,201 @@
 			<p class="text-xs text-green-600 font-medium uppercase mb-1">Merits</p>
 			<p class="text-3xl font-bold text-green-700">{{ merit_total }}</p>
 			<a href="{% url 'merits:student_report' student.pk %}"
-			   class="text-xs text-green-600 hover:underline mt-2 block">View details</a>
+			class="text-xs text-green-600 hover:underline mt-2 block">View details</a>
 		</div>
 		<div class="bg-red-50 border border-red-200 rounded-xl p-5 text-center">
 			<p class="text-xs text-red-600 font-medium uppercase mb-1">Demerits</p>
 			<p class="text-3xl font-bold text-red-700">{{ demerit_total }}</p>
 			<a href="{% url 'merits:student_report' student.pk %}"
-			   class="text-xs text-red-600 hover:underline mt-2 block">View details</a>
+			class="text-xs text-red-600 hover:underline mt-2 block">View details</a>
 		</div>
 	</div>
 
-	<!-- Report cards -->
+	<!-- Online gradebook -->
 	<div class="bg-white rounded-xl shadow p-6">
-		<h2 class="font-semibold text-gray-700 mb-4">Report Cards</h2>
+		<div class="flex items-center justify-between mb-4">
+			<h2 class="font-semibold text-gray-700">My Grades</h2>
+			{% if current_year %}
+			<span class="text-xs text-gray-400">{{ current_year.name }}</span>
+			{% endif %}
+		</div>
 
 		{% if not can_see_grades %}
 		<div class="bg-yellow-50 border border-yellow-200 rounded-lg px-4 py-3 text-sm text-yellow-700">
 			Grades are currently locked. Please contact the school office.
 		</div>
-		{% elif report_cards %}
-		<table class="w-full text-sm">
-			<thead>
-				<tr class="text-gray-400 uppercase text-xs">
-					<th class="text-left py-1">Year</th>
-					<th class="text-left py-1">Term</th>
-					<th class="text-right py-1">GPA</th>
-					<th class="text-left py-1"></th>
-				</tr>
-			</thead>
-			<tbody class="divide-y divide-gray-100">
-				{% for rc in report_cards %}
-				<tr>
-					<td class="py-2 text-gray-600">{{ rc.academic_year.name }}</td>
-					<td class="py-2 text-gray-600">Term {{ rc.term_number }}</td>
-					<td class="py-2 text-right font-bold
-						{% if rc.gpa >= 70 %}text-green-600
-						{% elif rc.gpa >= 50 %}text-yellow-600
-						{% else %}text-red-600{% endif %}">
-						{{ rc.gpa }}%
-					</td>
-					<td class="py-2">
-						<a href="{% url 'grades:report_card_detail' rc.pk %}"
-						   class="text-xs text-blue-600 hover:underline">View</a>
-					</td>
-				</tr>
-				{% endfor %}
-			</tbody>
-		</table>
+		{% elif gb_rows %}
+		<div class="overflow-x-auto">
+			<table class="w-full text-sm">
+				<thead>
+					<tr class="text-gray-400 uppercase text-xs border-b border-gray-100">
+						<th class="text-left py-2 pr-3">Subject</th>
+						{% for t in gb_terms %}
+						<th class="text-center py-2 px-2">{{ t.name }}</th>
+						{% endfor %}
+					</tr>
+				</thead>
+				<tbody class="divide-y divide-gray-100">
+					{% for row in gb_rows %}
+					<tr>
+						<td class="py-2 pr-3">
+							<button type="button"
+								onclick="openGbModal('gb-modal-{{ row.course.id }}')"
+								class="text-left font-medium text-blue-700 hover:underline">
+								{{ row.course.name }}
+							</button>
+							{% if row.course.code %}
+							<span class="text-xs text-gray-400 ml-1">{{ row.course.code }}</span>
+							{% endif %}
+						</td>
+						{% for cell in row.cells %}
+						<td class="py-2 px-2 text-center">
+							{% if cell.has %}
+							<span class="font-bold
+								{% if cell.avg >= 70 %}text-green-600
+								{% elif cell.avg >= 50 %}text-yellow-600
+								{% else %}text-red-600{% endif %}">
+								{{ cell.avg|floatformat:1 }}%
+							</span>
+							{% else %}
+							<span class="text-gray-300">—</span>
+							{% endif %}
+						</td>
+						{% endfor %}
+					</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>
+		<p class="text-xs text-gray-400 mt-3">
+			Tap a subject to see every assessment. Averages are weighted across all assessments per term.
+		</p>
 		{% else %}
-		<p class="text-sm text-gray-400">No published report cards yet.</p>
+		<p class="text-sm text-gray-400">No grades have been entered yet.</p>
 		{% endif %}
 	</div>
 
 </div>
+
+<!-- Gradebook detail modals -->
+{% if can_see_grades %}
+{% for row in gb_rows %}
+<div id="gb-modal-{{ row.course.id }}"
+	class="gb-modal fixed inset-0 z-50 hidden items-center justify-center bg-black/40 p-4">
+	<div class="bg-white rounded-xl shadow-xl max-w-lg w-full max-h-[80vh] overflow-y-auto"
+		onclick="event.stopPropagation()">
+		<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 sticky top-0 bg-white">
+			<div>
+				<h3 class="font-semibold text-gray-800">{{ row.course.name }}</h3>
+				{% if row.course.code %}
+				<p class="text-xs text-gray-400">{{ row.course.code }}</p>
+				{% endif %}
+			</div>
+			<button type="button"
+				onclick="closeGbModal('gb-modal-{{ row.course.id }}')"
+				class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
+		</div>
+
+		<div class="p-5 space-y-6">
+			{% for td in row.detail_terms %}
+			<div>
+				<div class="flex items-center justify-between mb-2">
+					<p class="text-xs uppercase font-semibold text-gray-400">{{ td.term.name }}</p>
+					{% if td.has %}
+					<span class="text-sm font-bold
+						{% if td.avg >= 70 %}text-green-600
+						{% elif td.avg >= 50 %}text-yellow-600
+						{% else %}text-red-600{% endif %}">
+						Avg {{ td.avg|floatformat:1 }}%
+					</span>
+					{% else %}
+					<span class="text-sm text-gray-300">No average</span>
+					{% endif %}
+				</div>
+
+				{% if td.items %}
+				<table class="w-full text-xs">
+					<thead>
+						<tr class="text-gray-400 uppercase">
+							<th class="text-left py-1">Assessment</th>
+							<th class="text-right py-1">Mark</th>
+							<th class="text-right py-1">%</th>
+						</tr>
+					</thead>
+					<tbody class="divide-y divide-gray-100">
+						{% for item in td.items %}
+						<tr>
+							<td class="py-1.5 pr-2">
+								<span class="text-gray-700">{{ item.evaluation.title }}</span>
+								<span class="block text-gray-400">
+									{{ item.evaluation.category|title }}
+									{% if item.evaluation.date %}&bull; {{ item.evaluation.date }}{% endif %}
+								</span>
+							</td>
+							<td class="py-1.5 text-right whitespace-nowrap">
+								{% if item.is_absent %}
+								<span class="text-gray-400 italic">Absent</span>
+								{% elif item.has_mark %}
+								<span class="text-gray-700">
+									{{ item.marks|floatformat:"-2" }} / {{ item.evaluation.max_marks|floatformat:"-2" }}
+								</span>
+								{% else %}
+								<span class="text-gray-300">—</span>
+								{% endif %}
+							</td>
+							<td class="py-1.5 text-right whitespace-nowrap">
+								{% if item.has_mark %}
+								<span class="font-semibold
+									{% if item.pct >= 70 %}text-green-600
+									{% elif item.pct >= 50 %}text-yellow-600
+									{% else %}text-red-600{% endif %}">
+									{{ item.pct|floatformat:1 }}%
+								</span>
+								{% else %}
+								<span class="text-gray-300">—</span>
+								{% endif %}
+							</td>
+						</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+				{% else %}
+				<p class="text-xs text-gray-400">No assessments entered.</p>
+				{% endif %}
+			</div>
+			{% endfor %}
+		</div>
+	</div>
+</div>
+{% endfor %}
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+	function openGbModal(id) {
+		const m = document.getElementById(id);
+		if (m) { m.classList.remove('hidden'); m.classList.add('flex'); }
+	}
+	function closeGbModal(id) {
+		const m = document.getElementById(id);
+		if (m) { m.classList.add('hidden'); m.classList.remove('flex'); }
+	}
+	// Click on the dark backdrop closes the modal.
+	document.querySelectorAll('.gb-modal').forEach(function (m) {
+		m.addEventListener('click', function () {
+			m.classList.add('hidden');
+			m.classList.remove('flex');
+		});
+	});
+	// Esc closes any open modal.
+	document.addEventListener('keydown', function (e) {
+		if (e.key === 'Escape') {
+			document.querySelectorAll('.gb-modal').forEach(function (m) {
+				m.classList.add('hidden');
+				m.classList.remove('flex');
+			});
+		}
+	});
+</script>
 {% endblock %}

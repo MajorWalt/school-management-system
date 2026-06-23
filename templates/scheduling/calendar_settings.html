@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Academic Calendar — {{ school.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-xl mx-auto space-y-6">
+
+	<div>
+		<h1 class="text-2xl font-bold text-gray-800">Academic Calendar</h1>
+		<p class="text-sm text-gray-500">
+			Set the start and end dates for an academic year.
+			Attendance rates are calculated across this window.
+		</p>
+	</div>
+
+	{% if messages %}
+	{% for message in messages %}
+	<div class="rounded-lg px-4 py-3 text-sm
+		{% if message.tags == 'success' %}bg-green-50 text-green-700 border border-green-200
+		{% else %}bg-red-50 text-red-700 border border-red-200{% endif %}">
+		{{ message }}
+	</div>
+	{% endfor %}
+	{% endif %}
+
+	<!-- Year selector -->
+	<div class="bg-white rounded-xl shadow p-6">
+		<form method="get">
+			<label class="block text-sm font-medium text-gray-700">Academic year</label>
+			<select name="year" onchange="this.form.submit()"
+				class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+				{% for y in years %}
+				<option value="{{ y.pk }}" {% if y.pk == academic_year.pk %}selected{% endif %}>
+					{{ y.name }}{% if y.is_current %} — current{% endif %}
+				</option>
+				{% endfor %}
+			</select>
+		</form>
+	</div>
+
+	<!-- Dates form -->
+	<div class="bg-white rounded-xl shadow p-6">
+		<form method="post" class="space-y-4">
+			{% csrf_token %}
+			<input type="hidden" name="year" value="{{ academic_year.pk }}">
+
+			<div>
+				<label class="block text-sm font-medium text-gray-700">Start date</label>
+				{{ form.start_date }}
+				{% if form.start_date.errors %}
+				<p class="text-xs text-red-600 mt-1">{{ form.start_date.errors.0 }}</p>
+				{% endif %}
+			</div>
+
+			<div>
+				<label class="block text-sm font-medium text-gray-700">End date</label>
+				{{ form.end_date }}
+				{% if form.end_date.errors %}
+				<p class="text-xs text-red-600 mt-1">{{ form.end_date.errors.0 }}</p>
+				{% endif %}
+			</div>
+
+			{% if form.non_field_errors %}
+			<p class="text-xs text-red-600">{{ form.non_field_errors.0 }}</p>
+			{% endif %}
+
+			<div class="pt-2">
+				<button type="submit"
+					class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg">
+					Save dates
+				</button>
+			</div>
+		</form>
+	</div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block title %}Copy Timetable{% endblock %}
+{% block page_title %}Copy Timetable{% endblock %}
+{% block content %}
+<div class="max-w-lg mx-auto p-6">
+  <h1 class="text-2xl font-semibold mb-2">Copy Timetable</h1>
+  <p class="app-muted text-sm mb-6">
+    Copy into <strong>{{ target.form }}</strong> — {{ target.academic_year }} Term {{ target.term_number }}.
+    Sections are matched to this term by course; any course without a section here is reported.
+  </p>
+
+  <form method="post" class="app-card p-6 space-y-4">
+    {% csrf_token %}
+    <div>
+      <label class="block text-sm font-medium mb-1">Copy from</label>
+      <select name="source" required class="w-full border rounded-lg px-3 py-2 text-sm">
+        <option value="">— choose source timetable —</option>
+        {% for s in sources %}
+          <option value="{{ s.id }}">{{ s.form }} — {{ s.academic_year }} Term {{ s.term_number }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="flex gap-3">
+      <button class="btn-primary px-4 py-2">Copy now</button>
+      <a href="{% url 'scheduling:timetable_grid' %}?form={{ target.form_id }}&term={{ target.academic_year_id }}:{{ target.term_number }}"
+         class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-sm">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -38,6 +38,8 @@ class AcademicYear(models.Model):
 	school      = models.ForeignKey(School, on_delete=models.CASCADE, related_name="academic_years")
 	name        = models.CharField(max_length=20)          # e.g. "2024-2025"
 	is_current  = models.BooleanField(default=False)
+	start_date = models.DateField(null=True, blank=True)
+	end_date   = models.DateField(null=True, blank=True)
 
 	class Meta:
 		db_table        = "academic_years"
@@ -211,3 +213,113 @@ class Enrolment(models.Model):
 
 	def __str__(self):
 		return f"{self.student} → {self.section}"
+
+
+# Timetable models 
+
+CYCLE = 'cycle'
+WEEKDAY = 'weekday'
+
+
+class TimetableSettings(models.Model):
+    MODE_CHOICES = [
+        (CYCLE, 'Rotating day cycle (Day 1 … Day N)'),
+        (WEEKDAY, 'Regular weekly (Mon – Fri)'),
+    ]
+    school = models.OneToOneField(
+        'core.School', on_delete=models.CASCADE, related_name='timetable_settings'
+    )
+    mode = models.CharField(max_length=10, choices=MODE_CHOICES, default=WEEKDAY)
+    cycle_length = models.PositiveSmallIntegerField(default=6)
+    anchor_date = models.DateField(
+        null=True, blank=True,
+        help_text="The first school day on/after this date is Day 1. "
+                  "Usually the first day of the academic year."
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Timetable settings — {self.school}"
+        pass
+
+    @property
+    def is_cycle(self):
+        return self.mode == CYCLE
+        pass
+
+
+class TimetablePeriod(models.Model):
+    """The bell schedule — shared across every day and every form."""
+    school = models.ForeignKey(
+        'core.School', on_delete=models.CASCADE, related_name='timetable_periods'
+    )
+    name = models.CharField(max_length=50)            # "Period 1", "Lunch"
+    order = models.PositiveSmallIntegerField(default=1)
+    start_time = models.TimeField(null=True, blank=True)
+    end_time = models.TimeField(null=True, blank=True)
+    is_break = models.BooleanField(
+        default=False, help_text="Recess, lunch, assembly — no class scheduled."
+    )
+
+    class Meta:
+        ordering = ['order']
+        unique_together = ('school', 'order')
+
+    def __str__(self):
+        return self.name
+        pass
+
+
+class Timetable(models.Model):
+    """One form's timetable for one term. This is the 'page' you open and edit."""
+    school = models.ForeignKey(
+        'core.School', on_delete=models.CASCADE, related_name='timetables'
+    )
+    form = models.ForeignKey(
+        'scheduling.Form', on_delete=models.CASCADE, related_name='timetables'
+    )
+    academic_year = models.ForeignKey(
+        'scheduling.AcademicYear', on_delete=models.CASCADE, related_name='timetables'
+    )
+    term_number = models.PositiveSmallIntegerField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('school', 'form', 'academic_year', 'term_number')
+        ordering = ['form', 'academic_year', 'term_number']
+
+    def __str__(self):
+        return f"{self.form} — {self.academic_year} Term {self.term_number}"
+        pass
+
+
+class TimetableSlot(models.Model):
+    """One section placed in a (day, period) cell of a form's term timetable.
+    Multiple slots may share the same (timetable, day, period) cell — that is a
+    switch/split period (e.g. French 101 + Spanish 101 in the same slot)."""
+    timetable = models.ForeignKey(
+        Timetable, on_delete=models.CASCADE, related_name='slots'
+    )
+    school = models.ForeignKey(
+        'core.School', on_delete=models.CASCADE, related_name='timetable_slots'
+    )
+    day_number = models.PositiveSmallIntegerField(
+        help_text="Cycle mode: 1..N = Day 1..Day N. Weekly mode: 1=Mon … 5=Fri."
+    )
+    period = models.ForeignKey(
+        TimetablePeriod, on_delete=models.CASCADE, related_name='slots'
+    )
+    section = models.ForeignKey(
+        'scheduling.Section', on_delete=models.CASCADE, related_name='timetable_slots'
+    )
+
+    class Meta:
+        # Same section can't be placed twice in one cell, but several different
+        # sections CAN share a cell — that is the split/switch class.
+        unique_together = ('timetable', 'day_number', 'period', 'section')
+        ordering = ['day_number', 'period__order']
+
+    def __str__(self):
+        return f"Day {self.day_number} / {self.period} → {self.section}"
+        pass
