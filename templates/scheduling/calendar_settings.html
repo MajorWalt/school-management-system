@@ -7,8 +7,8 @@
 	<div>
 		<h1 class="text-2xl font-bold text-gray-800">Academic Calendar</h1>
 		<p class="text-sm text-gray-500">
-			Set the start and end dates for an academic year.
-			Attendance rates are calculated across this window.
+			Set the start/end dates for the year and each term.
+			Attendance rates use the year window; report-card merit counts use the term windows.
 		</p>
 	</div>
 
@@ -37,40 +37,65 @@
 		</form>
 	</div>
 
-	<!-- Dates form -->
-	<div class="bg-white rounded-xl shadow p-6">
-		<form method="post" class="space-y-4">
-			{% csrf_token %}
-			<input type="hidden" name="year" value="{{ academic_year.pk }}">
+	<form method="post" class="space-y-6">
+		{% csrf_token %}
+		<input type="hidden" name="year" value="{{ academic_year.pk }}">
 
+		<!-- Year dates -->
+		<div class="bg-white rounded-xl shadow p-6 space-y-4">
+			<h2 class="font-semibold text-gray-700">Year dates</h2>
 			<div>
 				<label class="block text-sm font-medium text-gray-700">Start date</label>
 				{{ form.start_date }}
-				{% if form.start_date.errors %}
-				<p class="text-xs text-red-600 mt-1">{{ form.start_date.errors.0 }}</p>
-				{% endif %}
+				{% if form.start_date.errors %}<p class="text-xs text-red-600 mt-1">{{ form.start_date.errors.0 }}</p>{% endif %}
 			</div>
-
 			<div>
 				<label class="block text-sm font-medium text-gray-700">End date</label>
 				{{ form.end_date }}
-				{% if form.end_date.errors %}
-				<p class="text-xs text-red-600 mt-1">{{ form.end_date.errors.0 }}</p>
-				{% endif %}
+				{% if form.end_date.errors %}<p class="text-xs text-red-600 mt-1">{{ form.end_date.errors.0 }}</p>{% endif %}
 			</div>
+		</div>
 
-			{% if form.non_field_errors %}
-			<p class="text-xs text-red-600">{{ form.non_field_errors.0 }}</p>
+		<!-- Term dates -->
+		<div class="bg-white rounded-xl shadow p-6 space-y-5">
+			<h2 class="font-semibold text-gray-700">Term dates</h2>
+
+			{{ formset.management_form }}
+
+			{% if formset.forms %}
+			{% for tform in formset.forms %}
+			<div class="border border-gray-100 rounded-lg p-4">
+				{{ tform.id }}
+				<p class="text-xs uppercase font-semibold text-gray-400 mb-2">
+					{{ tform.instance.name|default:"Term" }}
+					<span class="text-gray-300">· Term {{ tform.instance.term_number }}</span>
+				</p>
+				<div class="grid grid-cols-2 gap-3">
+					<div>
+						<label class="block text-xs font-medium text-gray-600">Start</label>
+						{{ tform.start_date }}
+						{% if tform.start_date.errors %}<p class="text-xs text-red-600 mt-1">{{ tform.start_date.errors.0 }}</p>{% endif %}
+					</div>
+					<div>
+						<label class="block text-xs font-medium text-gray-600">End</label>
+						{{ tform.end_date }}
+						{% if tform.end_date.errors %}<p class="text-xs text-red-600 mt-1">{{ tform.end_date.errors.0 }}</p>{% endif %}
+					</div>
+				</div>
+			</div>
+			{% endfor %}
+			{% else %}
+			<p class="text-sm text-gray-400">
+				No terms configured for {{ academic_year.name }} yet. Add TermConfig rows first.
+			</p>
 			{% endif %}
+		</div>
 
-			<div class="pt-2">
-				<button type="submit"
-					class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg">
-					Save dates
-				</button>
-			</div>
-		</form>
-	</div>
+		<button type="submit"
+			class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg">
+			Save calendar
+		</button>
+	</form>
 
 </div>
 {% endblock %}

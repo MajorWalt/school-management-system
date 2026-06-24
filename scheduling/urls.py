@@ -1,6 +1,7 @@
 from django.urls import path
 
 from scheduling.calendar_settings import calendar_settings
+from scheduling.roster_views import section_roster
 from . import views
 from . import timetable_views as tv
 
@@ -40,6 +41,7 @@ urlpatterns = [
 
 	# Enrolments
 	path("sections/<int:section_pk>/enrol/",        views.enrol_student,          name="enrol"),
+    path("sections/<int:pk>/roster/", 				section_roster, name="section_roster"),
 	path("enrolments/<int:pk>/remove/",             views.enrolment_remove,       name="enrolment_remove"),
     
 	# Timetable

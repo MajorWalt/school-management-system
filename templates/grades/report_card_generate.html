@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Generate Report Cards — {{ school.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto space-y-6">
+
+	<div>
+		<h1 class="text-2xl font-bold text-gray-800">Generate Report Cards</h1>
+		<p class="text-sm text-gray-500">Produces one combined PDF, one student per page.</p>
+	</div>
+
+	{% if messages %}
+	{% for message in messages %}
+	<div class="rounded-lg px-4 py-3 text-sm bg-red-50 text-red-700 border border-red-200">{{ message }}</div>
+	{% endfor %}
+	{% endif %}
+
+	<form method="get" target="_blank" class="bg-white rounded-xl shadow p-6 space-y-4">
+		<input type="hidden" name="generate" value="1">
+
+		<div class="grid grid-cols-2 gap-4">
+			<div>
+				<label class="block text-sm font-medium text-gray-700 mb-1">Academic year</label>
+				<select name="year" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+					{% for y in years %}
+					<option value="{{ y.pk }}" {% if active_year and y.pk == active_year.pk %}selected{% endif %}>
+						{{ y.name }}{% if y.is_current %} (current){% endif %}
+					</option>
+					{% endfor %}
+				</select>
+			</div>
+			<div>
+				<label class="block text-sm font-medium text-gray-700 mb-1">Up to term</label>
+				<select name="term" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+					<option value="1">Term 1</option>
+					<option value="2">Term 2</option>
+					<option value="3">Term 3</option>
+				</select>
+			</div>
+		</div>
+
+		<div class="border-t border-gray-100 pt-4">
+			<p class="text-xs uppercase font-semibold text-gray-400 mb-3">Scope — fill one (most specific wins)</p>
+
+			<div class="space-y-3">
+				<div>
+					<label class="block text-sm font-medium text-gray-700 mb-1">Whole form</label>
+					<select name="form" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+						<option value="">—</option>
+						{% for f in forms %}
+						<option value="{{ f.pk }}">{{ f.name }}</option>
+						{% endfor %}
+					</select>
+				</div>
+				<div>
+					<label class="block text-sm font-medium text-gray-700 mb-1">Homeroom</label>
+					<select name="homeroom" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+						<option value="">—</option>
+						{% for hr in homerooms %}
+						<option value="{{ hr.pk }}">{{ hr.name }} ({{ hr.form }})</option>
+						{% endfor %}
+					</select>
+				</div>
+				<div>
+					<label class="block text-sm font-medium text-gray-700 mb-1">Individual student</label>
+					<select name="student" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+						<option value="">—</option>
+						{% for st in students %}
+						<option value="{{ st.pk }}">{{ st.get_full_name }}</option>
+						{% endfor %}
+					</select>
+				</div>
+			</div>
+		</div>
+
+		<div class="pt-2">
+			<button type="submit" class="btn-primary px-4 py-2 rounded-lg text-sm font-medium">
+				Generate PDF
+			</button>
+		</div>
+	</form>
+
+</div>
+{% endblock %}

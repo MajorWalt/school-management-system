@@ -109,6 +109,7 @@ class ReportCard(models.Model):
 	term_number   = models.PositiveIntegerField()
 	gpa           = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
 	status        = models.CharField(max_length=10, choices=STATUS_CHOICES, default="draft")
+	comment 	  = models.TextField(blank=True)
 	generated_by  = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="report_cards_generated")
 	generated_at  = models.DateTimeField(auto_now_add=True)
 	pdf_file      = models.FileField(upload_to="report_cards/", blank=True, null=True)

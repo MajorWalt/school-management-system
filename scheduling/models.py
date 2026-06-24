@@ -66,6 +66,8 @@ class TermConfig(models.Model):
 	has_final_exam      = models.BooleanField(default=True)
 	coursework_weight   = models.PositiveIntegerField(default=60)   # %
 	exam_weight         = models.PositiveIntegerField(default=40)   # %
+	start_date 			= models.DateField(null=True, blank=True)
+	end_date   			= models.DateField(null=True, blank=True)
 
 	class Meta:
 		db_table        = "term_configs"
@@ -203,9 +205,21 @@ class Section(models.Model):
 
 class Enrolment(models.Model):
 	"""Links a Student to a Section"""
+	SOURCE_CHOICES = [
+		("manual",   "Individual"),
+		("homeroom", "Homeroom"),
+	]
+	
 	student = models.ForeignKey("students.Student", on_delete=models.CASCADE, related_name="enrolments")
 	section = models.ForeignKey(Section, on_delete=models.CASCADE, related_name="enrolments")
 	date_enrolled = models.DateField(auto_now_add=True)
+	source          = models.CharField(max_length=10, choices=SOURCE_CHOICES, default="manual")
+	source_homeroom = models.ForeignKey(
+		"scheduling.Homeroom",
+		on_delete=models.SET_NULL,
+		null=True, blank=True,
+		related_name="sourced_enrolments",
+	)
 
 	class Meta:
 		db_table        = "enrolments"

@@ -1,4 +1,6 @@
 from django.urls import path
+
+from grades.report_views import generate_report_cards
 from . import views
 
 app_name = "grades"
@@ -18,4 +20,5 @@ urlpatterns = [
 	path("report-cards/",                           views.report_card_list,        name="report_card_list"),
 	path("report-cards/<int:pk>/",                  views.report_card_detail,      name="report_card_detail"),
 	path("report-cards/<int:pk>/publish/",          views.report_card_publish,     name="report_card_publish"),
+    path("report-cards/generate/", 					generate_report_cards, 		   name="report_card_generate_pdf"),
 ]

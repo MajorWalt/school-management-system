@@ -7,7 +7,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from core.decorators import tenant_required
 from core.activity import log_activity
 from accounts.models import UserRole
-from scheduling.models import Form, Homeroom
+from scheduling.models import AcademicYear, Enrolment, Form, Homeroom, TermConfig
 from .forms import BulkEnrolForm, GuardianForm, StudentForm, StudentGuardianForm, StudentStatusForm
 from .models import Guardian, House, Student, StudentGuardian, StudentStatusLog
 
@@ -74,16 +74,63 @@ def student_list(request):
 @login_required
 @tenant_required
 def student_detail(request, pk):
-	student   = get_object_or_404(Student, pk=pk, school=request.school)
-	logs      = student.status_logs.order_by("-change_date")
-	guardians = student.guardians.select_related("guardian")
-	return render(request, "students/student_detail.html", {
-		"student":  student,
-		"logs":     logs,
-		"guardians": guardians,
-		"is_admin": is_admin(request.user, request.school),
-	})
+	student      = get_object_or_404(Student, pk=pk, school=request.school)
+	logs         = student.status_logs.order_by("-change_date")
+	guardians    = student.guardians.select_related("guardian")
 
+	# Current year, or fall back to the most recent one.
+	current_year = AcademicYear.objects.filter(
+		school=request.school, is_current=True
+	).first()
+	if current_year is None:
+		current_year = (
+			AcademicYear.objects.filter(school=request.school)
+			.order_by("-start_date", "-name")
+			.first()
+		)
+		pass
+
+	enrolment_terms = []
+	if current_year:
+		enrolments = (
+			Enrolment.objects.filter(
+				student=student,
+				section__academic_year=current_year,
+			)
+			.select_related("section", "section__course", "section__teacher")
+			.order_by("section__term_number", "section__course__name")
+		)
+
+		# term_number -> list of enrolments
+		buckets = {}
+		for enr in enrolments:
+			buckets.setdefault(enr.section.term_number, []).append(enr)
+			pass
+
+		# Prefer configured term names; otherwise build from the term numbers present.
+		term_names = dict(
+			TermConfig.objects.filter(academic_year=current_year)
+			.values_list("term_number", "name")
+		)
+
+		term_numbers = sorted(set(list(term_names.keys()) + list(buckets.keys())))
+		for tn in term_numbers:
+			enrolment_terms.append({
+				"term_label": term_names.get(tn, f"Term {tn}"),
+				"enrolments": buckets.get(tn, []),
+			})
+			pass
+		pass
+
+	return render(request, "students/student_detail.html", {
+		"student":         student,
+		"logs":            logs,
+		"guardians":       guardians,
+		"is_admin":        is_admin(request.user, request.school),
+		"current_year":    current_year,
+		"enrolment_terms": enrolment_terms,
+	})
+	pass
 
 @login_required
 @tenant_required

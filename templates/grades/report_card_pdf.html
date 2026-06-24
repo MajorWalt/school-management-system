@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<style>
+	@page { size: letter portrait; margin: 1.2cm; }
+	body { font-family: Helvetica, Arial, sans-serif; font-size: 9px; color: #111; }
+	.card { page-break-after: always; }
+	.center { text-align: center; }
+	.right { text-align: right; }
+	.school { font-size: 15px; font-weight: bold; }
+	.muted { color: #555; }
+	h2 { font-size: 11px; margin: 8px 0 3px 0; }
+	table { width: 100%; border-collapse: collapse; margin-top: 4px; }
+	th, td { border: 1px solid #999; padding: 2px 4px; }
+	th { background: #eee; text-align: center; }
+	td.subj { text-align: left; }
+	td.num, th.num { text-align: right; }
+	.summary th, .summary td { text-align: center; }
+	.box { border: 1px solid #999; padding: 6px; margin-top: 8px; }
+</style>
+</head>
+<body>
+{% for card in cards %}
+<div class="card">
+
+	<div class="center">
+		<div class="school">{{ school.name }}</div>
+		<div class="muted">{{ academic_year.name }} &bull; Form Report to Parents / Guardians &bull; {{ today }}</div>
+		<div style="margin-top:4px;font-weight:bold;">{{ card.student.get_full_name }} &nbsp; ({{ card.student.homeroom }})</div>
+	</div>
+
+	{% if card.teachers %}
+	<div class="muted" style="margin-top:4px;">
+		Teacher(s):
+		{% for t in card.teachers %}{{ t.get_full_name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+	</div>
+	{% endif %}
+
+	<!-- Grades -->
+	<table>
+		<thead>
+			<tr>
+				<th class="subj" style="text-align:left;">Subject</th>
+				{% for col in card.columns %}<th class="num">{{ col.label }}</th>{% endfor %}
+				<th class="num">Avg</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for row in card.rows %}
+			<tr>
+				<td class="subj">
+					{{ row.course.name }}{% if row.teacher %} <span class="muted">({{ row.teacher.get_full_name }})</span>{% endif %}
+				</td>
+				{% for cell in row.cells_display %}<td class="num">{{ cell }}</td>{% endfor %}
+				<td class="num"><b>{{ row.avg_display }}</b></td>
+			</tr>
+			{% endfor %}
+			<tr>
+				<td class="subj"><b>Average</b></td>
+				{% for c in card.col_averages_display %}<td class="num"><b>{{ c }}</b></td>{% endfor %}
+				<td class="num"><b>{{ card.overall_display }}</b></td>
+			</tr>
+		</tbody>
+	</table>
+
+	<!-- Conduct -->
+	<table class="summary">
+		<thead>
+			<tr>
+				<th style="text-align:left;">&nbsp;</th>
+				{% for c in card.conduct %}<th>Term {{ c.term }}</th>{% endfor %}
+			</tr>
+		</thead>
+		<tbody>
+			<tr><td style="text-align:left;">Merits</td>{% for c in card.conduct %}<td>{{ c.merits }}</td>{% endfor %}</tr>
+			<tr><td style="text-align:left;">Demerits</td>{% for c in card.conduct %}<td>{{ c.demerits }}</td>{% endfor %}</tr>
+			<tr><td style="text-align:left;">Detentions</td>{% for c in card.conduct %}<td>{{ c.detentions }}</td>{% endfor %}</tr>
+			<tr><td style="text-align:left;">Suspensions</td>{% for c in card.conduct %}<td>{{ c.suspensions }}</td>{% endfor %}</tr>
+		</tbody>
+	</table>
+
+	<!-- Attendance -->
+	{% if card.attendance %}
+	<h2>Attendance</h2>
+	<table class="summary">
+		<thead>
+			<tr><th style="text-align:left;">&nbsp;</th>{% for mth in card.attendance %}<th>{{ mth.label }}</th>{% endfor %}</tr>
+		</thead>
+		<tbody>
+			<tr><td style="text-align:left;">Days Open</td>{% for mth in card.attendance %}<td>{{ mth.open }}</td>{% endfor %}</tr>
+			<tr><td style="text-align:left;">Days Present</td>{% for mth in card.attendance %}<td>{{ mth.present }}</td>{% endfor %}</tr>
+			<tr><td style="text-align:left;">Days Absent</td>{% for mth in card.attendance %}<td>{{ mth.absent }}</td>{% endfor %}</tr>
+			<tr><td style="text-align:left;">Days Late</td>{% for mth in card.attendance %}<td>{{ mth.late }}</td>{% endfor %}</tr>
+		</tbody>
+	</table>
+	{% endif %}
+
+	<div class="box">
+		<b>Overall average:</b> {{ card.overall_display }}%
+		{% if card.honours %} &nbsp;&bull;&nbsp; <b>Honours:</b> {{ card.honours }}{% endif %}
+	</div>
+
+	<div class="box">
+		<b>General Comments</b><br/>
+		{{ card.comment }}
+	</div>
+
+	<div class="box">
+		<b>Student Placement</b> — {{ card.student.get_full_name }}<br/>
+		{ } Will be promoted &nbsp;&nbsp; { } On probation &nbsp;&nbsp; { } Will repeat
+	</div>
+
+	<div class="muted" style="margin-top:6px;">
+		Honours: 1st Class &ge; 85.0% &amp; pass all; 2nd Class &ge; 75.0% &amp; pass all. Pass mark 55.0%.
+	</div>
+
+</div>
+{% endfor %}
+</body>
+</html>

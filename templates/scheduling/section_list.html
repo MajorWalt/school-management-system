@@ -55,9 +55,11 @@
 				<td class="px-4 py-3 text-gray-600">{{ section.academic_year.name }}</td>
 				<td class="px-4 py-3 text-gray-600">{{ section.teacher|default:"—" }}</td>
 				<td class="px-4 py-3 text-gray-600">{{ section.room|default:"—" }}</td>
-				<td class="px-4 py-3">
+				<td class="px-4 py-3 whitespace-nowrap">
+					<a href="{% url 'scheduling:section_roster' section.pk %}"
+					   class="text-blue-600 hover:underline text-xs">Roster</a>
 					<a href="{% url 'scheduling:section_edit' section.pk %}"
-					   class="text-blue-600 hover:underline text-xs">Edit</a>
+					   class="text-blue-600 hover:underline text-xs ml-3">Edit</a>
 				</td>
 			</tr>
 			{% empty %}
