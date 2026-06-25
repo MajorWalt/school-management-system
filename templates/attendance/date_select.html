@@ -2,27 +2,57 @@
 {% block title %}Select Date — {{ section }}{% endblock %}
 
 {% block content %}
-<div class="max-w-md mx-auto">
-	<p class="text-sm text-gray-500 mb-1">{{ section.course.name }} — {{ section.form }} — Term {{ section.term_number }}</p>
-	<h1 class="text-2xl font-bold text-gray-800 mb-6">Select Date</h1>
+<div class="attendance-date-page">
 
-	<div class="bg-white rounded-xl shadow p-6">
-		<form method="post" novalidate>
+	<div class="dashboard-header-row dashboard-hero-row">
+		<div>
+			<h1 class="dashboard-hero-title">Select Date</h1>
+
+			<p class="dashboard-date dashboard-hero-subtitle">
+				{{ section.course.name }}
+				<span class="mx-1 text-slate-300">·</span>
+				<span class="text-slate-500">{{ section.form }}</span>
+				<span class="mx-1 text-slate-300">·</span>
+				<span class="text-slate-500">Term {{ section.term_number }}</span>
+			</p>
+		</div>
+
+		<div class="dashboard-system-status">
+			<span class="dashboard-status-icon">
+				<svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+					<path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+				</svg>
+			</span>
+			<span>Attendance register</span>
+		</div>
+	</div>
+
+	<div class="dashboard-panel attendance-date-card">
+		<div class="dashboard-panel-header">
+			<div>
+				<h2 class="dashboard-panel-title">Choose attendance date</h2>
+				<p class="dashboard-panel-subtitle">Select the date you want to mark for this section.</p>
+			</div>
+		</div>
+
+		<form method="post" novalidate class="attendance-date-form">
 			{% csrf_token %}
-			<div class="mb-4">
-				<label class="block text-xs font-medium text-gray-600 mb-1">Date</label>
+
+			<div class="attendance-form-field">
+				<label>Date</label>
 				{{ form.date }}
+
 				{% if form.date.errors %}
-					<p class="text-red-500 text-xs mt-1">{{ form.date.errors.0 }}</p>
+					<p class="attendance-form-error">{{ form.date.errors.0 }}</p>
 				{% endif %}
 			</div>
-			<div class="flex gap-3">
-				<button type="submit"
-						class="btn-primary px-5 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition">
+
+			<div class="attendance-form-actions">
+				<button type="submit" class="attendance-primary-action">
 					Continue
 				</button>
-				<a href="{% url 'attendance:section_select' %}"
-				   class="px-5 py-2 rounded-lg text-sm font-medium border border-gray-300 text-gray-600 hover:bg-gray-50 transition">
+
+				<a href="{% url 'attendance:section_select' %}" class="attendance-secondary-action">
 					Cancel
 				</a>
 			</div>

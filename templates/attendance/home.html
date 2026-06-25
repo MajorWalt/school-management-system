@@ -2,25 +2,50 @@
 {% block title %}Attendance — {{ school.name }}{% endblock %}
 
 {% block content %}
-<div class="max-w-3xl mx-auto space-y-6">
+<div class="attendance-home-page">
 
-	<h1 class="text-2xl font-bold text-gray-800">Attendance</h1>
+	<div class="dashboard-header-row dashboard-hero-row">
+		<div>
+			<h1 class="dashboard-hero-title">Attendance</h1>
+
+			<p class="dashboard-date dashboard-hero-subtitle">
+				{{ today|date:"l, d F Y" }}
+				<span class="mx-1 text-slate-300">·</span>
+				<span class="text-slate-500">Daily registers and homeroom overview</span>
+			</p>
+		</div>
+
+		<div class="dashboard-system-status">
+			<span class="dashboard-status-icon">
+				<svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+					<path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+				</svg>
+			</span>
+			<span>Attendance module</span>
+		</div>
+	</div>
 
 	<!-- Date selector -->
-	<div class="bg-white rounded-xl shadow p-6">
-		<h2 class="font-semibold text-gray-700 mb-4">Select Date to Mark Attendance</h2>
-		<form method="post" novalidate>
+	<div class="dashboard-panel attendance-home-date-card">
+		<div class="dashboard-panel-header">
+			<div>
+				<h2 class="dashboard-panel-title">Select Date to Mark Attendance</h2>
+				<p class="dashboard-panel-subtitle">Choose the register date before selecting a homeroom.</p>
+			</div>
+		</div>
+
+		<form method="post" novalidate class="attendance-home-form">
 			{% csrf_token %}
-			<div class="flex gap-3 items-end">
-				<div class="flex-1">
-					<label class="block text-xs font-medium text-gray-600 mb-1">Date</label>
+			<div class="attendance-home-form-row">
+				<div class="attendance-form-field attendance-home-date-field">
+					<label>Date</label>
 					{{ form.date }}
 					{% if form.date.errors %}
-						<p class="text-red-500 text-xs mt-1">{{ form.date.errors.0 }}</p>
+						<p class="attendance-form-error">{{ form.date.errors.0 }}</p>
 					{% endif %}
 				</div>
-				<button type="submit"
-						class="btn-primary px-5 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition">
+
+				<button type="submit" class="attendance-primary-action">
 					Continue
 				</button>
 			</div>
@@ -29,11 +54,15 @@
 
 	<!-- Homeroom overview -->
 	{% if recent %}
-	<div class="bg-white rounded-xl shadow overflow-hidden">
-		<div class="px-5 py-4 border-b bg-gray-50">
-			<h2 class="font-semibold text-gray-700">Today's Overview — {{ today }}</h2>
+	<div class="dashboard-panel attendance-overview-panel">
+		<div class="dashboard-panel-header">
+			<div>
+				<h2 class="dashboard-panel-title">Today's Overview</h2>
+				<p class="dashboard-panel-subtitle">{{ today }} · Homeroom attendance summary</p>
+			</div>
 		</div>
-		<table class="min-w-full text-sm">
+
+		<table class="app-table attendance-overview-table">
 			<thead class="text-gray-400 uppercase text-xs bg-gray-50">
 				<tr>
 					<th class="px-4 py-3 text-left">Homeroom</th>
@@ -56,15 +85,18 @@
 						</span>
 					</td>
 					<td class="px-4 py-3 text-gray-400 text-xs">{{ row.last_marked|default:"Never" }}</td>
-					<td class="px-4 py-3 flex gap-3">
-						<a href="{% url 'attendance:mark' date=today|date:'Y-m-d' homeroom_pk=row.homeroom.pk %}"
-						   class="text-blue-600 hover:underline text-xs font-medium">
-							Mark Today
-						</a>
-						<a href="{% url 'attendance:report' row.homeroom.pk %}"
-						   class="text-gray-500 hover:underline text-xs">
-							Report
-						</a>
+					<td class="px-4 py-3">
+						<div class="attendance-table-actions">
+							<a href="{% url 'attendance:mark' date=today|date:'Y-m-d' homeroom_pk=row.homeroom.pk %}"
+							class="table-action-link">
+								Mark Today
+							</a>
+
+							<a href="{% url 'attendance:report' row.homeroom.pk %}"
+							class="table-action-link table-action-link-muted">
+								Report
+							</a>
+						</div>
 					</td>
 				</tr>
 				{% endfor %}

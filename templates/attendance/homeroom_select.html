@@ -2,47 +2,79 @@
 {% block title %}Select Homeroom — {{ date }}{% endblock %}
 
 {% block content %}
-<div class="max-w-2xl mx-auto space-y-6">
+<div class="attendance-homeroom-page">
 
-	<div class="flex items-center justify-between">
+	<div class="dashboard-header-row dashboard-hero-row">
 		<div>
-			<p class="text-sm text-gray-500">Marking attendance for</p>
-			<h1 class="text-2xl font-bold text-gray-800">{{ date }}</h1>
+			<h1 class="dashboard-hero-title">Select Homeroom</h1>
+
+			<p class="dashboard-date dashboard-hero-subtitle">
+				Marking attendance for
+				<span class="mx-1 text-slate-300">·</span>
+				<span class="text-slate-500">{{ date }}</span>
+			</p>
 		</div>
-		<a href="{% url 'attendance:home' %}"
-		   class="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 text-gray-600 hover:bg-gray-50 transition">
-			Back
-		</a>
+
+		<div class="dashboard-header-right">
+			<div class="dashboard-system-status">
+				<span class="dashboard-status-icon">
+					<svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+						<path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+					</svg>
+				</span>
+				<span>{{ date }}</span>
+			</div>
+
+			<a href="{% url 'attendance:home' %}" class="attendance-secondary-action">
+				Back
+			</a>
+		</div>
 	</div>
 
-	<div class="bg-white rounded-xl shadow overflow-hidden">
-		<div class="px-5 py-4 border-b bg-gray-50">
-			<h2 class="font-semibold text-gray-700">Select Homeroom</h2>
+	<div class="dashboard-panel attendance-homeroom-panel">
+		<div class="dashboard-panel-header">
+			<div>
+				<h2 class="dashboard-panel-title">Available Homerooms</h2>
+				<p class="dashboard-panel-subtitle">Choose the homeroom register you want to update.</p>
+			</div>
 		</div>
-		<div class="divide-y divide-gray-100">
+
+		<div class="attendance-homeroom-list">
 			{% for row in homeroom_status %}
 			<a href="{% url 'attendance:mark' date=date|date:'Y-m-d' homeroom_pk=row.homeroom.pk %}"
-			   class="flex items-center justify-between px-5 py-4 hover:bg-gray-50 transition">
-				<div>
-					<p class="font-medium text-gray-800">{{ row.homeroom.name }}</p>
-					<p class="text-xs text-gray-400">{{ row.homeroom.form }}</p>
+   				class="attendance-homeroom-item">
+				<div class="attendance-homeroom-main">
+					<div class="attendance-homeroom-icon">
+						{{ row.homeroom.name|slice:":1" }}
+					</div>
+
+					<div>
+						<p class="attendance-homeroom-name">{{ row.homeroom.name }}</p>
+						<p class="attendance-homeroom-form">{{ row.homeroom.form }}</p>
+					</div>
 				</div>
-				<div class="flex items-center gap-3">
+
+				<div class="attendance-homeroom-meta">
 					{% if row.marked %}
-					<span class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full">
+					<span class="attendance-status-badge attendance-status-marked">
 						Marked
 					</span>
 					{% else %}
-					<span class="bg-yellow-100 text-yellow-700 text-xs px-2 py-1 rounded-full">
+					<span class="attendance-status-badge attendance-status-not-pending">
 						Not marked
 					</span>
 					{% endif %}
-					<span class="text-blue-600 text-sm">→</span>
+					<span class="attendance-homeroom-arrow">→</span>
 				</div>
 			</a>
 			{% empty %}
-			<div class="px-5 py-8 text-center text-gray-400">
-				No homerooms assigned to you.
+			<div class="attendance-empty-state">
+				<div class="attendance-empty-icon">
+					<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+						<path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-6a2 2 0 012-2h2a2 2 0 012 2v6m-8 0h8m-8 0H5a2 2 0 01-2-2V7a2 2 0 012-2h3m8 12h3a2 2 0 002-2V7a2 2 0 00-2-2h-3M9 5h6" />
+					</svg>
+				</div>
+				<p>No homerooms assigned to you.</p>
 			</div>
 			{% endfor %}
 		</div>
