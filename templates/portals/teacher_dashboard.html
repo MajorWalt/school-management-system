@@ -104,7 +104,7 @@
 </div>
 {% endif %}
 
-<div class="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6">
+<div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
 	<a href="{% url 'attendance:home' %}"
 	class="btn-primary text-center px-4 py-3 rounded-xl text-sm font-medium hover:opacity-90 transition">
 		Mark Attendance
@@ -116,6 +116,10 @@
 	<a href="{% url 'merits:add' %}"
 	class="bg-green-600 text-white text-center px-4 py-3 rounded-xl text-sm font-medium hover:bg-green-700 transition">
 		Award Merit
+	</a>
+	<a href="{% url 'merits:demerit_add' %}"
+	class="bg-red-600 text-white text-center px-4 py-3 rounded-xl text-sm font-medium hover:bg-red-700 transition">
+		Award Demerit
 	</a>
 </div>
 

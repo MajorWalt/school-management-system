@@ -284,6 +284,91 @@
 	</div>
 	{% endif %}
 
+	<!-- Staff Notes (teachers + admin only) -->
+	{% if is_staff_member %}
+	<div class="bg-white rounded-xl shadow overflow-hidden">
+		<div class="px-5 py-4 border-b bg-gray-50 flex items-center justify-between">
+			<div>
+				<h2 class="font-semibold text-gray-700">Staff Notes</h2>
+				<p class="text-xs text-gray-400">Visible to teachers and admins only — not to students or parents.</p>
+			</div>
+			<button type="button" onclick="noteShowAddForm()"
+				class="text-sm text-blue-600 hover:underline" id="note-add-link">
+				+ Add note
+			</button>
+		</div>
+
+		<!-- Add note (hidden until link clicked) -->
+		<div class="px-5 py-4 border-b border-gray-100" id="note-add-form" style="display:none;">
+			<form method="post" action="{% url 'students:note_add' student.pk %}" class="space-y-2">
+				{% csrf_token %}
+				<textarea name="body" rows="3" required
+					class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+					placeholder="Add a note about this student…"></textarea>
+				<div class="flex gap-2 justify-end">
+					<button type="button" onclick="noteHideAddForm()"
+						class="text-xs px-3 py-1.5 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50">Cancel</button>
+					<button type="submit"
+						class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg">
+						Add note
+					</button>
+				</div>
+			</form>
+		</div>
+
+		<!-- Notes thread -->
+		{% if staff_notes %}
+		<div class="divide-y divide-gray-100">
+			{% for note in staff_notes %}
+			<div class="px-5 py-4">
+				<p class="text-sm text-gray-600 whitespace-pre-line" id="note-body-{{ note.pk }}">{{ note.body }}</p>
+
+				<p class="text-xs text-gray-400 mt-1.5">
+					— {% if note.author %}{{ note.author.get_full_name|default:note.author.email }}{% else %}Unknown{% endif %}
+					<span class="text-gray-300">·</span>
+					{{ note.created_at|date:"d M Y, g:i A" }}
+					{% if note.updated_at and note.updated_at != note.created_at %}<span class="italic">· edited</span>{% endif %}
+				</p>
+
+				<!-- Inline edit form (author or admin) -->
+				{% if is_admin or note.author_id == current_user_id %}
+				<form method="post" action="{% url 'students:note_edit' note.pk %}"
+					id="note-edit-{{ note.pk }}" class="mt-2 space-y-2" style="display:none;">
+					{% csrf_token %}
+					<textarea name="body" rows="3" required
+						class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500">{{ note.body }}</textarea>
+					<div class="flex gap-2 justify-end">
+						<button type="button" onclick="noteCancelEdit({{ note.pk }})"
+							class="text-xs px-3 py-1.5 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50">Cancel</button>
+						<button type="submit"
+							class="text-xs px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white">Save</button>
+					</div>
+				</form>
+				{% endif %}
+
+				<!-- Actions -->
+				<div class="mt-2 flex gap-3 items-center" id="note-actions-{{ note.pk }}">
+					{% if note.author_id == current_user_id or is_admin %}
+					<button type="button" onclick="noteStartEdit({{ note.pk }})"
+						class="text-xs text-blue-600 hover:underline">Edit</button>
+					{% endif %}
+					{% if is_admin %}
+					<form method="post" action="{% url 'students:note_delete' note.pk %}" class="inline"
+						onsubmit="return confirm('Delete this note permanently?');">
+						{% csrf_token %}
+						<button type="submit" class="text-xs text-red-600 hover:underline">Delete</button>
+					</form>
+					{% endif %}
+				</div>
+			</div>
+			{% endfor %}
+		</div>
+		{% else %}
+		<p class="px-5 py-4 text-sm text-gray-400">No staff notes yet.</p>
+		{% endif %}
+	</div>
+	{% endif %}
+
 	<!-- Enrolled Subjects -->
 	<div class="bg-white rounded-xl shadow overflow-hidden">
 		<div class="px-5 py-3 bg-gray-50 border-b font-semibold text-gray-700 text-sm uppercase tracking-wide flex items-center justify-between">
@@ -304,7 +389,6 @@
 						<tr class="text-gray-400 uppercase text-xs border-b border-gray-100">
 							<th class="text-left py-1">Subject</th>
 							<th class="text-left py-1">Teacher</th>
-						
 						</tr>
 					</thead>
 					<tbody class="divide-y divide-gray-100">
@@ -319,7 +403,6 @@
 							<td class="py-1.5 text-gray-500">
 								{% if enr.section.teacher %}{{ enr.section.teacher.get_full_name }}{% else %}—{% endif %}
 							</td>
-							
 						</tr>
 						{% endfor %}
 					</tbody>
@@ -336,4 +419,25 @@
 	</div>
 
 </div>
+
+<script>
+	function noteShowAddForm() {
+		document.getElementById('note-add-form').style.display = 'block';
+		document.getElementById('note-add-link').style.display = 'none';
+	}
+	function noteHideAddForm() {
+		document.getElementById('note-add-form').style.display = 'none';
+		document.getElementById('note-add-link').style.display = 'inline';
+	}
+	function noteStartEdit(id) {
+		document.getElementById('note-body-' + id).style.display = 'none';
+		document.getElementById('note-actions-' + id).style.display = 'none';
+		document.getElementById('note-edit-' + id).style.display = 'block';
+	}
+	function noteCancelEdit(id) {
+		document.getElementById('note-body-' + id).style.display = 'block';
+		document.getElementById('note-actions-' + id).style.display = 'flex';
+		document.getElementById('note-edit-' + id).style.display = 'none';
+	}
+</script>
 {% endblock %}

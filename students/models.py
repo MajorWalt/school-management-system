@@ -231,3 +231,22 @@ class StudentStatusLog(models.Model):
 
 	def __str__(self):
 		return f"{self.student} → {self.status} on {self.change_date}"
+
+class StudentNote(models.Model):
+	"""Staff-only notes thread on a student. Visible to teachers + admins only."""
+
+	school     = models.ForeignKey(School, on_delete=models.CASCADE, related_name="student_notes")
+	student    = models.ForeignKey(Student, on_delete=models.CASCADE, related_name="staff_notes")
+	body       = models.TextField()
+	author     = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="student_notes_authored")
+	created_at = models.DateTimeField(auto_now_add=True)
+	updated_at = models.DateTimeField(auto_now=True)
+
+	class Meta:
+		db_table = "student_notes"
+		ordering = ["-created_at"]
+
+	def __str__(self):
+		return f"Note on {self.student} by {self.author}"
+		pass
+	pass

@@ -70,10 +70,12 @@ def student_list(request):
 		"is_admin":          is_admin(request.user, request.school),
 	})
 
-
 @login_required
 @tenant_required
 def student_detail(request, pk):
+	from .models import StudentNote
+	from .note_views import _is_staff, _is_admin
+
 	student      = get_object_or_404(Student, pk=pk, school=request.school)
 	logs         = student.status_logs.order_by("-change_date")
 	guardians    = student.guardians.select_related("guardian")
@@ -101,13 +103,11 @@ def student_detail(request, pk):
 			.order_by("section__term_number", "section__course__name")
 		)
 
-		# term_number -> list of enrolments
 		buckets = {}
 		for enr in enrolments:
 			buckets.setdefault(enr.section.term_number, []).append(enr)
 			pass
 
-		# Prefer configured term names; otherwise build from the term numbers present.
 		term_names = dict(
 			TermConfig.objects.filter(academic_year=current_year)
 			.values_list("term_number", "name")
@@ -122,14 +122,25 @@ def student_detail(request, pk):
 			pass
 		pass
 
+	# Staff notes thread (teachers + admin only).
+	staff_notes = (
+		StudentNote.objects.filter(school=request.school, student=student)
+		.select_related("author")
+		.order_by("-created_at")
+	)
+
 	return render(request, "students/student_detail.html", {
 		"student":         student,
 		"logs":            logs,
 		"guardians":       guardians,
-		"is_admin":        is_admin(request.user, request.school),
+		"is_admin":        _is_admin(request.user, request.school),
+		"is_staff_member": _is_staff(request.user, request.school),
+		"current_user_id": request.user.id,
 		"current_year":    current_year,
 		"enrolment_terms": enrolment_terms,
+		"staff_notes":     staff_notes,
 	})
+	pass
 	pass
 
 @login_required
