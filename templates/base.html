@@ -156,6 +156,7 @@
 	</style>
 	
 	<link rel="stylesheet" href="{% static 'css/redesign/index.css' %}?v=attendance-cache-2">
+	<link rel="stylesheet" href="{% static 'css/redesign/responsive.css' %}?v=responsive-1">
 	<!-- <link rel="stylesheet" href="{% static 'css/redesign/globals.css' %}"> -->
 	<!-- <link rel="stylesheet" href="{% static 'css/redesign/theme.css' %}"> -->
 
@@ -169,7 +170,7 @@
 <div class="app-layout">
 
 	<!-- Sidebar -->
-	<aside class="app-sidebar">
+	<aside class="app-sidebar" id="appSidebar">
 
 		<!-- Branding -->
 		<div class="app-sidebar-brand">
@@ -193,6 +194,11 @@
 					{% endif %}
 				</div>
 			</a>
+			<button type="button" class="app-sidebar-close" data-sidebar-close aria-label="Close sidebar">
+				<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+					<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+				</svg>
+			</button>
 		</div>
 
 		<!-- Nav -->
@@ -434,12 +440,18 @@
 			</a>
 		</div>
 	</aside>
+	<div class="app-sidebar-overlay" data-sidebar-close></div>
 
 	<!-- Main column -->
 	<div class="app-content-shell">
 
 		<!-- Top bar -->
 		<header class="app-header">
+			<button type="button" class="app-mobile-menu-button" data-sidebar-open aria-label="Open sidebar">
+				<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+					<path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
+				</svg>
+			</button>
 			<div class="app-breadcrumb">
 				<span>Home</span>
 				<span>/</span>
@@ -481,6 +493,53 @@
 		</footer>
 	</div>
 </div>
+
+<script>
+	(function () {
+		const body = document.body;
+		const openButtons = document.querySelectorAll("[data-sidebar-open]");
+		const closeButtons = document.querySelectorAll("[data-sidebar-close]");
+		const sidebarLinks = document.querySelectorAll(".app-sidebar a");
+
+		function openSidebar() {
+			body.classList.add("sidebar-open");
+			body.classList.add("sidebar-lock");
+		}
+
+		function closeSidebar() {
+			body.classList.remove("sidebar-open");
+			body.classList.remove("sidebar-lock");
+		}
+
+		openButtons.forEach((button) => {
+			button.addEventListener("click", openSidebar);
+		});
+
+		closeButtons.forEach((button) => {
+			button.addEventListener("click", closeSidebar);
+		});
+
+		sidebarLinks.forEach((link) => {
+			link.addEventListener("click", function () {
+				if (window.innerWidth < 1024) {
+					closeSidebar();
+				}
+			});
+		});
+
+		document.addEventListener("keydown", function (event) {
+			if (event.key === "Escape") {
+				closeSidebar();
+			}
+		});
+
+		window.addEventListener("resize", function () {
+			if (window.innerWidth >= 1024) {
+				closeSidebar();
+			}
+		});
+	})();
+</script>
 
 {% load django_browser_reload %}
 {% django_browser_reload_script %}
