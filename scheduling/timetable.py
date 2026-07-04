@@ -2,7 +2,7 @@ from datetime import timedelta
 from django.utils import timezone
 from .models import TimetableSettings, NonSchoolDay, CYCLE, WEEKDAY
 
-WEEKDAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
+WEEKDAY_NAMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
 
 
 def get_settings(school):
@@ -12,16 +12,12 @@ def get_settings(school):
 
 
 def _non_school_set(school, start, end):
-    return set(
-        NonSchoolDay.objects
-        .filter(school=school, date__gte=start, date__lte=end)
-        .values_list('date', flat=True)
-    )
+    return set(NonSchoolDay.objects.filter(school=school, date__gte=start, date__lte=end).values_list("date", flat=True))
     pass
 
 
 def is_school_day(school, target_date, non_school_dates=None):
-    if target_date.weekday() >= 5:          # Sat / Sun
+    if target_date.weekday() >= 5:  # Sat / Sun
         return False
         pass
     if non_school_dates is not None:
@@ -43,7 +39,7 @@ def get_cycle_day(school, target_date, settings=None):
         if NonSchoolDay.objects.filter(school=school, date=target_date).exists():
             return None
             pass
-        return target_date.weekday() + 1   # Mon=1 … Fri=5
+        return target_date.weekday() + 1  # Mon=1 … Fri=5
         pass
 
     # --- cycle mode ---
@@ -146,6 +142,7 @@ def day_numbers(settings):
     return list(range(1, n + 1))
     pass
 
+
 def copy_timetable(source, target):
     """Clone slots from a source Timetable into a target Timetable.
 
@@ -156,7 +153,7 @@ def copy_timetable(source, target):
     copied = 0
     unmapped = []
 
-    slots = source.slots.select_related('section', 'section__course', 'section__teacher')
+    slots = source.slots.select_related("section", "section__course", "section__teacher")
     for slot in slots:
         src = slot.section
         candidates = Section.objects.filter(
@@ -169,7 +166,7 @@ def copy_timetable(source, target):
         target_section = candidates.filter(teacher=src.teacher).first() or candidates.first()
 
         if target_section is None:
-            label = getattr(src.course, 'code', None) or str(src.course)
+            label = getattr(src.course, "code", None) or str(src.course)
             if label not in unmapped:
                 unmapped.append(label)
                 pass
@@ -181,7 +178,7 @@ def copy_timetable(source, target):
             day_number=slot.day_number,
             period=slot.period,
             section=target_section,
-            defaults={'school': target.school},
+            defaults={"school": target.school},
         )
         if created:
             copied += 1

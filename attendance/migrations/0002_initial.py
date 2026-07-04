@@ -6,45 +6,48 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('attendance', '0001_initial'),
-        ('core', '0001_initial'),
-        ('scheduling', '0001_initial'),
-        ('students', '0001_initial'),
+        ("attendance", "0001_initial"),
+        ("core", "0001_initial"),
+        ("scheduling", "0001_initial"),
+        ("students", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='attendance',
-            name='homeroom',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='attendance_records', to='scheduling.homeroom'),
+            model_name="attendance",
+            name="homeroom",
+            field=models.ForeignKey(
+                blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name="attendance_records", to="scheduling.homeroom"
+            ),
         ),
         migrations.AddField(
-            model_name='attendance',
-            name='marked_by',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='attendance_marked', to=settings.AUTH_USER_MODEL),
+            model_name="attendance",
+            name="marked_by",
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name="attendance_marked", to=settings.AUTH_USER_MODEL),
         ),
         migrations.AddField(
-            model_name='attendance',
-            name='school',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='attendance_records', to='core.school'),
+            model_name="attendance",
+            name="school",
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name="attendance_records", to="core.school"),
         ),
         migrations.AddField(
-            model_name='attendance',
-            name='section',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='attendance_records', to='scheduling.section'),
+            model_name="attendance",
+            name="section",
+            field=models.ForeignKey(
+                blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name="attendance_records", to="scheduling.section"
+            ),
         ),
         migrations.AddField(
-            model_name='attendance',
-            name='student',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='attendance_records', to='students.student'),
+            model_name="attendance",
+            name="student",
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name="attendance_records", to="students.student"),
         ),
         migrations.AlterUniqueTogether(
-            name='attendance',
-            unique_together={('student', 'homeroom', 'date')},
+            name="attendance",
+            unique_together={("student", "homeroom", "date")},
         ),
     ]

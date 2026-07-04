@@ -5,20 +5,21 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('scheduling', '0003_academicyear_end_date_academicyear_start_date'),
+        ("scheduling", "0003_academicyear_end_date_academicyear_start_date"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='enrolment',
-            name='source',
-            field=models.CharField(choices=[('manual', 'Individual'), ('homeroom', 'Homeroom')], default='manual', max_length=10),
+            model_name="enrolment",
+            name="source",
+            field=models.CharField(choices=[("manual", "Individual"), ("homeroom", "Homeroom")], default="manual", max_length=10),
         ),
         migrations.AddField(
-            model_name='enrolment',
-            name='source_homeroom',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='sourced_enrolments', to='scheduling.homeroom'),
+            model_name="enrolment",
+            name="source_homeroom",
+            field=models.ForeignKey(
+                blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name="sourced_enrolments", to="scheduling.homeroom"
+            ),
         ),
     ]

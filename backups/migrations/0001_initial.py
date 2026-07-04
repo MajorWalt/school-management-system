@@ -6,30 +6,32 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('core', '0001_initial'),
+        ("core", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='BackupLog',
+            name="BackupLog",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('filename', models.CharField(blank=True, max_length=255)),
-                ('file_size_bytes', models.BigIntegerField(blank=True, null=True)),
-                ('status', models.CharField(choices=[('success', 'Success'), ('failed', 'Failed')], default='success', max_length=10)),
-                ('error_message', models.TextField(blank=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('school', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='backup_logs', to='core.school')),
-                ('triggered_by', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='backups_triggered', to=settings.AUTH_USER_MODEL)),
+                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                ("filename", models.CharField(blank=True, max_length=255)),
+                ("file_size_bytes", models.BigIntegerField(blank=True, null=True)),
+                ("status", models.CharField(choices=[("success", "Success"), ("failed", "Failed")], default="success", max_length=10)),
+                ("error_message", models.TextField(blank=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("school", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name="backup_logs", to="core.school")),
+                (
+                    "triggered_by",
+                    models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name="backups_triggered", to=settings.AUTH_USER_MODEL),
+                ),
             ],
             options={
-                'db_table': 'backup_logs',
-                'ordering': ['-created_at'],
+                "db_table": "backup_logs",
+                "ordering": ["-created_at"],
             },
         ),
     ]

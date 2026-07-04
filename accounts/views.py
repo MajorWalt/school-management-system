@@ -1,25 +1,23 @@
-import logging
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from core.activity import log_activity
+
 
 def login_view(request):
     if request.user.is_authenticated:
         return redirect("portals:dashboard")
 
     if request.method == "POST":
-        email    = request.POST.get("email", "").strip()
+        email = request.POST.get("email", "").strip()
         password = request.POST.get("password", "")
-        user     = authenticate(request, email=email, password=password)
+        user = authenticate(request, email=email, password=password)
 
         if user is not None:
             login(request, user)
             log_activity(request, "login", f"User {user.email} logged in.")
             return redirect(request.GET.get("next", "portals:dashboard"))
-        else:
-            messages.error(request, "Invalid email or password.")
+        messages.error(request, "Invalid email or password.")
 
     return render(request, "accounts/login.html")
 

@@ -6,28 +6,32 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('core', '0001_initial'),
-        ('students', '0001_initial'),
+        ("core", "0001_initial"),
+        ("students", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='StudentNote',
+            name="StudentNote",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('body', models.TextField()),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('author', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='student_notes_authored', to=settings.AUTH_USER_MODEL)),
-                ('school', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='student_notes', to='core.school')),
-                ('student', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='staff_notes', to='students.student')),
+                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                ("body", models.TextField()),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "author",
+                    models.ForeignKey(
+                        null=True, on_delete=django.db.models.deletion.SET_NULL, related_name="student_notes_authored", to=settings.AUTH_USER_MODEL
+                    ),
+                ),
+                ("school", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name="student_notes", to="core.school")),
+                ("student", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name="staff_notes", to="students.student")),
             ],
             options={
-                'db_table': 'student_notes',
-                'ordering': ['-created_at'],
+                "db_table": "student_notes",
+                "ordering": ["-created_at"],
             },
         ),
     ]

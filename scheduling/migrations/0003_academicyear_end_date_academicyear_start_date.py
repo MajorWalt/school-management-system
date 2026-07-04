@@ -4,20 +4,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('scheduling', '0002_initial'),
+        ("scheduling", "0002_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='academicyear',
-            name='end_date',
+            model_name="academicyear",
+            name="end_date",
             field=models.DateField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='academicyear',
-            name='start_date',
+            model_name="academicyear",
+            name="start_date",
             field=models.DateField(blank=True, null=True),
         ),
     ]

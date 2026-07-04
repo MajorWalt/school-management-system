@@ -6,7 +6,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
@@ -15,32 +14,65 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='School',
+            name="School",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=200)),
-                ('slug', models.SlugField(unique=True)),
-                ('is_active', models.BooleanField(default=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
+                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                ("name", models.CharField(max_length=200)),
+                ("slug", models.SlugField(unique=True)),
+                ("is_active", models.BooleanField(default=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
             ],
             options={
-                'db_table': 'schools',
+                "db_table": "schools",
             },
         ),
         migrations.CreateModel(
-            name='ActivityLog',
+            name="ActivityLog",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('action', models.CharField(choices=[('login', 'Logged In'), ('logout', 'Logged Out'), ('student_add', 'Added Student'), ('student_edit', 'Edited Student'), ('student_status', 'Changed Student Status'), ('student_bulk_enrol', 'Bulk Enrolled Students'), ('staff_add', 'Added Staff Member'), ('staff_edit', 'Edited Staff Member'), ('staff_deactivate', 'Deactivated Staff Member'), ('staff_reactivate', 'Reactivated Staff Member'), ('attendance_marked', 'Marked Attendance'), ('grades_saved', 'Saved Grades'), ('evaluation_created', 'Created Evaluation'), ('evaluation_edited', 'Edited Evaluation'), ('evaluation_deleted', 'Deleted Evaluation'), ('grade_window_updated', 'Updated Grade Window'), ('report_card_generated', 'Generated Report Cards'), ('report_card_published', 'Published Report Card'), ('merit_awarded', 'Awarded Merit'), ('demerit_issued', 'Issued Demerit'), ('merit_deleted', 'Deleted Merit'), ('demerit_deleted', 'Deleted Demerit'), ('backup_run', 'Ran Database Backup'), ('section_created', 'Created Section'), ('enrolment_added', 'Enrolled Student in Section'), ('other', 'Other Action')], max_length=30)),
-                ('description', models.TextField()),
-                ('ip_address', models.GenericIPAddressField(blank=True, null=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('user', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='activity_logs', to=settings.AUTH_USER_MODEL)),
-                ('school', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='activity_logs', to='core.school')),
+                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                (
+                    "action",
+                    models.CharField(
+                        choices=[
+                            ("login", "Logged In"),
+                            ("logout", "Logged Out"),
+                            ("student_add", "Added Student"),
+                            ("student_edit", "Edited Student"),
+                            ("student_status", "Changed Student Status"),
+                            ("student_bulk_enrol", "Bulk Enrolled Students"),
+                            ("staff_add", "Added Staff Member"),
+                            ("staff_edit", "Edited Staff Member"),
+                            ("staff_deactivate", "Deactivated Staff Member"),
+                            ("staff_reactivate", "Reactivated Staff Member"),
+                            ("attendance_marked", "Marked Attendance"),
+                            ("grades_saved", "Saved Grades"),
+                            ("evaluation_created", "Created Evaluation"),
+                            ("evaluation_edited", "Edited Evaluation"),
+                            ("evaluation_deleted", "Deleted Evaluation"),
+                            ("grade_window_updated", "Updated Grade Window"),
+                            ("report_card_generated", "Generated Report Cards"),
+                            ("report_card_published", "Published Report Card"),
+                            ("merit_awarded", "Awarded Merit"),
+                            ("demerit_issued", "Issued Demerit"),
+                            ("merit_deleted", "Deleted Merit"),
+                            ("demerit_deleted", "Deleted Demerit"),
+                            ("backup_run", "Ran Database Backup"),
+                            ("section_created", "Created Section"),
+                            ("enrolment_added", "Enrolled Student in Section"),
+                            ("other", "Other Action"),
+                        ],
+                        max_length=30,
+                    ),
+                ),
+                ("description", models.TextField()),
+                ("ip_address", models.GenericIPAddressField(blank=True, null=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("user", models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name="activity_logs", to=settings.AUTH_USER_MODEL)),
+                ("school", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name="activity_logs", to="core.school")),
             ],
             options={
-                'db_table': 'activity_logs',
-                'ordering': ['-created_at'],
+                "db_table": "activity_logs",
+                "ordering": ["-created_at"],
             },
         ),
     ]

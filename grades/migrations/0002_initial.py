@@ -6,108 +6,111 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('core', '0001_initial'),
-        ('grades', '0001_initial'),
-        ('scheduling', '0001_initial'),
-        ('students', '0001_initial'),
+        ("core", "0001_initial"),
+        ("grades", "0001_initial"),
+        ("scheduling", "0001_initial"),
+        ("students", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='evaluation',
-            name='section',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='evaluations', to='scheduling.section'),
+            model_name="evaluation",
+            name="section",
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name="evaluations", to="scheduling.section"),
         ),
         migrations.AddField(
-            model_name='gradeentry',
-            name='entered_by',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='grade_entries_entered', to=settings.AUTH_USER_MODEL),
+            model_name="gradeentry",
+            name="entered_by",
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name="grade_entries_entered", to=settings.AUTH_USER_MODEL),
         ),
         migrations.AddField(
-            model_name='gradeentry',
-            name='evaluation',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='grade_entries', to='grades.evaluation'),
+            model_name="gradeentry",
+            name="evaluation",
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name="grade_entries", to="grades.evaluation"),
         ),
         migrations.AddField(
-            model_name='gradeentry',
-            name='school',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='grade_entries', to='core.school'),
+            model_name="gradeentry",
+            name="school",
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name="grade_entries", to="core.school"),
         ),
         migrations.AddField(
-            model_name='gradeentry',
-            name='student',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='grade_entries', to='students.student'),
+            model_name="gradeentry",
+            name="student",
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name="grade_entries", to="students.student"),
         ),
         migrations.AddField(
-            model_name='gradevisibilityrule',
-            name='school',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='grade_visibility_rules', to='core.school'),
+            model_name="gradevisibilityrule",
+            name="school",
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name="grade_visibility_rules", to="core.school"),
         ),
         migrations.AddField(
-            model_name='gradevisibilityrule',
-            name='set_by',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='visibility_rules_set', to=settings.AUTH_USER_MODEL),
+            model_name="gradevisibilityrule",
+            name="set_by",
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name="visibility_rules_set", to=settings.AUTH_USER_MODEL),
         ),
         migrations.AddField(
-            model_name='gradevisibilityrule',
-            name='student',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='grade_visibility_rules', to='students.student'),
+            model_name="gradevisibilityrule",
+            name="student",
+            field=models.ForeignKey(
+                blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name="grade_visibility_rules", to="students.student"
+            ),
         ),
         migrations.AddField(
-            model_name='gradewindow',
-            name='academic_year',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='grade_windows', to='scheduling.academicyear'),
+            model_name="gradewindow",
+            name="academic_year",
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name="grade_windows", to="scheduling.academicyear"),
         ),
         migrations.AddField(
-            model_name='gradewindow',
-            name='form',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='grade_windows', to='scheduling.form'),
+            model_name="gradewindow",
+            name="form",
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name="grade_windows", to="scheduling.form"),
         ),
         migrations.AddField(
-            model_name='gradewindow',
-            name='school',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='grade_windows', to='core.school'),
+            model_name="gradewindow",
+            name="school",
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name="grade_windows", to="core.school"),
         ),
         migrations.AddField(
-            model_name='gradewindow',
-            name='updated_by',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='grade_windows_updated', to=settings.AUTH_USER_MODEL),
+            model_name="gradewindow",
+            name="updated_by",
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name="grade_windows_updated", to=settings.AUTH_USER_MODEL),
         ),
         migrations.AddField(
-            model_name='reportcard',
-            name='academic_year',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='report_cards', to='scheduling.academicyear'),
+            model_name="reportcard",
+            name="academic_year",
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name="report_cards", to="scheduling.academicyear"),
         ),
         migrations.AddField(
-            model_name='reportcard',
-            name='generated_by',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='report_cards_generated', to=settings.AUTH_USER_MODEL),
+            model_name="reportcard",
+            name="generated_by",
+            field=models.ForeignKey(
+                null=True, on_delete=django.db.models.deletion.SET_NULL, related_name="report_cards_generated", to=settings.AUTH_USER_MODEL
+            ),
         ),
         migrations.AddField(
-            model_name='reportcard',
-            name='school',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='report_cards', to='core.school'),
+            model_name="reportcard",
+            name="school",
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name="report_cards", to="core.school"),
         ),
         migrations.AddField(
-            model_name='reportcard',
-            name='student',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='report_cards', to='students.student'),
+            model_name="reportcard",
+            name="student",
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name="report_cards", to="students.student"),
         ),
         migrations.AlterUniqueTogether(
-            name='gradeentry',
-            unique_together={('evaluation', 'student')},
+            name="gradeentry",
+            unique_together={("evaluation", "student")},
         ),
         migrations.AlterUniqueTogether(
-            name='gradewindow',
-            unique_together={('school', 'academic_year', 'term_number', 'form')},
+            name="gradewindow",
+            unique_together={("school", "academic_year", "term_number", "form")},
         ),
         migrations.AlterUniqueTogether(
-            name='reportcard',
-            unique_together={('student', 'academic_year', 'term_number')},
+            name="reportcard",
+            unique_together={("student", "academic_year", "term_number")},
         ),
     ]

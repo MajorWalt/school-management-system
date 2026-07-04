@@ -5,31 +5,30 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('core', '0001_initial'),
+        ("core", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='SchoolProfile',
+            name="SchoolProfile",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('logo', models.ImageField(blank=True, null=True, upload_to='schools/logos/')),
-                ('tagline', models.CharField(blank=True, max_length=255)),
-                ('address', models.TextField(blank=True)),
-                ('phone', models.CharField(blank=True, max_length=30)),
-                ('email', models.EmailField(blank=True, max_length=254)),
-                ('website', models.URLField(blank=True)),
-                ('primary_color', models.CharField(default='#1e40af', max_length=7)),
-                ('accent_color', models.CharField(default='#f59e0b', max_length=7)),
-                ('primary_text_color', models.CharField(default='#ffffff', max_length=7)),
-                ('school', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='profile', to='core.school')),
+                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                ("logo", models.ImageField(blank=True, null=True, upload_to="schools/logos/")),
+                ("tagline", models.CharField(blank=True, max_length=255)),
+                ("address", models.TextField(blank=True)),
+                ("phone", models.CharField(blank=True, max_length=30)),
+                ("email", models.EmailField(blank=True, max_length=254)),
+                ("website", models.URLField(blank=True)),
+                ("primary_color", models.CharField(default="#1e40af", max_length=7)),
+                ("accent_color", models.CharField(default="#f59e0b", max_length=7)),
+                ("primary_text_color", models.CharField(default="#ffffff", max_length=7)),
+                ("school", models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name="profile", to="core.school")),
             ],
             options={
-                'db_table': 'school_profiles',
+                "db_table": "school_profiles",
             },
         ),
     ]

@@ -6,87 +6,105 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('core', '0001_initial'),
+        ("core", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='GradeEntry',
+            name="GradeEntry",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('marks_earned', models.DecimalField(blank=True, decimal_places=2, max_digits=6, null=True)),
-                ('is_absent', models.BooleanField(default=False)),
-                ('note', models.TextField(blank=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
+                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                ("marks_earned", models.DecimalField(blank=True, decimal_places=2, max_digits=6, null=True)),
+                ("is_absent", models.BooleanField(default=False)),
+                ("note", models.TextField(blank=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
             ],
             options={
-                'db_table': 'grade_entries',
+                "db_table": "grade_entries",
             },
         ),
         migrations.CreateModel(
-            name='GradeVisibilityRule',
+            name="GradeVisibilityRule",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('is_visible', models.BooleanField(default=False)),
-                ('reason', models.TextField(blank=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
+                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                ("is_visible", models.BooleanField(default=False)),
+                ("reason", models.TextField(blank=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
             ],
             options={
-                'db_table': 'grade_visibility_rules',
+                "db_table": "grade_visibility_rules",
             },
         ),
         migrations.CreateModel(
-            name='GradeWindow',
+            name="GradeWindow",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('term_number', models.PositiveIntegerField()),
-                ('is_open', models.BooleanField(default=False)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
+                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                ("term_number", models.PositiveIntegerField()),
+                ("is_open", models.BooleanField(default=False)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
             ],
             options={
-                'db_table': 'grade_windows',
+                "db_table": "grade_windows",
             },
         ),
         migrations.CreateModel(
-            name='ReportCard',
+            name="ReportCard",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('term_number', models.PositiveIntegerField()),
-                ('gpa', models.DecimalField(blank=True, decimal_places=2, max_digits=5, null=True)),
-                ('status', models.CharField(choices=[('draft', 'Draft'), ('published', 'Published')], default='draft', max_length=10)),
-                ('generated_at', models.DateTimeField(auto_now_add=True)),
-                ('pdf_file', models.FileField(blank=True, null=True, upload_to='report_cards/')),
+                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                ("term_number", models.PositiveIntegerField()),
+                ("gpa", models.DecimalField(blank=True, decimal_places=2, max_digits=5, null=True)),
+                ("status", models.CharField(choices=[("draft", "Draft"), ("published", "Published")], default="draft", max_length=10)),
+                ("generated_at", models.DateTimeField(auto_now_add=True)),
+                ("pdf_file", models.FileField(blank=True, null=True, upload_to="report_cards/")),
             ],
             options={
-                'db_table': 'report_cards',
-                'ordering': ['-academic_year__name', 'term_number'],
+                "db_table": "report_cards",
+                "ordering": ["-academic_year__name", "term_number"],
             },
         ),
         migrations.CreateModel(
-            name='Evaluation',
+            name="Evaluation",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('title', models.CharField(max_length=100)),
-                ('category', models.CharField(choices=[('coursework', 'Coursework'), ('exam', 'Exam')], max_length=20)),
-                ('subcategory', models.CharField(choices=[('test', 'Test'), ('quiz', 'Quiz'), ('project', 'Project'), ('homework', 'Homework'), ('assignment', 'Assignment'), ('other', 'Other'), ('final_exam', 'Final Exam'), ('mock_exam', 'Mock Exam'), ('midterm', 'Midterm Exam')], max_length=20)),
-                ('max_marks', models.DecimalField(decimal_places=2, max_digits=6)),
-                ('weight', models.DecimalField(decimal_places=2, default=1.0, max_digits=5)),
-                ('is_final_exam', models.BooleanField(default=False)),
-                ('date', models.DateField(blank=True, null=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('created_by', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='evaluations_created', to=settings.AUTH_USER_MODEL)),
-                ('school', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='evaluations', to='core.school')),
+                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                ("title", models.CharField(max_length=100)),
+                ("category", models.CharField(choices=[("coursework", "Coursework"), ("exam", "Exam")], max_length=20)),
+                (
+                    "subcategory",
+                    models.CharField(
+                        choices=[
+                            ("test", "Test"),
+                            ("quiz", "Quiz"),
+                            ("project", "Project"),
+                            ("homework", "Homework"),
+                            ("assignment", "Assignment"),
+                            ("other", "Other"),
+                            ("final_exam", "Final Exam"),
+                            ("mock_exam", "Mock Exam"),
+                            ("midterm", "Midterm Exam"),
+                        ],
+                        max_length=20,
+                    ),
+                ),
+                ("max_marks", models.DecimalField(decimal_places=2, max_digits=6)),
+                ("weight", models.DecimalField(decimal_places=2, default=1.0, max_digits=5)),
+                ("is_final_exam", models.BooleanField(default=False)),
+                ("date", models.DateField(blank=True, null=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "created_by",
+                    models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name="evaluations_created", to=settings.AUTH_USER_MODEL),
+                ),
+                ("school", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name="evaluations", to="core.school")),
             ],
             options={
-                'db_table': 'evaluations',
-                'ordering': ['date', 'created_at'],
+                "db_table": "evaluations",
+                "ordering": ["date", "created_at"],
             },
         ),
     ]

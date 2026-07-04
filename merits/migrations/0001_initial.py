@@ -4,41 +4,66 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='DemeritRecord',
+            name="DemeritRecord",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('category', models.CharField(choices=[('misconduct', 'Misconduct'), ('tardiness', 'Tardiness'), ('uniform', 'Uniform Violation'), ('disrespect', 'Disrespect'), ('dishonesty', 'Dishonesty'), ('other', 'Other')], max_length=20)),
-                ('reason', models.TextField()),
-                ('count', models.PositiveIntegerField(default=1)),
-                ('date', models.DateField()),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
+                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                (
+                    "category",
+                    models.CharField(
+                        choices=[
+                            ("misconduct", "Misconduct"),
+                            ("tardiness", "Tardiness"),
+                            ("uniform", "Uniform Violation"),
+                            ("disrespect", "Disrespect"),
+                            ("dishonesty", "Dishonesty"),
+                            ("other", "Other"),
+                        ],
+                        max_length=20,
+                    ),
+                ),
+                ("reason", models.TextField()),
+                ("count", models.PositiveIntegerField(default=1)),
+                ("date", models.DateField()),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
             ],
             options={
-                'db_table': 'demerit_records',
-                'ordering': ['-date'],
+                "db_table": "demerit_records",
+                "ordering": ["-date"],
             },
         ),
         migrations.CreateModel(
-            name='MeritRecord',
+            name="MeritRecord",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('category', models.CharField(choices=[('academic', 'Academic'), ('behaviour', 'Behaviour'), ('sports', 'Sports'), ('arts', 'Arts'), ('community', 'Community Service'), ('leadership', 'Leadership'), ('other', 'Other')], max_length=20)),
-                ('reason', models.TextField()),
-                ('count', models.PositiveIntegerField(default=1)),
-                ('date', models.DateField()),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
+                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                (
+                    "category",
+                    models.CharField(
+                        choices=[
+                            ("academic", "Academic"),
+                            ("behaviour", "Behaviour"),
+                            ("sports", "Sports"),
+                            ("arts", "Arts"),
+                            ("community", "Community Service"),
+                            ("leadership", "Leadership"),
+                            ("other", "Other"),
+                        ],
+                        max_length=20,
+                    ),
+                ),
+                ("reason", models.TextField()),
+                ("count", models.PositiveIntegerField(default=1)),
+                ("date", models.DateField()),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
             ],
             options={
-                'db_table': 'merit_records',
-                'ordering': ['-date'],
+                "db_table": "merit_records",
+                "ordering": ["-date"],
             },
         ),
     ]

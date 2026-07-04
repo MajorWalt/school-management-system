@@ -4,20 +4,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('scheduling', '0004_enrolment_source_enrolment_source_homeroom'),
+        ("scheduling", "0004_enrolment_source_enrolment_source_homeroom"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='termconfig',
-            name='end_date',
+            model_name="termconfig",
+            name="end_date",
             field=models.DateField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='termconfig',
-            name='start_date',
+            model_name="termconfig",
+            name="start_date",
             field=models.DateField(blank=True, null=True),
         ),
     ]
