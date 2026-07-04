@@ -95,6 +95,7 @@ TEMPLATES = [
 				'django.contrib.messages.context_processors.messages',
 				'core.context_processors.tenant',
 				'branding.context_processors.branding',
+				'scheduling.context_processors.marquee_content',
 			],
 		},
 	},

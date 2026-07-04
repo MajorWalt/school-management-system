@@ -164,6 +164,19 @@
 </head>
 <body class="min-h-screen">
 
+<!-- Marquee Banner -->
+<div class="marquee-bar" style="background-color: var(--primary); color: var(--primary-text); padding: 0.75rem; overflow: hidden; font-size: 0.875rem; font-weight: 500;">
+	<div class="marquee-content" style="display: inline-block; padding-left: 100%; animation: marquee 20s linear infinite; white-space: nowrap;">
+		{{ marquee_content }}
+	</div>
+	<style>
+		@keyframes marquee {
+			0% { transform: translate(0, 0); }
+			100% { transform: translate(-100%, 0); }
+		}
+	</style>
+</div>
+
 {% load accounts_tags %}
 {% get_roles request.user request.school as user_roles %}
 
