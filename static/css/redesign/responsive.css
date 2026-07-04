@@ -1,0 +1,279 @@
+/* Responsive layout layer.
+   Loaded after index.css to avoid touching the main redesign file.
+*/
+
+/* Desktop defaults */
+.app-sidebar-overlay,
+.app-mobile-menu-button,
+.app-sidebar-close {
+	display: none;
+}
+
+/* Tablet and mobile layout */
+@media (max-width: 1023px) {
+	body.sidebar-lock {
+		overflow: hidden;
+	}
+
+	.app-layout {
+		display: block;
+		min-height: 100vh;
+		height: auto;
+		overflow: visible;
+		background: var(--app-bg);
+	}
+
+	.app-sidebar {
+		position: fixed;
+		top: 0;
+		left: 0;
+		bottom: 0;
+		z-index: 60;
+		width: min(84vw, 300px);
+		max-width: 300px;
+		height: 100dvh;
+		transform: translateX(-105%);
+		transition: transform 0.22s ease;
+		box-shadow: 18px 0 40px rgba(15, 23, 42, 0.22);
+	}
+
+	body.sidebar-open .app-sidebar {
+		transform: translateX(0);
+	}
+
+	.app-sidebar-overlay {
+		display: block;
+		position: fixed;
+		inset: 0;
+		z-index: 50;
+		background: rgba(15, 23, 42, 0.48);
+		opacity: 0;
+		visibility: hidden;
+		pointer-events: none;
+		transition: opacity 0.2s ease, visibility 0.2s ease;
+	}
+
+	body.sidebar-open .app-sidebar-overlay {
+		opacity: 1;
+		visibility: visible;
+		pointer-events: auto;
+	}
+
+	.app-sidebar-brand {
+		justify-content: space-between;
+		gap: 0.75rem;
+	}
+
+	.app-sidebar-brand > a {
+		min-width: 0;
+		flex: 1;
+	}
+
+	.app-sidebar-close {
+		width: 34px;
+		height: 34px;
+		border-radius: 0.6rem;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		color: var(--primary-text);
+		background: var(--sidebar-hover-bg);
+		flex-shrink: 0;
+	}
+
+	.app-sidebar-close svg {
+		width: 1.1rem;
+		height: 1.1rem;
+	}
+
+	.app-content-shell {
+		width: 100%;
+		min-height: 100vh;
+		overflow: visible;
+	}
+
+	.app-header {
+		position: sticky;
+		top: 0;
+		z-index: 40;
+		min-height: 58px;
+		height: auto;
+		padding: 0.75rem 1rem;
+		gap: 0.75rem;
+	}
+
+	.app-mobile-menu-button {
+		width: 38px;
+		height: 38px;
+		border-radius: 0.7rem;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		color: var(--text-main);
+		background: var(--surface-soft);
+		border: 1px solid var(--border-soft);
+		flex-shrink: 0;
+	}
+
+	.app-mobile-menu-button svg {
+		width: 1.25rem;
+		height: 1.25rem;
+	}
+
+	.app-breadcrumb {
+		flex: 1;
+		min-width: 0;
+		font-size: 0.78rem;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	.app-header-actions {
+		min-width: 0;
+		gap: 0.4rem;
+	}
+
+	.app-year-pill {
+		max-width: 38vw;
+		overflow: hidden;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+	}
+
+	.app-main-content {
+		min-height: calc(100vh - 96px);
+		overflow: visible;
+		padding: 1rem;
+	}
+
+	.app-footer {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 0.25rem;
+		padding: 0.75rem 1rem;
+	}
+}
+
+/* Tablet cards and grids */
+@media (max-width: 1023px) {
+	.dashboard-header-row,
+	.dashboard-hero-row {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+
+	.dashboard-header-right,
+	.dashboard-actions {
+		width: 100%;
+		justify-content: flex-start;
+	}
+
+	.dashboard-section-grid,
+	.dashboard-section-grid-modern {
+		grid-template-columns: 1fr !important;
+	}
+
+	.dashboard-kpi-grid,
+	.dashboard-kpi-grid-primary,
+	.dashboard-kpi-grid-secondary,
+	.dashboard-kpi-secondary-grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.dashboard-panel,
+	.app-card,
+	.attendance-overview-panel,
+	.attendance-summary-panel,
+	.attendance-breakdown-panel,
+	.teacher-panel {
+		max-width: 100%;
+		overflow-x: auto;
+	}
+}
+
+/* Mobile cards and grids */
+@media (max-width: 640px) {
+	.app-main-content {
+		padding: 0.85rem;
+	}
+
+	.app-header {
+		padding: 0.65rem 0.85rem;
+	}
+
+	.app-header-actions {
+		display: none;
+	}
+
+	.dashboard-hero-title {
+		font-size: 1.8rem;
+	}
+
+	.dashboard-kpi-grid,
+	.dashboard-kpi-grid-primary,
+	.dashboard-kpi-grid-secondary,
+	.dashboard-kpi-secondary-grid,
+	.dashboard-quick-grid,
+	.student-conduct-grid {
+		grid-template-columns: 1fr !important;
+	}
+
+	.dashboard-kpi-card,
+	.dashboard-kpi-card-wide {
+		min-height: auto;
+	}
+
+	.dashboard-kpi-card-wide {
+		align-items: flex-start !important;
+		padding: 1rem;
+	}
+
+	.dashboard-panel-header {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+
+	.dashboard-action,
+	.attendance-primary-action,
+	.attendance-secondary-action,
+	.table-action-link {
+		width: 100%;
+	}
+
+	.attendance-table-actions,
+	.attendance-report-filter-actions,
+	.attendance-form-actions,
+	.attendance-mark-actions {
+		flex-direction: column;
+		align-items: stretch;
+		width: 100%;
+	}
+
+	.app-table,
+	.teacher-table,
+	.attendance-overview-table,
+	.attendance-summary-table,
+	.attendance-breakdown-table {
+		min-width: 640px;
+	}
+}
+
+/* Very small screens */
+@media (max-width: 420px) {
+	.app-sidebar {
+		width: 88vw;
+	}
+
+	.app-main-content {
+		padding: 0.75rem;
+	}
+
+	.dashboard-hero-title {
+		font-size: 1.6rem;
+	}
+
+	.dashboard-kpi-value {
+		font-size: 1.75rem;
+	}
+}

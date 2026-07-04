@@ -3,17 +3,36 @@
 {% block page_title %}Dashboard{% endblock %}
 
 {% block content %}
-<div class="mb-6">
-	<h1 class="text-2xl font-bold text-gray-800">
-		Welcome, {{ staff_profile.get_full_name|default:request.user.get_full_name }}
-	</h1>
-	<p class="text-sm text-gray-500">{{ today|date:"l, d F Y" }}</p>
+<div class="dashboard-header-row dashboard-hero-row">
+	<div>
+		<h1 class="dashboard-hero-title">
+			Good morning, {{ staff_profile.first_name|default:request.user.first_name|default:"Teacher" }}
+		</h1>
+
+		<p class="dashboard-date dashboard-hero-subtitle">
+			{{ today|date:"l, d F Y" }}
+			<span class="mx-1 text-slate-300">·</span>
+			<span class="text-slate-500">Teacher Portal</span>
+		</p>
+	</div>
+
+	<div class="dashboard-system-status">
+		<span class="dashboard-status-icon">
+			<svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+				<path stroke-linecap="round" stroke-linejoin="round" d="M3 12h4l3 8 4-16 3 8h4" />
+			</svg>
+		</span>
+		<span>Teaching dashboard active</span>
+	</div>
 </div>
 
 {% if homeroom_stats %}
-<div class="bg-white rounded-xl shadow overflow-hidden mb-6">
-	<div class="px-5 py-4 border-b bg-gray-50">
-		<h2 class="font-semibold text-gray-700">My Homerooms — Today</h2>
+<div class="dashboard-panel teacher-panel mb-6">
+	<div class="dashboard-panel-header">
+		<div>
+			<h2 class="dashboard-panel-title">My Homerooms — Today</h2>
+			<p class="dashboard-panel-subtitle">Attendance registers assigned to you</p>
+		</div>
 	</div>
 	<table class="min-w-full text-sm">
 		<thead class="text-gray-400 uppercase text-xs bg-gray-50">
@@ -72,11 +91,14 @@
 {% endif %}
 
 {% if sections %}
-<div class="bg-white rounded-xl shadow overflow-hidden mb-6">
-	<div class="px-5 py-4 border-b bg-gray-50">
-		<h2 class="font-semibold text-gray-700">My Sections</h2>
+<div class="dashboard-panel teacher-panel mb-6">
+	<div class="dashboard-panel-header">
+		<div>
+			<h2 class="dashboard-panel-title">My Sections</h2>
+			<p class="dashboard-panel-subtitle">Courses you are teaching</p>
+		</div>
 	</div>
-	<table class="min-w-full text-sm">
+	<table class="app-table teacher-table">
 		<thead class="text-gray-400 uppercase text-xs bg-gray-50">
 			<tr>
 				<th class="px-4 py-3 text-left">Course</th>
@@ -94,8 +116,9 @@
 				<td class="px-4 py-3 text-gray-600">Term {{ section.term_number }}</td>
 				<td class="px-4 py-3 text-gray-600">{{ section.academic_year.name }}</td>
 				<td class="px-4 py-3">
-					<a href="{% url 'grades:section_table' section.pk %}"
-					class="text-blue-600 hover:underline text-xs">Grades</a>
+					<a href="{% url 'grades:section_table' section.pk %}" class="table-action-link">
+						Grades
+					</a>
 				</td>
 			</tr>
 			{% endfor %}

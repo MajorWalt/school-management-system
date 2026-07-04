@@ -4,86 +4,115 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Login — {{ school.name|default:"School Portal" }}</title>
+    {% load static %}
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         :root {
             --primary: {{ primary_color|default:"#1e40af" }};
+            --accent: {{ accent_color|default:"#f59e0b" }};
             --primary-text: {{ primary_text_color|default:"#ffffff" }};
+
+            --app-bg: #eef2f7;
+            --surface: #ffffff;
+            --surface-soft: #f1f5f9;
+            --border-soft: #e2e8f0;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --shadow-card: 0 1px 2px rgba(15, 23, 42, 0.04), 0 18px 40px rgba(15, 23, 42, 0.10);
         }
-        .bg-primary { background-color: var(--primary); }
-        .btn-primary { background-color: var(--primary); color: var(--primary-text); }
-        .btn-primary:hover { opacity: 0.9; }
     </style>
+    <link rel="stylesheet" href="{% static 'css/redesign/index.css' %}?v=login-logo-position-1">
 </head>
-<body class="min-h-screen bg-gray-100 flex items-center justify-center px-4">
 
-    <div class="w-full max-w-md">
-
-        <!-- School branding -->
-        <div class="text-center mb-8">
-            {% if school_logo %}
-                <img src="{{ school_logo.url }}" alt="Logo" class="h-16 w-auto mx-auto mb-3 rounded" />
-            {% else %}
-                <div class="h-16 w-16 rounded-full bg-primary mx-auto mb-3 flex items-center justify-center">
-                    <span class="text-white text-2xl font-bold">
-                        {{ school.name|default:"S"|first }}
-                    </span>
+<body class="login-page">
+    <div class="login-shell">
+        <section class="login-brand-panel">
+            <div class="login-brand-content">
+                <div class="login-logo-wrap">
+                    {% if school_logo %}
+                        <img src="{{ school_logo.url }}" alt="{{ school.name }}" class="login-logo-img" />
+                    {% else %}
+                        <div class="login-logo-fallback">
+                            {{ school.name|default:"S"|first }}
+                        </div>
+                    {% endif %}
                 </div>
-            {% endif %}
-            <h1 class="text-2xl font-bold text-gray-800">
-                {{ school.name|default:"School Portal" }}
-            </h1>
-            {% if school_tagline %}
-                <p class="text-sm text-gray-500 mt-1">{{ school_tagline }}</p>
-            {% endif %}
-        </div>
 
-        <!-- Login card -->
-        <div class="bg-white rounded-2xl shadow-lg p-8">
-            <h2 class="text-lg font-semibold text-gray-700 mb-6 text-center">Sign in to your account</h2>
+                <p class="login-eyebrow">School Management System</p>
 
-            {% if messages %}
-                {% for message in messages %}
-                <div class="mb-4 px-4 py-3 rounded-lg text-sm
-                    {% if message.tags == 'error' %}bg-red-50 text-red-700 border border-red-200
-                    {% else %}bg-blue-50 text-blue-700 border border-blue-200{% endif %}">
-                    {{ message }}
-                </div>
-                {% endfor %}
-            {% endif %}
+                <h1 class="login-school-name">
+                    {{ school.name|default:"School Portal" }}
+                </h1>
 
-            <form method="post" novalidate>
-                {% csrf_token %}
-                <div class="space-y-4">
+                {% if school_tagline %}
+                    <p class="login-school-tagline">{{ school_tagline }}</p>
+                {% endif %}
+
+                <div class="login-feature-list">
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 mb-1">Email address</label>
+                        <span></span>
+                        <p>Attendance, grades, conduct and reports in one place.</p>
+                    </div>
+                    <div>
+                        <span></span>
+                        <p>Secure access for administrators, teachers and students.</p>
+                    </div>
+                    <div>
+                        <span></span>
+                        <p>Built for modern school operations.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="login-form-panel">
+            <div class="login-card">
+                <div class="login-card-header">
+                    <p class="login-card-kicker">Welcome back</p>
+                    <h2>Sign in to your account</h2>
+                    <p>Use your school credentials to continue.</p>
+                </div>
+
+                {% if messages %}
+                    {% for message in messages %}
+                    <div class="login-message
+                        {% if message.tags == 'error' %}login-message-error
+                        {% else %}login-message-info{% endif %}">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                {% endif %}
+
+                <form method="post" novalidate class="login-form">
+                    {% csrf_token %}
+
+                    <div class="login-field">
+                        <label>Email address</label>
                         <input type="email" name="email" required autofocus
                                value="{{ request.POST.email }}"
-                               class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm
-                                      focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                               placeholder="name@school.edu" />
                     </div>
-                    <div>
-                        <label class="block text-xs font-medium text-gray-600 mb-1">Password</label>
+
+                    <div class="login-field">
+                        <label>Password</label>
                         <input type="password" name="password" required
-                               class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm
-                                      focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                               placeholder="Enter your password" />
                     </div>
-                </div>
 
-                <button type="submit"
-                        class="btn-primary w-full mt-6 py-2.5 rounded-lg text-sm font-semibold
-                               hover:opacity-90 transition">
-                    Sign In
-                </button>
-            </form>
-        </div>
+                    <button type="submit" class="login-submit">
+                        Sign In
+                    </button>
+                </form>
 
-        <p class="text-center text-xs text-gray-400 mt-6">
-            Powered by Edara
-        </p>
+                <p class="login-powered">
+                    Powered by <strong>Edara</strong>
+                </p>
+            </div>
+        </section>
     </div>
 
     {% load django_browser_reload %}
     {% django_browser_reload_script %}
+
 </body>
 </html>
