@@ -1,0 +1,39 @@
+[tool.ruff]
+exclude = [
+	".git",
+	"__pycache__",
+	"rcms/settings.py",
+	"rcms/accounting/migrations/",
+	"rcms/core/migrations/",
+	"rcms/facilities/migrations/",
+	"rcms/health/migrations/",
+	"rcms/hr/migrations/",
+	"rcms/residents/migrations/",
+	"scripts/",
+	"tests/"
+]
+lint.ignore = [
+	"C901",
+	"E402",
+	"W191" # prefer tabs
+]
+line-length = 160
+lint.select = [
+	"A", # flake8-builtins
+	"B", # flake8-bugbear
+	"C9", # mccabe
+	"DJ", # flake8-django
+	"E", # pycodestyle
+	"F", # Pyflakes
+	"INP", # flake8-no-pep420
+	"RET", # flake8-return
+	"S", # flake8-bandit
+	#"SIM", # flake8-simplify
+	"T20", # flake8-print
+	#"UP", # pyupgrade (Modernization)
+	"W" # pycodestyle
+]
+
+
+[tool.ruff.lint.mccabe]
+max-complexity = 12

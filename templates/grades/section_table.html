@@ -124,7 +124,7 @@
 						<input type="number"
 							   name="grade_{{ cell.ev.pk }}_{{ row.student.pk }}"
 							   value="{% if cell.entry and not cell.absent %}{{ cell.entry.marks_earned }}{% endif %}"
-							   min="0" max="{{ cell.ev.max_marks }}" step="0.5"
+							   min="0" max="{{ cell.ev.max_marks }}" step="0.01"
 							   placeholder="—"
 							   {% if cell.absent %}disabled{% endif %}
 							   class="w-20 text-center rounded border px-1.5 py-1 text-sm
@@ -170,6 +170,25 @@
 					</span>
 					{% else %}
 					<span class="text-gray-300 text-xs">—</span>
+					{% endif %}
+				</td>
+			</tr>
+
+			<!-- Comment row -->
+			<tr class="{% if forloop.counter|divisibleby:2 %}bg-slate-50{% else %}bg-white{% endif %}">
+				<td colspan="{{ evaluations|length|add:2 }}" class="px-4 py-2 border-t-0">
+					{% if can_edit %}
+					<div class="flex items-start gap-2">
+						<label class="text-xs text-gray-400 uppercase tracking-wide mt-1.5 flex-shrink-0">Comment</label>
+						<textarea name="comment_{{ row.student.pk }}"
+								  rows="1"
+								  placeholder="Optional comment for this student — shown on the report card"
+								  class="flex-1 text-sm rounded border border-gray-200 px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-y">{{ row.comment }}</textarea>
+					</div>
+					{% elif row.comment %}
+					<p class="text-xs text-gray-500 italic">
+						<span class="uppercase tracking-wide text-gray-400 not-italic">Comment:</span> {{ row.comment }}
+					</p>
 					{% endif %}
 				</td>
 			</tr>

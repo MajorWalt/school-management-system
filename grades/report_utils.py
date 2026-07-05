@@ -2,14 +2,13 @@ import calendar as pycal
 import datetime
 from django.db.models import Sum
 
-from .models import Evaluation, GradeEntry
+from .models import Evaluation, GradeComment, GradeEntry
 from .utils import compute_student_average
 
 
 def _fmt(v):
     if v is None:
         return ""
-        pass
     return f"{v:.1f}"
     pass
 
@@ -18,7 +17,6 @@ def _mean(values):
     vals = [v for v in values if v is not None]
     if not vals:
         return None
-        pass
     return round(sum(vals) / len(vals), 1)
     pass
 
@@ -28,7 +26,6 @@ def _section_grades(school, student, section):
     evals = list(Evaluation.objects.filter(school=school, section=section))
     if not evals:
         return None, None
-        pass
 
     entries = GradeEntry.objects.filter(school=school, student=student, evaluation__in=evals)
     gmap = {(e.evaluation_id, e.student_id): e for e in entries}
@@ -62,7 +59,6 @@ def build_report_card(school, student, academic_year, up_to_term):
         ).select_related("section", "section__course", "section__teacher")
     )
 
-    # Fall back to terms present in enrolments if TermConfig rows are missing.
     if not terms:
         present = sorted({e.section.term_number for e in enrolments})
         terms = [type("T", (), {"term_number": tn, "has_final_exam": False, "name": f"Term {tn}"})() for tn in present]
@@ -70,7 +66,6 @@ def build_report_card(school, student, academic_year, up_to_term):
 
     exam_terms = {t.term_number for t in terms if getattr(t, "has_final_exam", False)}
 
-    # Column layout: Term N, then Exam N only for terms with a final exam.
     columns = []
     for t in terms:
         columns.append({"label": f"Term {t.term_number}", "kind": "term", "term": t.term_number})
@@ -79,7 +74,6 @@ def build_report_card(school, student, academic_year, up_to_term):
             pass
         pass
 
-    # Group sections by course.
     by_course = {}
     teachers = []
     for enr in enrolments:
@@ -92,7 +86,7 @@ def build_report_card(school, student, academic_year, up_to_term):
         pass
 
     rows = []
-    raw_rows = []  # keep numeric for column means
+    raw_rows = []
     for rec in sorted(by_course.values(), key=lambda r: r["course"].name.lower()):
         cells = []
         teacher_for_course = None
@@ -111,6 +105,22 @@ def build_report_card(school, student, academic_year, up_to_term):
 
         avg = _mean(cells)
         raw_rows.append(cells)
+
+        # Pull the teacher comment from the section matching the reported
+        # term; fall back to the latest section on file for this course.
+        current_section = rec["sections"].get(up_to_term)
+        if current_section is None and rec["sections"]:
+            current_section = max(rec["sections"].values(), key=lambda s: s.term_number)
+            pass
+
+        teacher_note = ""
+        if current_section is not None:
+            comment_obj = GradeComment.objects.filter(school=school, section=current_section, student=student).first()
+            if comment_obj and comment_obj.comment:
+                teacher_note = comment_obj.comment
+                pass
+            pass
+
         rows.append(
             {
                 "course": rec["course"],
@@ -118,6 +128,7 @@ def build_report_card(school, student, academic_year, up_to_term):
                 "cells_display": [_fmt(v) for v in cells],
                 "avg": avg,
                 "avg_display": _fmt(avg),
+                "teacher_note": teacher_note,
             }
         )
         pass
@@ -149,7 +160,6 @@ def attendance_by_month(school, student, academic_year, as_of=None):
     end = getattr(academic_year, "end_date", None)
     if not start or not end:
         return []
-        pass
 
     if as_of is None:
         as_of = datetime.date.today()
@@ -230,7 +240,7 @@ def conduct_by_term(school, student, terms):
                 "term": t.term_number,
                 "merits": mer,
                 "demerits": dem,
-                "detentions": "0",  # behaviour app not built yet
+                "detentions": "0",
                 "suspensions": "0",
             }
         )
@@ -243,7 +253,6 @@ def conduct_by_term(school, student, terms):
 def honours_label(overall, rows):
     if overall is None:
         return ""
-        pass
     graded = [r["avg"] for r in rows if r["avg"] is not None]
     passed_all = all(a >= 55 for a in graded) if graded else False
     if overall >= 85 and passed_all:

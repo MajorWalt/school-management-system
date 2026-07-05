@@ -30,6 +30,6 @@ class GradeWindowAdmin(admin.ModelAdmin):
 
 @admin.register(ReportCard)
 class ReportCardAdmin(admin.ModelAdmin):
-    list_display = ["student", "academic_year", "term_number", "gpa", "status"]
-    list_filter = ["status", "academic_year", "school"]
+    list_display = ["student", "academic_year", "term_number", "gpa"]
+    list_filter = ["academic_year", "school"]
     search_fields = ["student__first_name", "student__last_name"]

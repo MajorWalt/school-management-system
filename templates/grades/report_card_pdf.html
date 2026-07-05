@@ -20,6 +20,12 @@
 	.summary th, .summary td { text-align: center; }
 	.note-row td { text-align: left; font-size: 10.5px; color: #444; font-style: italic; background: #fafafa; border-top: none; padding: 3px 8px 6px 8px; white-space: normal; }
 	.box { border: 1px solid #999; padding: 8px; margin-top: 10px; font-size: 12px; }
+	.tickbox { display: inline-block; width: 11px; height: 11px; border: 1px solid #333; vertical-align: middle; margin: 0 4px; }
+	.sign-area { margin-top: 28px; }
+	.sign-row { display: table; width: 100%; margin-top: 6px; }
+	.sign-col { display: table-cell; width: 50%; vertical-align: bottom; }
+	.sign-line { border-top: 1px solid #333; margin-top: 34px; padding-top: 3px; font-size: 10.5px; color: #444; }
+	.stamp-box { border: 1px dashed #999; height: 70px; width: 140px; display: table-cell; text-align: center; vertical-align: middle; font-size: 9.5px; color: #999; }
 </style>
 </head>
 <body>
@@ -108,8 +114,27 @@
 	</div>
 
 	<div class="box">
+		{% if term_number == 3 %}
 		<b>Student Placement</b> — {{ card.student.get_full_name }}<br/>
-		{ } Will be promoted &nbsp;&nbsp; { } On probation &nbsp;&nbsp; { } Will repeat
+		<span class="tickbox"></span> Will be promoted &nbsp;&nbsp; <span class="tickbox"></span> On probation &nbsp;&nbsp; <span class="tickbox"></span> Will repeat
+		{% else %}
+		<b>Predicted to</b> — {{ card.student.get_full_name }}<br/>
+		<span class="tickbox"></span> Be promoted &nbsp;&nbsp;&nbsp;&nbsp; <span class="tickbox"></span> Repeat
+		{% endif %}
+	</div>
+
+	<!-- Stamp & Signature -->
+	<div class="sign-area">
+		<div class="sign-row">
+			<div class="sign-col">
+				<div class="sign-line">Principal's Signature</div>
+			</div>
+			<div class="sign-col right" style="padding-left: 30px;">
+				<div style="display:table; width:100%;">
+					<div class="stamp-box">School Stamp</div>
+				</div>
+			</div>
+		</div>
 	</div>
 
 	<div class="muted" style="margin-top:8px;">

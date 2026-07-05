@@ -41,7 +41,6 @@
 				<th class="px-4 py-3 text-left">Year</th>
 				<th class="px-4 py-3 text-left">Term</th>
 				<th class="px-4 py-3 text-right">GPA</th>
-				<th class="px-4 py-3 text-left">Status</th>
 				<th class="px-4 py-3 text-left">Actions</th>
 			</tr>
 		</thead>
@@ -57,13 +56,6 @@
 					{% else %}text-red-600{% endif %}">
 					{{ rc.gpa|default:"—" }}%
 				</td>
-				<td class="px-4 py-3">
-					{% if rc.status == "published" %}
-						<span class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full">Published</span>
-					{% else %}
-						<span class="bg-yellow-100 text-yellow-700 text-xs px-2 py-1 rounded-full">Draft</span>
-					{% endif %}
-				</td>
 				<td class="px-4 py-3 flex gap-2">
 					{% if rc.pdf_file %}
 					<a href="{{ rc.pdf_file.url }}" target="_blank"
@@ -71,18 +63,11 @@
 					{% endif %}
 					<a href="{% url 'grades:report_card_detail' rc.pk %}"
 					   class="text-blue-600 hover:underline text-xs">View</a>
-					{% if rc.status == "draft" %}
-					<a href="{% url 'grades:report_card_publish' rc.pk %}"
-					   class="text-green-600 hover:underline text-xs"
-					   onclick="return confirm('Publish this report card?')">
-						Publish
-					</a>
-					{% endif %}
 				</td>
 			</tr>
 			{% empty %}
 			<tr>
-				<td colspan="6" class="px-4 py-8 text-center text-gray-400">
+				<td colspan="5" class="px-4 py-8 text-center text-gray-400">
 					No report cards yet. Generate them from the Grades section.
 				</td>
 			</tr>

@@ -22,6 +22,7 @@ class GradeWindow(models.Model):
     def __str__(self):
         state = "Open" if self.is_open else "Closed"
         return f"{self.form} — {self.academic_year.name} Term {self.term_number} — {state}"
+        pass
 
 
 class Evaluation(models.Model):
@@ -63,10 +64,12 @@ class Evaluation(models.Model):
 
     def __str__(self):
         return f"{self.section} — {self.title}"
+        pass
 
     def clean(self):
         if self.max_marks <= 0:
             raise ValidationError("Max marks must be greater than 0.")
+        pass
 
 
 class GradeEntry(models.Model):
@@ -87,6 +90,7 @@ class GradeEntry(models.Model):
 
     def __str__(self):
         return f"{self.student} — {self.evaluation.title} — {self.marks_earned}"
+        pass
 
     @property
     def percentage(self):
@@ -95,20 +99,38 @@ class GradeEntry(models.Model):
         if self.evaluation.max_marks > 0:
             return round(float(self.marks_earned) / float(self.evaluation.max_marks) * 100, 1)
         return None
+        pass
+
+
+class GradeComment(models.Model):
+    """
+    Optional teacher comment for one student in one section (course + term).
+    Entered alongside grades on the section grade table. Not mandatory.
+    Shown under the matching subject on the report card.
+    """
+
+    school = models.ForeignKey(School, on_delete=models.CASCADE, related_name="grade_comments")
+    section = models.ForeignKey("scheduling.Section", on_delete=models.CASCADE, related_name="grade_comments")
+    student = models.ForeignKey("students.Student", on_delete=models.CASCADE, related_name="grade_comments")
+    comment = models.TextField(blank=True)
+    entered_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="grade_comments_entered")
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "grade_comments"
+        unique_together = ("section", "student")
+
+    def __str__(self):
+        return f"{self.student} — {self.section} — comment"
+        pass
 
 
 class ReportCard(models.Model):
-    STATUS_CHOICES = [
-        ("draft", "Draft"),
-        ("published", "Published"),
-    ]
-
     school = models.ForeignKey(School, on_delete=models.CASCADE, related_name="report_cards")
     student = models.ForeignKey("students.Student", on_delete=models.CASCADE, related_name="report_cards")
     academic_year = models.ForeignKey("scheduling.AcademicYear", on_delete=models.CASCADE, related_name="report_cards")
     term_number = models.PositiveIntegerField()
     gpa = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="draft")
     comment = models.TextField(blank=True)
     generated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="report_cards_generated")
     generated_at = models.DateTimeField(auto_now_add=True)
@@ -121,6 +143,7 @@ class ReportCard(models.Model):
 
     def __str__(self):
         return f"{self.student} — {self.academic_year.name} Term {self.term_number}"
+        pass
 
 
 class GradeVisibilityRule(models.Model):
@@ -145,3 +168,4 @@ class GradeVisibilityRule(models.Model):
         target = self.student or "School-wide"
         state = "Visible" if self.is_visible else "Hidden"
         return f"{target} — {state}"
+        pass

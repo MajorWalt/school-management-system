@@ -10,7 +10,7 @@ from accounts.models import UserRole
 from scheduling.models import AcademicYear, Enrolment, Section
 from students.models import Student
 from .forms import BulkGradeUploadForm, EvaluationForm, GradeVisibilityForm
-from .models import Evaluation, GradeEntry, GradeWindow, ReportCard
+from .models import Evaluation, GradeComment, GradeEntry, GradeWindow, ReportCard
 from .utils import compute_student_average, grade_window_is_open
 
 
@@ -74,8 +74,6 @@ def grades_home(request):
 
 
 # ── Section Grade Table ───────────────────────────────────────────────────────
-
-
 @login_required
 @tenant_required
 def section_grade_table(request, section_pk):
@@ -118,6 +116,9 @@ def section_grade_table(request, section_pk):
 
     grade_map = {(e.evaluation_id, e.student_id): e for e in entries}
 
+    comments = GradeComment.objects.filter(school=school, section=active_section)
+    comment_map = {c.student_id: c.comment for c in comments}
+
     rows = []
     for student in students:
         cells = []
@@ -137,6 +138,7 @@ def section_grade_table(request, section_pk):
                 "student": student,
                 "cells": cells,
                 "avg": avg,
+                "comment": comment_map.get(student.pk, ""),
             }
         )
 
@@ -325,6 +327,18 @@ def grades_save(request, section_pk):
                 },
             )
             saved += 1
+
+        comment_key = f"comment_{student.pk}"
+        comment_text = request.POST.get(comment_key, "").strip()
+        GradeComment.objects.update_or_create(
+            section=section,
+            student=student,
+            defaults={
+                "school": school,
+                "comment": comment_text,
+                "entered_by": request.user,
+            },
+        )
 
     log_activity(request, "grades_saved", f"Saved grades for {section} ({saved} entries).")
     messages.success(request, "Grades saved.")
@@ -793,18 +807,6 @@ def report_card_list(request):
             "selected_term": term,
         },
     )
-    pass
-
-
-@login_required
-@tenant_required
-def report_card_publish(request, pk):
-    rc = get_object_or_404(ReportCard, pk=pk, school=request.school)
-    rc.status = "published"
-    rc.save()
-    log_activity(request, "report_card_published", f"Published report card for {rc.student.get_full_name()} — {rc.academic_year}, Term {rc.term_number}.")
-    messages.success(request, f"Report card published for {rc.student.get_full_name()}.")
-    return redirect("grades:report_card_list")
     pass
 
 

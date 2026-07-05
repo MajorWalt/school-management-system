@@ -19,6 +19,5 @@ urlpatterns = [
     path("visibility/student/<int:student_pk>/", views.visibility_set_student, name="visibility_student"),
     path("report-cards/", views.report_card_list, name="report_card_list"),
     path("report-cards/<int:pk>/", views.report_card_detail, name="report_card_detail"),
-    path("report-cards/<int:pk>/publish/", views.report_card_publish, name="report_card_publish"),
     path("report-cards/generate/", generate_report_cards, name="report_card_generate_pdf"),
 ]
