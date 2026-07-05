@@ -4,20 +4,22 @@
 <meta charset="utf-8" />
 <style>
 	@page { size: letter portrait; margin: 1.2cm; }
-	body { font-family: Helvetica, Arial, sans-serif; font-size: 9px; color: #111; }
+	body { font-family: Helvetica, Arial, sans-serif; font-size: 12px; color: #111; }
 	.card { page-break-after: always; }
 	.center { text-align: center; }
 	.right { text-align: right; }
-	.school { font-size: 15px; font-weight: bold; }
-	.muted { color: #555; }
-	h2 { font-size: 11px; margin: 8px 0 3px 0; }
-	table { width: 100%; border-collapse: collapse; margin-top: 4px; }
-	th, td { border: 1px solid #999; padding: 2px 4px; }
-	th { background: #eee; text-align: center; }
-	td.subj { text-align: left; }
-	td.num, th.num { text-align: right; }
+	.logo { max-height: 70px; margin-bottom: 6px; }
+	.school { font-size: 19px; font-weight: bold; }
+	.muted { color: #555; font-size: 11px; }
+	h2 { font-size: 14px; margin: 10px 0 4px 0; }
+	table { width: 100%; border-collapse: collapse; margin-top: 6px; }
+	th, td { border: 1px solid #999; padding: 5px 6px; font-size: 12px; }
+	th { background: #eee; text-align: center; white-space: nowrap; }
+	td.subj, th.subj { text-align: left; white-space: normal; }
+	td.num, th.num { text-align: right; white-space: nowrap; }
 	.summary th, .summary td { text-align: center; }
-	.box { border: 1px solid #999; padding: 6px; margin-top: 8px; }
+	.note-row td { text-align: left; font-size: 10.5px; color: #444; font-style: italic; background: #fafafa; border-top: none; padding: 3px 8px 6px 8px; white-space: normal; }
+	.box { border: 1px solid #999; padding: 8px; margin-top: 10px; font-size: 12px; }
 </style>
 </head>
 <body>
@@ -25,23 +27,17 @@
 <div class="card">
 
 	<div class="center">
+		{% if school_logo %}<img src="{{ school_logo.url }}" class="logo" />{% endif %}
 		<div class="school">{{ school.name }}</div>
-		<div class="muted">{{ academic_year.name }} &bull; Form Report to Parents / Guardians &bull; {{ today }}</div>
-		<div style="margin-top:4px;font-weight:bold;">{{ card.student.get_full_name }} &nbsp; ({{ card.student.homeroom }})</div>
+		<div class="muted">{{ academic_year.name }} &bull; Report Card &bull; {{ today }}</div>
+		<div style="margin-top:5px;font-weight:bold;font-size:13px;">{{ card.student.get_full_name }} &nbsp; ({{ card.student.homeroom }})</div>
 	</div>
-
-	{% if card.teachers %}
-	<div class="muted" style="margin-top:4px;">
-		Teacher(s):
-		{% for t in card.teachers %}{{ t.get_full_name }}{% if not forloop.last %}, {% endif %}{% endfor %}
-	</div>
-	{% endif %}
 
 	<!-- Grades -->
 	<table>
 		<thead>
 			<tr>
-				<th class="subj" style="text-align:left;">Subject</th>
+				<th class="subj">Subject</th>
 				{% for col in card.columns %}<th class="num">{{ col.label }}</th>{% endfor %}
 				<th class="num">Avg</th>
 			</tr>
@@ -55,6 +51,11 @@
 				{% for cell in row.cells_display %}<td class="num">{{ cell }}</td>{% endfor %}
 				<td class="num"><b>{{ row.avg_display }}</b></td>
 			</tr>
+			{% if row.teacher_note %}
+			<tr class="note-row">
+				<td colspan="{{ card.columns|length|add:2 }}">Note: {{ row.teacher_note }}</td>
+			</tr>
+			{% endif %}
 			{% endfor %}
 			<tr>
 				<td class="subj"><b>Average</b></td>
@@ -111,7 +112,7 @@
 		{ } Will be promoted &nbsp;&nbsp; { } On probation &nbsp;&nbsp; { } Will repeat
 	</div>
 
-	<div class="muted" style="margin-top:6px;">
+	<div class="muted" style="margin-top:8px;">
 		Honours: 1st Class &ge; 85.0% &amp; pass all; 2nd Class &ge; 75.0% &amp; pass all. Pass mark 55.0%.
 	</div>
 

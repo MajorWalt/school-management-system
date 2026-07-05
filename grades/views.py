@@ -16,6 +16,7 @@ from .utils import compute_student_average, grade_window_is_open
 
 def is_admin(user, school):
     return UserRole.objects.filter(user=user, school=school, role="admin").exists() or user.is_superuser
+    pass
 
 
 def get_teacher_staff(user):
@@ -23,6 +24,7 @@ def get_teacher_staff(user):
         return user.staff_profile
     except Exception:
         return None
+    pass
 
 
 # ── Grades Home ───────────────────────────────────────────────────────────────
@@ -52,7 +54,6 @@ def grades_home(request):
     if term:
         sections = sections.filter(term_number=term)
 
-    # Build window status dict for kanban cards: section_pk → bool
     window_statuses = {}
     for section in sections:
         window_statuses[section.pk] = grade_window_is_open(school, section.academic_year, section.term_number, section.form)
@@ -69,6 +70,7 @@ def grades_home(request):
             "window_statuses": window_statuses,
         },
     )
+    pass
 
 
 # ── Section Grade Table ───────────────────────────────────────────────────────
@@ -102,7 +104,6 @@ def section_grade_table(request, section_pk):
     active_section = all_sections.filter(term_number=term_filter).first() or section
 
     window_open = grade_window_is_open(school, active_section.academic_year, active_section.term_number, active_section.form)
-    # Admins can always edit; teachers need window open
     can_edit = admin or window_open
 
     evaluations = Evaluation.objects.filter(school=school, section=active_section).order_by("date", "created_at")
@@ -159,6 +160,7 @@ def section_grade_table(request, section_pk):
             "term_configs": term_configs,
         },
     )
+    pass
 
 
 # ── Create Evaluation ─────────────────────────────────────────────────────────
@@ -201,6 +203,7 @@ def evaluation_create(request, section_pk):
             "title": "Create Evaluation",
         },
     )
+    pass
 
 
 # ── Edit Evaluation ───────────────────────────────────────────────────────────
@@ -235,6 +238,7 @@ def evaluation_edit(request, pk):
             "ev": ev,
         },
     )
+    pass
 
 
 # ── Delete Evaluation ─────────────────────────────────────────────────────────
@@ -261,6 +265,7 @@ def evaluation_delete(request, pk):
         return redirect("grades:section_table", section_pk=section_pk)
 
     return render(request, "grades/evaluation_confirm_delete.html", {"ev": ev})
+    pass
 
 
 # ── Save Grades ───────────────────────────────────────────────────────────────
@@ -324,6 +329,7 @@ def grades_save(request, section_pk):
     log_activity(request, "grades_saved", f"Saved grades for {section} ({saved} entries).")
     messages.success(request, "Grades saved.")
     return redirect("grades:section_table", section_pk=section_pk)
+    pass
 
 
 # ── Bulk Grade Upload ─────────────────────────────────────────────────────────
@@ -452,6 +458,7 @@ def bulk_grade_upload(request, section_pk):
             "errors": errors,
         },
     )
+    pass
 
 
 def _generate_grade_template(section, evaluations):
@@ -546,6 +553,7 @@ def _generate_grade_template(section, evaluations):
     response = HttpResponse(buf.read(), content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
     response["Content-Disposition"] = f'attachment; filename="grades_{section.course.code or section.course.name}_term{section.term_number}.xlsx"'
     return response
+    pass
 
 
 # ── Grade Window Management ───────────────────────────────────────────────────
@@ -604,6 +612,7 @@ def grade_window_manage(request):
             "is_admin": True,
         },
     )
+    pass
 
 
 # ── Visibility ────────────────────────────────────────────────────────────────
@@ -638,7 +647,6 @@ def visibility_overview(request):
         selected_homeroom = homerooms.filter(pk=homeroom_pk).first()
         students = Student.objects.filter(school=school, homeroom_id=homeroom_pk).order_by("last_name", "first_name")
 
-    # Handle toggle actions
     if request.method == "POST":
         action = request.POST.get("action")
 
@@ -648,7 +656,6 @@ def visibility_overview(request):
             all_students = S.objects.filter(school=school)
             for student in all_students:
                 GradeVisibilityRule.objects.update_or_create(school=school, student=student, defaults={"is_visible": True, "set_by": request.user})
-            # Also set school-wide
             GradeVisibilityRule.objects.update_or_create(school=school, student=None, defaults={"is_visible": True, "set_by": request.user})
             messages.success(request, "Grades visible for all students.")
             return redirect(request.get_full_path())
@@ -671,13 +678,11 @@ def visibility_overview(request):
                 messages.success(request, "Visibility updated.")
             return redirect(request.get_full_path())
 
-    # Build visibility map for selected students
     visibility_map = {}
     if students:
         rules = GradeVisibilityRule.objects.filter(school=school, student__in=students)
         visibility_map = {r.student_id: r.is_visible for r in rules}
 
-    # School-wide default
     school_rule = GradeVisibilityRule.objects.filter(school=school, student__isnull=True).order_by("-updated_at").first()
 
     return render(
@@ -695,6 +700,7 @@ def visibility_overview(request):
             "homeroom_pk": homeroom_pk,
         },
     )
+    pass
 
 
 @login_required
@@ -726,6 +732,7 @@ def visibility_set_school(request):
             "title": "School-wide Grade Visibility",
         },
     )
+    pass
 
 
 @login_required
@@ -759,6 +766,7 @@ def visibility_set_student(request, student_pk):
             "student": student,
         },
     )
+    pass
 
 
 # ── Report Cards ──────────────────────────────────────────────────────────────
@@ -785,6 +793,7 @@ def report_card_list(request):
             "selected_term": term,
         },
     )
+    pass
 
 
 @login_required
@@ -796,6 +805,7 @@ def report_card_publish(request, pk):
     log_activity(request, "report_card_published", f"Published report card for {rc.student.get_full_name()} — {rc.academic_year}, Term {rc.term_number}.")
     messages.success(request, f"Report card published for {rc.student.get_full_name()}.")
     return redirect("grades:report_card_list")
+    pass
 
 
 @login_required
@@ -811,10 +821,31 @@ def report_card_detail(request, pk):
 
     rows = []
     for enrolment in enrolments:
-        evs = Evaluation.objects.filter(school=request.school, section=enrolment.section)
-        ents = GradeEntry.objects.filter(evaluation__section=enrolment.section, student=rc.student)
+        section = enrolment.section
+        evs = Evaluation.objects.filter(school=request.school, section=section)
+        ents = GradeEntry.objects.filter(evaluation__section=section, student=rc.student)
         gmap = {(e.evaluation_id, e.student_id): e for e in ents}
-        avg = compute_student_average(rc.student, evs, gmap)
-        rows.append({"course": enrolment.section.course, "avg": avg})
+
+        course_evs = [e for e in evs if not e.is_final_exam]
+        exam_evs = [e for e in evs if e.is_final_exam]
+
+        coursework_avg = compute_student_average(rc.student, course_evs, gmap)
+        exam_mark = compute_student_average(rc.student, exam_evs, gmap) if exam_evs else None
+        has_exam = bool(exam_evs)
+
+        parts = [v for v in (coursework_avg, exam_mark) if v is not None]
+        term_grade = round(sum(parts) / len(parts), 1) if parts else None
+
+        result = None
+        if coursework_avg is not None or exam_mark is not None:
+            result = {
+                "coursework_avg": coursework_avg if coursework_avg is not None else "—",
+                "exam_mark": exam_mark,
+                "has_exam": has_exam,
+                "term_grade": term_grade if term_grade is not None else "—",
+            }
+
+        rows.append({"course": section.course, "result": result})
 
     return render(request, "grades/report_card_detail.html", {"rc": rc, "rows": rows})
+    pass
