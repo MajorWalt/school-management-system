@@ -3,15 +3,14 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Sum
 from django.db.models.functions import TruncMonth
 from django.shortcuts import get_object_or_404, redirect, render
-from core.decorators import tenant_required
+from core.decorators import tenant_required, admin_or_teacher_required
 from core.activity import log_activity
 from students.models import Student
 from .forms import DemeritForm, MeritForm
 from .models import DemeritRecord, MeritRecord
 
 
-@login_required
-@tenant_required
+@admin_or_teacher_required
 def merit_list(request):
     merits = MeritRecord.objects.filter(school=request.school).select_related("student", "awarded_by")
     demerits = DemeritRecord.objects.filter(school=request.school).select_related("student", "awarded_by")
@@ -32,8 +31,7 @@ def merit_list(request):
     )
 
 
-@login_required
-@tenant_required
+@admin_or_teacher_required
 def merit_add(request):
     form = MeritForm(request.POST or None, school=request.school)
     if request.method == "POST" and form.is_valid():
@@ -54,8 +52,7 @@ def merit_add(request):
     )
 
 
-@login_required
-@tenant_required
+@admin_or_teacher_required
 def merit_delete(request, pk):
     record = get_object_or_404(MeritRecord, pk=pk, school=request.school)
     student_name = record.student.get_full_name()
@@ -65,8 +62,7 @@ def merit_delete(request, pk):
     return redirect("merits:list")
 
 
-@login_required
-@tenant_required
+@admin_or_teacher_required
 def demerit_add(request):
     form = DemeritForm(request.POST or None, school=request.school)
     if request.method == "POST" and form.is_valid():
@@ -87,8 +83,7 @@ def demerit_add(request):
     )
 
 
-@login_required
-@tenant_required
+@admin_or_teacher_required
 def demerit_delete(request, pk):
     record = get_object_or_404(DemeritRecord, pk=pk, school=request.school)
     student_name = record.student.get_full_name()
@@ -98,8 +93,7 @@ def demerit_delete(request, pk):
     return redirect("merits:list")
 
 
-@login_required
-@tenant_required
+@admin_or_teacher_required
 def student_merit_report(request, student_pk):
     """Per-student merit/demerit breakdown."""
     student = get_object_or_404(Student, pk=student_pk, school=request.school)
@@ -128,8 +122,7 @@ def student_merit_report(request, student_pk):
     )
 
 
-@login_required
-@tenant_required
+@admin_or_teacher_required
 def school_summary(request):
     """School-wide monthly merit/demerit summary."""
     import datetime

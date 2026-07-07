@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.conf import settings
-from core.decorators import tenant_required
+from core.decorators import tenant_required, admin_required
 from core.activity import log_activity
 from accounts.models import UserRole
 from .models import BackupLog
@@ -15,7 +15,7 @@ def is_admin(user, school):
     return UserRole.objects.filter(user=user, school=school, role="admin").exists() or user.is_superuser
 
 
-@login_required
+@admin_required
 @tenant_required
 def backup_list(request):
     if not is_admin(request.user, request.school):
@@ -26,7 +26,7 @@ def backup_list(request):
     return render(request, "backups/backup_list.html", {"logs": logs})
 
 
-@login_required
+@admin_required
 @tenant_required
 def backup_run(request):
     if not is_admin(request.user, request.school):
@@ -61,7 +61,7 @@ def backup_run(request):
     return redirect("backups:list")
 
 
-@login_required
+@admin_required
 @tenant_required
 def backup_download(request, pk):
     if not is_admin(request.user, request.school):
@@ -82,7 +82,7 @@ def backup_download(request, pk):
     return response
 
 
-@login_required
+@admin_required
 @tenant_required
 def backup_delete(request, pk):
     if not is_admin(request.user, request.school):

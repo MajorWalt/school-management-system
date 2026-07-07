@@ -1,14 +1,13 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
-from core.decorators import tenant_required
+from core.decorators import tenant_required, admin_required
 from core.activity import log_activity
 from .forms import StaffForm
 from .models import Staff
 
 
-@login_required
-@tenant_required
+@admin_required
 def staff_list(request):
     staff = Staff.objects.filter(school=request.school)
     query = request.GET.get("q", "")
@@ -17,15 +16,13 @@ def staff_list(request):
     return render(request, "staff/staff_list.html", {"staff": staff, "query": query})
 
 
-@login_required
-@tenant_required
+@admin_required
 def staff_detail(request, pk):
     member = get_object_or_404(Staff, pk=pk, school=request.school)
     return render(request, "staff/staff_detail.html", {"member": member})
 
 
-@login_required
-@tenant_required
+@admin_required
 def staff_add(request):
     form = StaffForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
@@ -38,8 +35,7 @@ def staff_add(request):
     return render(request, "staff/staff_form.html", {"form": form, "title": "Add Staff Member"})
 
 
-@login_required
-@tenant_required
+@admin_required
 def staff_edit(request, pk):
     member = get_object_or_404(Staff, pk=pk, school=request.school)
     form = StaffForm(request.POST or None, instance=member)
@@ -51,8 +47,7 @@ def staff_edit(request, pk):
     return render(request, "staff/staff_form.html", {"form": form, "title": "Edit Staff Member"})
 
 
-@login_required
-@tenant_required
+@admin_required
 def staff_deactivate(request, pk):
     member = get_object_or_404(Staff, pk=pk, school=request.school)
     member.active = False
@@ -62,8 +57,7 @@ def staff_deactivate(request, pk):
     return redirect("staff:list")
 
 
-@login_required
-@tenant_required
+@admin_required
 def staff_reactivate(request, pk):
     member = get_object_or_404(Staff, pk=pk, school=request.school)
     member.active = True

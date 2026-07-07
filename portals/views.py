@@ -1,7 +1,7 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from django.db.models import Sum
-from core.decorators import tenant_required
+from core.decorators import tenant_required, admin_required
 from accounts.models import UserRole
 from students.models import Student
 from staff.models import Staff
@@ -149,7 +149,7 @@ def dashboard(request):
     pass
 
 
-@login_required
+@admin_required
 @tenant_required
 def admin_dashboard(request):
     roles = get_roles(request.user, request.school)

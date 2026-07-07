@@ -2,7 +2,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
-from core.decorators import tenant_required
+from core.decorators import tenant_required, admin_required, admin_or_teacher_required
 from accounts.models import UserRole
 from students.models import Student
 from staff.models import Staff
@@ -33,7 +33,7 @@ def get_staff_profile(user):
 # ── Reports Home ──────────────────────────────────────────────────────────────
 
 
-@login_required
+@admin_or_teacher_required
 @tenant_required
 def reports_home(request):
     school = request.school
@@ -73,7 +73,7 @@ def reports_home(request):
 # ── Student Roster ────────────────────────────────────────────────────────────
 
 
-@login_required
+@admin_required
 @tenant_required
 def student_roster(request):
     school = request.school
@@ -134,7 +134,7 @@ def student_roster(request):
 # ── Staff List ────────────────────────────────────────────────────────────────
 
 
-@login_required
+@admin_required
 @tenant_required
 def staff_list_report(request):
     school = request.school
@@ -183,7 +183,7 @@ def staff_list_report(request):
 # ── Class List ────────────────────────────────────────────────────────────────
 
 
-@login_required
+@admin_or_teacher_required
 @tenant_required
 def class_list(request):
     school = request.school
@@ -242,7 +242,7 @@ def class_list(request):
 # ── Course List ───────────────────────────────────────────────────────────────
 
 
-@login_required
+@admin_or_teacher_required
 @tenant_required
 def course_list_report(request):
     school = request.school
@@ -309,7 +309,7 @@ def course_list_report(request):
 # ── Attendance Summary ────────────────────────────────────────────────────────
 
 
-@login_required
+@admin_or_teacher_required
 @tenant_required
 def attendance_summary(request):
     school = request.school
@@ -485,7 +485,7 @@ def attendance_summary(request):
 # ── Merit / Demerit Report ────────────────────────────────────────────────────
 
 
-@login_required
+@admin_required
 @tenant_required
 def merit_demerit_report(request):
     school = request.school
@@ -638,7 +638,7 @@ def _render_pdf(request, template_name, context, filename="report.pdf"):
 # ── Grade Reports Home ────────────────────────────────────────────────────────
 
 
-@login_required
+@admin_required
 @tenant_required
 def grade_reports_home(request):
     school = request.school
@@ -652,7 +652,7 @@ def grade_reports_home(request):
 # ── Grade Report by Course ────────────────────────────────────────────────────
 
 
-@login_required
+@admin_required
 @tenant_required
 def grade_by_course(request):
     school = request.school
@@ -736,7 +736,7 @@ def grade_by_course(request):
 # ── Grade Report by Student ───────────────────────────────────────────────────
 
 
-@login_required
+@admin_required
 @tenant_required
 def grade_by_student(request):
     school = request.school
@@ -829,7 +829,7 @@ def grade_by_student(request):
 # ── Teacher Gradebook (admin view) ────────────────────────────────────────────
 
 
-@login_required
+@admin_required
 @tenant_required
 def teacher_gradebook(request):
     school = request.school
@@ -920,7 +920,7 @@ def teacher_gradebook(request):
 
 
 # ── Grade Overview (form/homeroom matrix) ─────────────────────────────────────
-@login_required
+@admin_required
 @tenant_required
 def grade_overview(request):
     school = request.school

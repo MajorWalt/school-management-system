@@ -2,7 +2,7 @@ import datetime
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
-from core.decorators import tenant_required
+from core.decorators import tenant_required, admin_or_teacher_required
 from core.activity import log_activity
 from accounts.models import UserRole
 from scheduling.models import Homeroom
@@ -44,7 +44,7 @@ def get_accessible_homerooms(user, school):
         return Homeroom.objects.none()
 
 
-@login_required
+@admin_or_teacher_required
 @tenant_required
 def attendance_home(request):
     """Step 1 — pick a date."""
@@ -92,7 +92,7 @@ def attendance_home(request):
     )
 
 
-@login_required
+@admin_or_teacher_required
 @tenant_required
 def homeroom_select(request, date):
     """Step 2 — pick a homeroom."""
@@ -132,7 +132,7 @@ def homeroom_select(request, date):
     )
 
 
-@login_required
+@admin_or_teacher_required
 @tenant_required
 def attendance_mark(request, date, homeroom_pk):
     """Step 3 — mark exceptions for the homeroom."""
@@ -245,7 +245,7 @@ def attendance_mark(request, date, homeroom_pk):
     )
 
 
-@login_required
+@admin_or_teacher_required
 @tenant_required
 def attendance_report(request, homeroom_pk):
     """Attendance history for a homeroom."""

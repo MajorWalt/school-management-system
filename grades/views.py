@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 from django.http import HttpResponse
-from core.decorators import tenant_required
+from core.decorators import tenant_required, admin_or_teacher_required
 from core.activity import log_activity
 from accounts.models import UserRole
 from scheduling.models import AcademicYear, Enrolment, Section
@@ -30,7 +30,7 @@ def get_teacher_staff(user):
 # ── Grades Home ───────────────────────────────────────────────────────────────
 
 
-@login_required
+@admin_or_teacher_required
 @tenant_required
 def grades_home(request):
     school = request.school

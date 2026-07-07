@@ -2,7 +2,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
-from core.decorators import tenant_required
+from core.decorators import tenant_required, admin_required
 from core.activity import log_activity
 from accounts.models import UserRole
 from scheduling.models import AcademicYear, Enrolment, Form, Homeroom, TermConfig
@@ -135,7 +135,7 @@ def student_detail(request, pk):
     pass
 
 
-@login_required
+@admin_required
 @tenant_required
 def student_add(request):
     if not is_admin(request.user, request.school):
@@ -160,7 +160,7 @@ def student_add(request):
     return render(request, "students/student_form.html", {"form": form, "title": "Enrol Student"})
 
 
-@login_required
+@admin_required
 @tenant_required
 def student_bulk_enrol(request):
     if not is_admin(request.user, request.school):
@@ -325,7 +325,7 @@ def student_bulk_enrol(request):
     )
 
 
-@login_required
+@admin_required
 @tenant_required
 def student_edit(request, pk):
     if not is_admin(request.user, request.school):
@@ -397,7 +397,7 @@ def guardian_add(request, student_pk):
 from .forms import WithdrawForm
 
 
-@login_required
+@admin_required
 @tenant_required
 def student_withdraw(request, pk):
     if not is_admin(request.user, request.school):

@@ -1,7 +1,7 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
-from core.decorators import tenant_required
+from core.decorators import tenant_required, admin_required
 from core.activity import log_activity
 from .forms import (
     AcademicYearForm,
@@ -18,15 +18,13 @@ from .models import AcademicYear, Course, Enrolment, FormTermRule, NonSchoolDay,
 # ── Academic Years ────────────────────────────────────────────────────────────
 
 
-@login_required
-@tenant_required
+@admin_required
 def year_list(request):
     years = AcademicYear.objects.filter(school=request.school).prefetch_related("term_configs", "form_term_rules")
     return render(request, "scheduling/year_list.html", {"years": years})
 
 
-@login_required
-@tenant_required
+@admin_required
 def year_add(request):
     form = AcademicYearForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
@@ -38,8 +36,7 @@ def year_add(request):
     return render(request, "scheduling/year_form.html", {"form": form, "title": "Add Academic Year"})
 
 
-@login_required
-@tenant_required
+@admin_required
 def year_edit(request, pk):
     year = get_object_or_404(AcademicYear, pk=pk, school=request.school)
     form = AcademicYearForm(request.POST or None, instance=year)
@@ -53,8 +50,7 @@ def year_edit(request, pk):
 # ── Term Configs ──────────────────────────────────────────────────────────────
 
 
-@login_required
-@tenant_required
+@admin_required
 def term_add(request, year_pk):
     year = get_object_or_404(AcademicYear, pk=year_pk, school=request.school)
     form = TermConfigForm(request.POST or None)
@@ -67,8 +63,7 @@ def term_add(request, year_pk):
     return render(request, "scheduling/term_form.html", {"form": form, "year": year, "title": "Add Term"})
 
 
-@login_required
-@tenant_required
+@admin_required
 def term_edit(request, year_pk, pk):
     year = get_object_or_404(AcademicYear, pk=year_pk, school=request.school)
     term = get_object_or_404(TermConfig, pk=pk, academic_year=year)
@@ -83,8 +78,7 @@ def term_edit(request, year_pk, pk):
 # ── Form Term Rules ───────────────────────────────────────────────────────────
 
 
-@login_required
-@tenant_required
+@admin_required
 def rule_add(request, year_pk):
     year = get_object_or_404(AcademicYear, pk=year_pk, school=request.school)
     form = FormTermRuleForm(request.POST or None, school=request.school)
@@ -97,8 +91,7 @@ def rule_add(request, year_pk):
     return render(request, "scheduling/rule_form.html", {"form": form, "year": year, "title": "Add Form Term Rule"})
 
 
-@login_required
-@tenant_required
+@admin_required
 def rule_edit(request, year_pk, pk):
     year = get_object_or_404(AcademicYear, pk=year_pk, school=request.school)
     rule = get_object_or_404(FormTermRule, pk=pk, academic_year=year)
@@ -113,15 +106,13 @@ def rule_edit(request, year_pk, pk):
 # ── Non School Days ───────────────────────────────────────────────────────────
 
 
-@login_required
-@tenant_required
+@admin_required
 def non_school_day_list(request):
     days = NonSchoolDay.objects.filter(school=request.school)
     return render(request, "scheduling/nsd_list.html", {"days": days})
 
 
-@login_required
-@tenant_required
+@admin_required
 def non_school_day_add(request):
     form = NonSchoolDayForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
@@ -134,8 +125,7 @@ def non_school_day_add(request):
     return render(request, "scheduling/nsd_form.html", {"form": form, "title": "Add Non-School Day"})
 
 
-@login_required
-@tenant_required
+@admin_required
 def non_school_day_delete(request, pk):
     nsd = get_object_or_404(NonSchoolDay, pk=pk, school=request.school)
     nsd.delete()
@@ -146,8 +136,7 @@ def non_school_day_delete(request, pk):
 # ── Courses ───────────────────────────────────────────────────────────────────
 
 
-@login_required
-@tenant_required
+@admin_required
 def course_list(request):
     query = request.GET.get("q", "")
     area = request.GET.get("area", "")
@@ -172,8 +161,7 @@ def course_list(request):
     )
 
 
-@login_required
-@tenant_required
+@admin_required
 def course_add(request):
     form = CourseForm(request.POST or None, school=request.school)
     if request.method == "POST" and form.is_valid():
@@ -192,8 +180,7 @@ def course_add(request):
     )
 
 
-@login_required
-@tenant_required
+@admin_required
 def course_detail(request, pk):
     course = get_object_or_404(Course, pk=pk, school=request.school)
     sections = Section.objects.filter(school=request.school, course=course).select_related("academic_year", "form", "teacher")
@@ -207,8 +194,7 @@ def course_detail(request, pk):
     )
 
 
-@login_required
-@tenant_required
+@admin_required
 def course_edit(request, pk):
     course = get_object_or_404(Course, pk=pk, school=request.school)
     form = CourseForm(request.POST or None, instance=course, school=request.school)
@@ -227,8 +213,7 @@ def course_edit(request, pk):
     )
 
 
-@login_required
-@tenant_required
+@admin_required
 def course_delete(request, pk):
     course = get_object_or_404(Course, pk=pk, school=request.school)
     if request.method == "POST":
@@ -242,8 +227,7 @@ def course_delete(request, pk):
 # ── Sections ──────────────────────────────────────────────────────────────────
 
 
-@login_required
-@tenant_required
+@admin_required
 def section_list(request):
     year_pk = request.GET.get("year")
     term = request.GET.get("term")
@@ -265,8 +249,7 @@ def section_list(request):
     )
 
 
-@login_required
-@tenant_required
+@admin_required
 def section_add(request):
     form = SectionForm(request.POST or None, school=request.school)
     if request.method == "POST" and form.is_valid():
@@ -279,8 +262,7 @@ def section_add(request):
     return render(request, "scheduling/section_form.html", {"form": form, "title": "Add Section"})
 
 
-@login_required
-@tenant_required
+@admin_required
 def section_detail(request, pk):
     section = get_object_or_404(Section, pk=pk, school=request.school)
     enrolments = section.enrolments.select_related("student")
@@ -294,8 +276,7 @@ def section_detail(request, pk):
     )
 
 
-@login_required
-@tenant_required
+@admin_required
 def section_edit(request, pk):
     section = get_object_or_404(Section, pk=pk, school=request.school)
     form = SectionForm(request.POST or None, instance=section, school=request.school)
@@ -309,8 +290,7 @@ def section_edit(request, pk):
 # ── Enrolments ────────────────────────────────────────────────────────────────
 
 
-@login_required
-@tenant_required
+@admin_required
 def enrol_student(request, section_pk):
     section = get_object_or_404(Section, pk=section_pk, school=request.school)
     form = EnrolmentForm(request.POST or None, school=request.school)
@@ -324,8 +304,7 @@ def enrol_student(request, section_pk):
     return render(request, "scheduling/enrol_form.html", {"form": form, "section": section})
 
 
-@login_required
-@tenant_required
+@admin_required
 def enrolment_remove(request, pk):
     enrolment = get_object_or_404(Enrolment, pk=pk, section__school=request.school)
     section_pk = enrolment.section.pk
