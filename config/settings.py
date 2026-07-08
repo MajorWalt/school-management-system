@@ -91,6 +91,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "core.context_processors.tenant",
+                "core.context_processors.user_roles",
                 "branding.context_processors.branding",
                 "scheduling.context_processors.marquee_content",
             ],

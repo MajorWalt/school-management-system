@@ -178,7 +178,6 @@
 </div>
 
 {% load accounts_tags %}
-{% get_roles request.user request.school as user_roles %}
 
 <div class="app-layout">
 
@@ -217,7 +216,7 @@
 		<!-- Nav -->
 		<nav class="app-sidebar-nav">
 
-			{% if "admin" in user_roles %}
+			{% if is_admin %}
 
 			<p class="app-nav-group-label">Overview</p>
 			<a href="{% url 'portals:admin_dashboard' %}"
@@ -365,7 +364,7 @@
 				Activity Log
 			</a>
 
-			{% elif "teacher" in user_roles %}
+			{% elif is_teacher %}
 
 			<p class="app-nav-group-label">Teaching</p>
 			<a href="{% url 'portals:teacher_dashboard' %}"
@@ -411,7 +410,7 @@
 				Activity Log
 			</a>
 
-			{% elif "student" in user_roles %}
+			{% elif is_student %}
 
 			<p class="app-nav-group-label">Student</p>
 			<a href="{% url 'portals:student_dashboard' %}"
