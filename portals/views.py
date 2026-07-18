@@ -166,7 +166,7 @@ def admin_dashboard(request):
         "staff": Staff.objects.filter(school=school, active=True).count(),
         "sections": Section.objects.filter(school=school).count(),
         "absences_today": Attendance.objects.filter(school=school, date=today, status="absent").count(),
-        "report_cards": ReportCard.objects.filter(school=school, status="draft").count(),
+        "report_cards": ReportCard.objects.filter(school=school).count(),
         "merits_this_month": MeritRecord.objects.filter(
             school=school,
             date__month=today.month,

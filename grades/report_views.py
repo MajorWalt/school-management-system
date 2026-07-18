@@ -1,5 +1,9 @@
 import datetime
 import io
+
+import os
+from django.conf import settings
+
 from decimal import Decimal
 
 from django.contrib import messages
@@ -20,6 +24,21 @@ from .report_utils import (
     conduct_by_term,
     honours_label,
 )
+
+
+def _pdf_link_callback(uri, rel):
+    """
+    To convert static/media URLs into absolute local paths for xhtml2pdf.
+    """
+    if uri.startswith(settings.MEDIA_URL):
+        path = os.path.join(settings.MEDIA_ROOT, uri.replace(settings.MEDIA_URL, ""))
+        return path
+
+    if uri.startswith(settings.STATIC_URL):
+        path = os.path.join(settings.STATIC_ROOT, uri.replace(settings.STATIC_URL, ""))
+        return path
+
+    return uri
 
 
 def _gather_students(school, form_id, homeroom_id, student_id):
@@ -52,7 +71,7 @@ def _save_report_card_pdf(request, school, student, year, up_to_term, data):
     )
 
     buf = io.BytesIO()
-    pisa.CreatePDF(single_html, dest=buf, encoding="utf-8")
+    pisa.CreatePDF(single_html, dest=buf, encoding="utf-8", link_callback=_pdf_link_callback)
     buf.seek(0)
 
     rc, _ = ReportCard.objects.get_or_create(
@@ -136,7 +155,7 @@ def generate_report_cards(request):
         )
 
         buf = io.BytesIO()
-        pisa.CreatePDF(html, dest=buf, encoding="utf-8")
+        pisa.CreatePDF(html, dest=buf, encoding="utf-8", link_callback=_pdf_link_callback)
         buf.seek(0)
 
         resp = HttpResponse(buf.read(), content_type="application/pdf")
