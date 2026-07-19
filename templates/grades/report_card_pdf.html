@@ -3,31 +3,289 @@
 <head>
 <meta charset="utf-8" />
 <style>
-	@page { size: letter portrait; margin: 1.2cm; }
-	body { font-family: Helvetica, Arial, sans-serif; font-size: 12px; color: #111; }
-	.card { page-break-after: always; }
+	@page {
+		size: letter portrait;
+		margin: 0.55cm 1cm 0.5cm 1cm;
+	}
+
+	body {
+		font-family: Helvetica, Arial, sans-serif;
+		color: #111;
+		font-size: 14px;
+		margin: 0;
+	}
+
+	table {
+		width: 100%;
+		border-collapse: collapse;
+	}
+
+	.card {
+		page-break-after: always;
+	}
+
+	.card:last-child {
+		page-break-after: auto;
+	}
+
 	.center { text-align: center; }
-	.right { text-align: right; }
-	.logo { max-height: 70px; margin-bottom: 6px; }
-	.school { font-size: 19px; font-weight: bold; }
-	.muted { color: #555; font-size: 11px; }
-	h2 { font-size: 14px; margin: 10px 0 4px 0; }
-	table { width: 100%; border-collapse: collapse; margin-top: 6px; }
-	th, td { border: 1px solid #999; padding: 5px 6px; font-size: 12px; }
-	th { background: #eee; text-align: center; white-space: nowrap; }
-	td.subj, th.subj { text-align: left; white-space: normal; }
-	td.num, th.num { text-align: right; white-space: nowrap; }
-	.summary th, .summary td { text-align: center; }
-	.note-row td { text-align: left; font-size: 10.5px; color: #444; font-style: italic; background: #fafafa; border-top: none; padding: 3px 8px 6px 8px; white-space: normal; }
-	.box { border: 1px solid #999; padding: 8px; margin-top: 10px; font-size: 12px; }
-	.tickbox { display: inline-block; width: 11px; height: 11px; border: 1px solid #333; vertical-align: middle; margin: 0 4px; }
-	.sign-area { margin-top: 28px; }
-	.sign-row { display: table; width: 100%; margin-top: 6px; }
-	.sign-col { display: table-cell; width: 50%; vertical-align: bottom; }
-	.sign-line { border-top: 1px solid #333; margin-top: 34px; padding-top: 3px; font-size: 10.5px; color: #444; }
-	.stamp-box { border: 1px dashed #999; height: 70px; width: 140px; display: table-cell; text-align: center; vertical-align: middle; font-size: 9.5px; color: #999; }
+
+	.logo {
+		width: 56px;
+		height: auto;
+	}
+
+	.school {
+		font-family: Georgia, "Times New Roman", serif;
+		font-size: 29px;
+		font-weight: bold;
+		line-height: 1.1;
+		margin-top: 3px;
+	}
+
+	.report-title {
+		font-family: Georgia, "Times New Roman", serif;
+		font-size: 18px;
+		font-weight: bold;
+		margin-top: 5px;
+	}
+
+	.muted {
+		color: #555;
+		font-size: 12.5px;
+	}
+
+	.report-meta {
+		margin-top: 5px;
+	}
+
+	.student-name {
+		margin-top: 11px;
+		font-weight: bold;
+		font-family: Georgia, "Times New Roman", serif;
+		font-size: 16px;
+	}
+
+	.header-line {
+		border-top: 2.5px solid #17284f;
+		margin: 13px 0 16px 0;
+	}
+
+	.top-layout > tbody > tr > td {
+		border: none;
+		padding: 0;
+		vertical-align: top;
+	}
+
+	.grades-wrapper { width: 69%; }
+	.conduct-spacer { width: 2.5%; }
+	.conduct-wrapper { width: 28.5%; }
+
+	.grades-table,
+	.conduct-table,
+	.attendance-table {
+		table-layout: fixed;
+		border-collapse: collapse;
+	}
+
+	.grades-table th,
+	.grades-table td,
+	.conduct-table th,
+	.conduct-table td,
+	.attendance-table th,
+	.attendance-table td {
+		border: 1px solid #666;
+		vertical-align: middle;
+		line-height: 1.15;
+	}
+
+	.grades-table th {
+		background: #eee;
+		font-size: 13.5px;
+		font-weight: bold;
+		padding: 3px 6px;
+	}
+
+	.grades-table td {
+		font-size: 13.5px;
+		padding: 3px 6px;
+	}
+
+	.grades-table .subj {
+		width: 57%;
+		text-align: left;
+	}
+
+	.grades-table .num {
+		width: 14.33%;
+		text-align: center;
+	}
+
+	.grades-table .muted {
+		font-size: 11.5px;
+		color: #555;
+	}
+
+	.note-cell {
+		font-size: 13px !important;
+		padding: 4px 6px !important;
+		background: #fff;
+		text-align: left;
+		font-style: italic;
+	}
+
+	.grades-table .average-row td {
+		background: #eee;
+		font-weight: bold;
+	}
+
+	.conduct-table th {
+		background: #eee;
+		font-size: 13px;
+		font-weight: bold;
+		padding: 3px 4px;
+	}
+
+	.conduct-table td {
+		font-size: 13px;
+		padding: 3px 4px;
+	}
+
+	.conduct-table th:first-child,
+	.conduct-table td:first-child {
+		width: 64%;
+		text-align: left;
+	}
+
+	.conduct-table .conduct-value {
+		width: 36%;
+		text-align: center;
+	}
+
+	.attendance-table {
+		margin-top: 13px;
+	}
+
+	.attendance-table th,
+	.attendance-table td {
+		font-size: 12px;
+		padding: 3px 3px;
+		text-align: center;
+	}
+
+	.attendance-table th {
+		background: #eee;
+		font-weight: bold;
+	}
+
+	.attendance-table th:first-child,
+	.attendance-table td:first-child {
+		width: 16%;
+		font-weight: bold;
+		text-align: left;
+		padding-left: 5px;
+		white-space: nowrap;
+	}
+
+	.attendance-table .attendance-month {
+		width: 8.4%;
+	}
+
+	.attendance-table th:first-child {
+		text-align: center;
+	}
+
+	.attendance-label {
+		white-space: nowrap;
+		font-size: 11.5px;
+		padding-left: 2px !important;
+		padding-right: 2px !important;
+	}
+
+	.footer-table {
+		margin-top: 15px;
+		border-top: 2.5px solid #17284f;
+		page-break-inside: avoid;
+	}
+
+	.footer-table > tbody > tr > td {
+		border: none;
+		vertical-align: top;
+		padding-top: 12px;
+	}
+
+	.footer-left {
+		width: 40.5%;
+		padding-right: 28px;
+	}
+
+	.footer-right {
+		width: 59.5%;
+		padding-left: 28px;
+	}
+
+	.box {
+		border: 1px solid #888;
+		padding: 6px 8px;
+		margin-top: 6px;
+		font-size: 13px;
+		background: #fbfbfb;
+		box-sizing: border-box;
+	}
+
+	.box:first-child {
+		margin-top: 0;
+	}
+
+	.average-box {
+		min-height: 32px;
+	}
+
+	.comments-box {
+		min-height: 48px;
+	}
+
+	.placement-box {
+		min-height: 56px;
+		line-height: 1.5;
+	}
+
+	.signature-table td {
+		border: none;
+		text-align: center;
+		padding: 34px 9px 0 9px;
+		font-size: 12.5px;
+	}
+
+	.signature-line {
+		border-top: 1px solid #333;
+		padding-top: 5px;
+		white-space: nowrap;
+	}
+
+	.stamp-box {
+		border: 1px dashed #999;
+		height: 60px;
+		line-height: 60px;
+		width: 165px;
+		display: inline-block;
+		text-align: center;
+		font-size: 12.5px;
+		color: #999;
+		box-sizing: border-box;
+	}
+
+	.honours-footer {
+		text-align: center;
+		font-size: 12.5px;
+		margin-top: 12px;
+		border-top: 1px solid #333;
+		padding-top: 8px;
+		page-break-inside: avoid;
+	}
 </style>
 </head>
+
 <body>
 {% for card in cards %}
 <div class="card">
@@ -35,109 +293,128 @@
 	<div class="center">
 		{% if school_logo %}<img src="{{ school_logo.url }}" class="logo" />{% endif %}
 		<div class="school">{{ school.name }}</div>
-		<div class="muted">{{ academic_year.name }} &bull; Report Card &bull; {{ today }}</div>
-		<div style="margin-top:5px;font-weight:bold;font-size:13px;">{{ card.student.get_full_name }} &nbsp; ({{ card.student.homeroom }})</div>
+		<div class="report-title">Report Card</div>
+		<div class="muted report-meta">{{ academic_year.name }} &bull; Generated {{ today }}</div>
+		<div class="student-name">{{ card.student.get_full_name }} &nbsp; ({{ card.student.homeroom }})</div>
 	</div>
 
-	<!-- Grades -->
-	<table>
-		<thead>
-			<tr>
-				<th class="subj">Subject</th>
-				{% for col in card.columns %}<th class="num">{{ col.label }}</th>{% endfor %}
-				<th class="num">Avg</th>
-			</tr>
-		</thead>
-		<tbody>
-			{% for row in card.rows %}
-			<tr>
-				<td class="subj">
-					{{ row.course.name }}{% if row.teacher %} <span class="muted">({{ row.teacher.get_full_name }})</span>{% endif %}
-				</td>
-				{% for cell in row.cells_display %}<td class="num">{{ cell }}</td>{% endfor %}
-				<td class="num"><b>{{ row.avg_display }}</b></td>
-			</tr>
-			{% if row.teacher_note %}
-			<tr class="note-row">
-				<td colspan="{{ card.columns|length|add:2 }}">Note: {{ row.teacher_note }}</td>
-			</tr>
-			{% endif %}
-			{% endfor %}
-			<tr>
-				<td class="subj"><b>Average</b></td>
-				{% for c in card.col_averages_display %}<td class="num"><b>{{ c }}</b></td>{% endfor %}
-				<td class="num"><b>{{ card.overall_display }}</b></td>
-			</tr>
-		</tbody>
+	<div class="header-line"></div>
+
+	<table class="top-layout">
+		<tr>
+			<td class="grades-wrapper">
+				<table class="grades-table">
+					<thead>
+						<tr>
+							<th class="subj">Subject</th>
+							{% for col in card.columns %}<th class="num">{{ col.label }}</th>{% endfor %}
+							<th class="num">Avg</th>
+						</tr>
+					</thead>
+					<tbody>
+						{% for row in card.rows %}
+						<tr>
+							<td class="subj">
+								{{ row.course.name }}{% if row.teacher %} <span class="muted">({{ row.teacher.get_full_name }})</span>{% endif %}
+							</td>
+							{% for cell in row.cells_display %}<td class="num">{{ cell }}</td>{% endfor %}
+							<td class="num"><b>{{ row.avg_display }}</b></td>
+						</tr>
+						{% if row.teacher_note %}
+						<tr>
+							<td class="note-cell" colspan="{{ card.columns|length|add:2 }}">Note: {{ row.teacher_note }}</td>
+						</tr>
+						{% endif %}
+						{% endfor %}
+						<tr class="average-row">
+							<td class="subj"><b>Average</b></td>
+							{% for c in card.col_averages_display %}<td class="num"><b>{{ c }}</b></td>{% endfor %}
+							<td class="num"><b>{{ card.overall_display }}</b></td>
+						</tr>
+					</tbody>
+				</table>
+			</td>
+
+			<td class="conduct-spacer"></td>
+
+			<td class="conduct-wrapper">
+				<table class="conduct-table">
+					<thead>
+						<tr>
+							<th></th>
+							{% for c in card.conduct %}<th class="conduct-value">Term {{ c.term }}</th>{% endfor %}
+						</tr>
+					</thead>
+					<tbody>
+						<tr><td>Merits</td>{% for c in card.conduct %}<td class="conduct-value">{{ c.merits }}</td>{% endfor %}</tr>
+						<tr><td>Demerits</td>{% for c in card.conduct %}<td class="conduct-value">{{ c.demerits }}</td>{% endfor %}</tr>
+						<tr><td>Detentions</td>{% for c in card.conduct %}<td class="conduct-value">{{ c.detentions }}</td>{% endfor %}</tr>
+						<tr><td>Suspensions</td>{% for c in card.conduct %}<td class="conduct-value">{{ c.suspensions }}</td>{% endfor %}</tr>
+					</tbody>
+				</table>
+			</td>
+		</tr>
 	</table>
 
-	<!-- Conduct -->
-	<table class="summary">
-		<thead>
-			<tr>
-				<th style="text-align:left;">&nbsp;</th>
-				{% for c in card.conduct %}<th>Term {{ c.term }}</th>{% endfor %}
-			</tr>
-		</thead>
-		<tbody>
-			<tr><td style="text-align:left;">Merits</td>{% for c in card.conduct %}<td>{{ c.merits }}</td>{% endfor %}</tr>
-			<tr><td style="text-align:left;">Demerits</td>{% for c in card.conduct %}<td>{{ c.demerits }}</td>{% endfor %}</tr>
-			<tr><td style="text-align:left;">Detentions</td>{% for c in card.conduct %}<td>{{ c.detentions }}</td>{% endfor %}</tr>
-			<tr><td style="text-align:left;">Suspensions</td>{% for c in card.conduct %}<td>{{ c.suspensions }}</td>{% endfor %}</tr>
-		</tbody>
-	</table>
-
-	<!-- Attendance -->
 	{% if card.attendance %}
-	<h2>Attendance</h2>
-	<table class="summary">
+	<table class="attendance-table">
 		<thead>
-			<tr><th style="text-align:left;">&nbsp;</th>{% for mth in card.attendance %}<th>{{ mth.label }}</th>{% endfor %}</tr>
+			<tr>
+				<th class="attendance-label">Attendance</th>
+				{% for mth in card.attendance %}<th class="attendance-month">{{ mth.label }}</th>{% endfor %}
+			</tr>
 		</thead>
 		<tbody>
-			<tr><td style="text-align:left;">Days Open</td>{% for mth in card.attendance %}<td>{{ mth.open }}</td>{% endfor %}</tr>
-			<tr><td style="text-align:left;">Days Present</td>{% for mth in card.attendance %}<td>{{ mth.present }}</td>{% endfor %}</tr>
-			<tr><td style="text-align:left;">Days Absent</td>{% for mth in card.attendance %}<td>{{ mth.absent }}</td>{% endfor %}</tr>
-			<tr><td style="text-align:left;">Days Late</td>{% for mth in card.attendance %}<td>{{ mth.late }}</td>{% endfor %}</tr>
+			<tr><td>Days Open</td>{% for mth in card.attendance %}<td class="attendance-month">{{ mth.open }}</td>{% endfor %}</tr>
+			<tr><td>Days Present</td>{% for mth in card.attendance %}<td class="attendance-month">{{ mth.present }}</td>{% endfor %}</tr>
+			<tr><td>Days Absent</td>{% for mth in card.attendance %}<td class="attendance-month">{{ mth.absent }}</td>{% endfor %}</tr>
+			<tr><td>Days Late</td>{% for mth in card.attendance %}<td class="attendance-month">{{ mth.late }}</td>{% endfor %}</tr>
 		</tbody>
 	</table>
 	{% endif %}
 
-	<div class="box">
-		<b>Overall average:</b> {{ card.overall_display }}%
-		{% if card.honours %} &nbsp;&bull;&nbsp; <b>Honours:</b> {{ card.honours }}{% endif %}
-	</div>
+	<table class="footer-table">
+		<tr>
+			<td class="footer-left">
+				<div class="box average-box">
+					<b>Overall average:</b> {{ card.overall_display }}%
+					{% if card.honours %} &nbsp;&bull;&nbsp; <b>Honours:</b> {{ card.honours }}{% endif %}
+				</div>
 
-	<div class="box">
-		<b>General Comments</b><br/>
-		{{ card.comment }}
-	</div>
+				<div class="box comments-box">
+					<b>General Comments</b><br/>
+					{{ card.comment }}
+				</div>
 
-	<div class="box">
-		{% if term_number == 3 %}
-		<b>Student Placement</b> — {{ card.student.get_full_name }}<br/>
-		<span class="tickbox"></span> Will be promoted &nbsp;&nbsp; <span class="tickbox"></span> On probation &nbsp;&nbsp; <span class="tickbox"></span> Will repeat
-		{% else %}
-		<b>Predicted to</b> — {{ card.student.get_full_name }}<br/>
-		<span class="tickbox"></span> Be promoted &nbsp;&nbsp;&nbsp;&nbsp; <span class="tickbox"></span> Repeat
-		{% endif %}
-	</div>
+				<div class="box placement-box">
+					{% if term_number == 3 %}
+					<b>Student Placement</b> — {{ card.student.get_full_name }}<br/>
+					[ &nbsp; ] Will be promoted<br/>
+					[ &nbsp; ] On probation, will be promoted<br/>
+					[ &nbsp; ] Will repeat
+					{% else %}
+					<b>Predicted to</b> — {{ card.student.get_full_name }}<br/>
+					[ &nbsp; ] Be promoted &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; [ &nbsp; ] Repeat
+					{% endif %}
+				</div>
+			</td>
 
-	<!-- Stamp & Signature -->
-	<div class="sign-area">
-		<div class="sign-row">
-			<div class="sign-col">
-				<div class="sign-line">Principal's Signature</div>
-			</div>
-			<div class="sign-col right" style="padding-left: 30px;">
-				<div style="display:table; width:100%;">
+			<td class="footer-right">
+				<table class="signature-table">
+					<tr>
+						<td><div class="signature-line">Principal's Signature</div></td>
+						<td><div class="signature-line">Teacher's Signature</div></td>
+					</tr>
+				</table>
+
+				<div style="text-align:center; margin-top:24px;">
 					<div class="stamp-box">School Stamp</div>
 				</div>
-			</div>
-		</div>
-	</div>
+			</td>
+		</tr>
+	</table>
 
-	<div class="muted" style="margin-top:8px;">
+	<div class="honours-footer">
 		Honours: 1st Class &ge; 85.0% &amp; pass all; 2nd Class &ge; 75.0% &amp; pass all. Pass mark 55.0%.
 	</div>
 
