@@ -7,11 +7,17 @@
 	<!-- Header -->
 	<div class="flex items-center justify-between">
 		<div>
-			<h1 class="text-2xl font-bold text-gray-800">{{ member.get_full_name }}</h1>
+			<div class="flex items-center gap-2">
+				<h1 class="text-2xl font-bold text-gray-800">{{ member.get_full_name }}</h1>
+				{% if member.is_head_of_department %}
+				<span class="bg-indigo-100 text-indigo-700 text-xs font-semibold px-2 py-1 rounded-full uppercase tracking-wide">HOD</span>
+				{% endif %}
+			</div>
 			<p class="text-sm text-gray-500">
 				{{ member.employee_number }}
 				{% if member.role_title %}&bull; {{ member.role_title }}{% endif %}
-				{% if member.department %}&bull; {{ member.department }}{% endif %}
+				{% if member.department %}&bull; {{ member.get_department_display }}{% endif %}
+				{% if member.department_2 %}, {{ member.get_department_2_display }}{% endif %}
 			</p>
 		</div>
 		<div class="flex gap-2">
@@ -69,7 +75,11 @@
 	<div class="bg-white rounded-xl shadow overflow-hidden">
 		<div class="px-5 py-3 bg-gray-50 border-b font-semibold text-gray-700 text-sm uppercase tracking-wide">Employment</div>
 		<div class="p-5 grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-			<div><span class="text-gray-400 block text-xs">Department</span><p class="font-medium">{{ member.department|default:"—" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Department</span><p class="font-medium">{{ member.get_department_display|default:"—" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Second Department</span><p class="font-medium">{{ member.get_department_2_display|default:"—" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Head of Department</span>
+				<p>{% if member.is_head_of_department %}<span class="bg-indigo-100 text-indigo-700 text-xs px-2 py-1 rounded-full">Yes</span>{% else %}<span class="font-medium">No</span>{% endif %}</p>
+			</div>
 			<div><span class="text-gray-400 block text-xs">Role Title</span><p class="font-medium">{{ member.role_title|default:"—" }}</p></div>
 			<div><span class="text-gray-400 block text-xs">Specialisation</span><p class="font-medium">{{ member.subject_specialisation|default:"—" }}</p></div>
 			<div><span class="text-gray-400 block text-xs">Start Date</span><p class="font-medium">{{ member.hire_date|default:"—" }}</p></div>

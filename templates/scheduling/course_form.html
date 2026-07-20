@@ -23,7 +23,7 @@
 				Course Identity
 			</div>
 			<div class="p-5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-				{% for fname in "code,section_number,name,short_description,description,subject_area,instructional_mode"|split:"," %}
+				{% for fname in "code,section_number,name,short_description,description,subject_area,department,instructional_mode"|split:"," %}
 				{% for field in form %}{% if field.name == fname %}
 				<div class="{% if field.name == 'description' %}col-span-full{% endif %}">
 					<label class="block text-xs font-medium text-gray-600 mb-1">
@@ -32,6 +32,9 @@
 					{{ field }}
 					{% if field.name == 'short_description' %}
 						<p class="text-xs text-gray-400 mt-1">Max 8 characters</p>
+					{% endif %}
+					{% if field.name == 'department' %}
+						<p class="text-xs text-gray-400 mt-1">Heads of this department can view its grades</p>
 					{% endif %}
 					{% if field.errors %}<p class="text-red-500 text-xs mt-1">{{ field.errors.0 }}</p>{% endif %}
 				</div>

@@ -32,6 +32,8 @@ class StaffForm(forms.ModelForm):
             "parish",
             # Employment
             "department",
+            "department_2",
+            "is_head_of_department",
             "role_title",
             "subject_specialisation",
             "hire_date",
@@ -60,6 +62,13 @@ class StaffForm(forms.ModelForm):
             "address": forms.Textarea(attrs={"rows": 2}),
             "previous_schools": forms.Textarea(attrs={"rows": 2}),
             "degree_specification": forms.Textarea(attrs={"rows": 2}),
+            # Second department can only be picked once a primary department exists.
+            "department_2": forms.Select(attrs={"x-bind:disabled": "!hasDept"}),
+            # HOD is disabled (and force-unchecked) until a department is chosen.
+            "is_head_of_department": forms.CheckboxInput(attrs={
+                "x-bind:disabled": "!hasDept",
+                "x-effect": "if (!hasDept) $el.checked = false",
+            }),
         }
 
     def __init__(self, *args, school=None, **kwargs):
@@ -70,3 +79,4 @@ class StaffForm(forms.ModelForm):
             if not isinstance(field.widget, forms.CheckboxInput):
                 existing = field.widget.attrs.get("class", "")
                 field.widget.attrs["class"] = FIELD_CLASS + " " + existing
+        pass

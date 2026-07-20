@@ -1,6 +1,7 @@
 from django.core.exceptions import ValidationError
 from django.db import models
 from core.models import School
+from core.constants import DEPARTMENT_CHOICES
 
 
 class Form(models.Model):
@@ -173,6 +174,12 @@ class Course(models.Model):
     faculty = models.CharField(max_length=100, blank=True)
     room = models.CharField(max_length=50, blank=True)
     subject_area = models.CharField(max_length=30, choices=SUBJECT_AREA_CHOICES, blank=True)
+    department = models.CharField(
+        max_length=100,
+        choices=DEPARTMENT_CHOICES,
+        blank=True,
+        help_text="Department that owns this course. Heads of this department can view its grades.",
+    )
     calc_average = models.BooleanField(default=True)
     active = models.BooleanField(default=True)
 

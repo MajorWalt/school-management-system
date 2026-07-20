@@ -129,25 +129,6 @@
 				<p class="text-xs text-slate-400 font-medium">Demerits — This Month</p>
 			</div>
 		</a>
-
-		<a href="{% url 'grades:report_card_list' %}"
-		class="dashboard-kpi-card-wide metric-card group">
-			<div class="dashboard-kpi-wide-icon {% if stats.report_cards > 0 %}bg-amber-50{% else %}bg-slate-50{% endif %}">
-				<svg class="w-5 h-5 {% if stats.report_cards > 0 %}text-amber-500{% else %}text-slate-400{% endif %}"
-					fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-					<path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-				</svg>
-			</div>
-			<div>
-				<p class="text-xl font-bold tracking-tight {% if stats.report_cards > 0 %}text-amber-600{% else %}text-slate-800{% endif %}">
-					{{ stats.report_cards }}
-				</p>
-				<p class="text-xs text-slate-400 font-medium">Draft Report Cards</p>
-				{% if stats.report_cards > 0 %}
-					<p class="text-xs text-amber-500 font-medium mt-0.5">Awaiting publication</p>
-				{% endif %}
-			</div>
-		</a>
 	</div>
 
 	<!-- Bottom row: recent absences + right column -->

@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 from django.http import HttpResponse
+from django.db.models import Q
 from core.decorators import tenant_required, admin_or_teacher_required
 from core.activity import log_activity
 from accounts.models import UserRole
@@ -27,7 +28,24 @@ def get_teacher_staff(user):
     pass
 
 
-# ── Grades Home ───────────────────────────────────────────────────────────────
+def get_hod_departments(staff):
+    # Departments this staff member heads (empty unless flagged as HOD).
+    if staff and staff.is_head_of_department:
+        return [d for d in (staff.department, staff.department_2) if d]
+    return []
+    pass
+
+
+def section_in_departments(section, departments):
+    # A section belongs to a department via the department of its course (subject master).
+    if not departments:
+        return False
+    dept = section.course.department
+    return bool(dept) and dept in departments
+    pass
+
+
+# -- Grades Home ---------------------------------------------------------------
 
 
 @admin_or_teacher_required
@@ -40,7 +58,15 @@ def grades_home(request):
     if admin:
         sections = Section.objects.filter(school=school).select_related("course", "form", "academic_year", "teacher")
     elif staff:
-        sections = Section.objects.filter(school=school, teacher=staff).select_related("course", "form", "academic_year")
+        hod_departments = get_hod_departments(staff)
+        if hod_departments:
+            sections = (
+                Section.objects.filter(school=school)
+                .filter(Q(teacher=staff) | Q(course__department__in=hod_departments))
+                .select_related("course", "form", "academic_year", "teacher")
+            )
+        else:
+            sections = Section.objects.filter(school=school, teacher=staff).select_related("course", "form", "academic_year", "teacher")
     else:
         messages.error(request, "Access denied.")
         return redirect("portals:dashboard")
@@ -68,12 +94,13 @@ def grades_home(request):
             "selected_term": term,
             "is_admin": admin,
             "window_statuses": window_statuses,
+            "current_staff": staff,
         },
     )
     pass
 
 
-# ── Section Grade Table ───────────────────────────────────────────────────────
+# -- Section Grade Table -------------------------------------------------------
 @login_required
 @tenant_required
 def section_grade_table(request, section_pk):
@@ -82,7 +109,11 @@ def section_grade_table(request, section_pk):
     admin = is_admin(request.user, school)
     staff = get_teacher_staff(request.user)
 
-    if not admin and (not staff or section.teacher != staff):
+    hod_departments = get_hod_departments(staff)
+    is_owner = bool(staff and section.teacher_id == staff.pk)
+    hod_can_view = section_in_departments(section, hod_departments)
+
+    if not (admin or is_owner or hod_can_view):
         messages.error(request, "Access denied.")
         return redirect("grades:home")
 
@@ -102,7 +133,7 @@ def section_grade_table(request, section_pk):
     active_section = all_sections.filter(term_number=term_filter).first() or section
 
     window_open = grade_window_is_open(school, active_section.academic_year, active_section.term_number, active_section.form)
-    can_edit = admin or window_open
+    can_edit = admin or (is_owner and window_open)
 
     evaluations = Evaluation.objects.filter(school=school, section=active_section).order_by("date", "created_at")
 
@@ -160,12 +191,13 @@ def section_grade_table(request, section_pk):
             "window_open": window_open,
             "is_admin": admin,
             "term_configs": term_configs,
+            "is_hod_view": hod_can_view and not admin and not is_owner,
         },
     )
     pass
 
 
-# ── Create Evaluation ─────────────────────────────────────────────────────────
+# -- Create Evaluation ---------------------------------------------------------
 
 
 @login_required
@@ -208,7 +240,7 @@ def evaluation_create(request, section_pk):
     pass
 
 
-# ── Edit Evaluation ───────────────────────────────────────────────────────────
+# -- Edit Evaluation -----------------------------------------------------------
 
 
 @login_required
@@ -243,7 +275,7 @@ def evaluation_edit(request, pk):
     pass
 
 
-# ── Delete Evaluation ─────────────────────────────────────────────────────────
+# -- Delete Evaluation ---------------------------------------------------------
 
 
 @login_required
@@ -270,7 +302,7 @@ def evaluation_delete(request, pk):
     pass
 
 
-# ── Save Grades ───────────────────────────────────────────────────────────────
+# -- Save Grades ---------------------------------------------------------------
 
 
 @login_required
@@ -346,7 +378,7 @@ def grades_save(request, section_pk):
     pass
 
 
-# ── Bulk Grade Upload ─────────────────────────────────────────────────────────
+# -- Bulk Grade Upload ---------------------------------------------------------
 
 
 @login_required
@@ -570,7 +602,7 @@ def _generate_grade_template(section, evaluations):
     pass
 
 
-# ── Grade Window Management ───────────────────────────────────────────────────
+# -- Grade Window Management ---------------------------------------------------
 
 
 @login_required
@@ -629,7 +661,7 @@ def grade_window_manage(request):
     pass
 
 
-# ── Visibility ────────────────────────────────────────────────────────────────
+# -- Visibility ----------------------------------------------------------------
 
 
 @login_required
@@ -783,7 +815,7 @@ def visibility_set_student(request, student_pk):
     pass
 
 
-# ── Report Cards ──────────────────────────────────────────────────────────────
+# -- Report Cards --------------------------------------------------------------
 
 
 @login_required

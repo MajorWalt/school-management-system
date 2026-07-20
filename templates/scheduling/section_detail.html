@@ -9,6 +9,7 @@
 			<h1 class="text-2xl font-bold text-gray-800">{{ section.course.name }}</h1>
 			<p class="text-sm text-gray-500">
 				{{ section.form }} &bull; Term {{ section.term_number }} &bull; {{ section.academic_year.name }}
+				{% if section.course.department %}&bull; {{ section.course.get_department_display }}{% endif %}
 				{% if section.teacher %}&bull; {{ section.teacher.get_full_name }}{% endif %}
 				{% if section.room %}&bull; Room {{ section.room }}{% endif %}
 			</p>

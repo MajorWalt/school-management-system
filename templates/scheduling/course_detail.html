@@ -11,6 +11,7 @@
 			<h1 class="text-xl font-bold text-gray-800">{{ course.name }}</h1>
 			<p class="text-sm text-gray-500">
 				{% if course.code %}{{ course.code }} ·{% endif %}
+				{% if course.department %}{{ course.get_department_display }} ·{% endif %}
 				{% if course.subject_area %}{{ course.get_subject_area_display }} ·{% endif %}
 				Seq {{ course.sequence }}
 			</p>
@@ -47,6 +48,7 @@
 			<div><span class="text-gray-400 block text-xs mb-0.5">Teacher</span><p class="font-medium">{{ course.teacher|default:"—" }}</p></div>
 			<div><span class="text-gray-400 block text-xs mb-0.5">Teacher 2</span><p class="font-medium">{{ course.teacher_2|default:"—" }}</p></div>
 			<div><span class="text-gray-400 block text-xs mb-0.5">Sequence</span><p class="font-medium">{{ course.sequence }}</p></div>
+			<div><span class="text-gray-400 block text-xs mb-0.5">Department</span><p class="font-medium">{{ course.get_department_display|default:"—" }}</p></div>
 			<div><span class="text-gray-400 block text-xs mb-0.5">Faculty / Dept</span><p class="font-medium">{{ course.faculty|default:"—" }}</p></div>
 			<div><span class="text-gray-400 block text-xs mb-0.5">Room</span><p class="font-medium">{{ course.room|default:"—" }}</p></div>
 			<div><span class="text-gray-400 block text-xs mb-0.5">Subject Area</span><p class="font-medium">{{ course.get_subject_area_display|default:"—" }}</p></div>

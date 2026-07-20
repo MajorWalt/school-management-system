@@ -14,17 +14,19 @@ def staff_list(request):
     if query:
         staff = staff.filter(first_name__icontains=query) | staff.filter(last_name__icontains=query) | staff.filter(employee_number__icontains=query)
     return render(request, "staff/staff_list.html", {"staff": staff, "query": query})
+    pass
 
 
 @admin_required
 def staff_detail(request, pk):
     member = get_object_or_404(Staff, pk=pk, school=request.school)
     return render(request, "staff/staff_detail.html", {"member": member})
+    pass
 
 
 @admin_required
 def staff_add(request):
-    form = StaffForm(request.POST or None)
+    form = StaffForm(request.POST or None, school=request.school)
     if request.method == "POST" and form.is_valid():
         staff = form.save(commit=False)
         staff.school = request.school
@@ -33,18 +35,20 @@ def staff_add(request):
         messages.success(request, f"{staff.get_full_name()} added successfully.")
         return redirect("staff:list")
     return render(request, "staff/staff_form.html", {"form": form, "title": "Add Staff Member"})
+    pass
 
 
 @admin_required
 def staff_edit(request, pk):
     member = get_object_or_404(Staff, pk=pk, school=request.school)
-    form = StaffForm(request.POST or None, instance=member)
+    form = StaffForm(request.POST or None, instance=member, school=request.school)
     if request.method == "POST" and form.is_valid():
         form.save()
         log_activity(request, "staff_edit", f"Edited staff member {member.get_full_name()} ({member.employee_number}).")
         messages.success(request, f"{member.get_full_name()} updated successfully.")
         return redirect("staff:detail", pk=pk)
     return render(request, "staff/staff_form.html", {"form": form, "title": "Edit Staff Member"})
+    pass
 
 
 @admin_required
@@ -55,6 +59,7 @@ def staff_deactivate(request, pk):
     log_activity(request, "staff_deactivate", f"Deactivated staff member {member.get_full_name()} ({member.employee_number}).")
     messages.warning(request, f"{member.get_full_name()} has been deactivated.")
     return redirect("staff:list")
+    pass
 
 
 @admin_required
@@ -65,3 +70,4 @@ def staff_reactivate(request, pk):
     log_activity(request, "staff_reactivate", f"Reactivated staff member {member.get_full_name()} ({member.employee_number}).")
     messages.success(request, f"{member.get_full_name()} has been reactivated.")
     return redirect("staff:list")
+    pass

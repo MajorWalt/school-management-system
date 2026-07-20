@@ -64,8 +64,10 @@
 			<div class="px-5 py-3 bg-gray-50 border-b font-semibold text-gray-700 text-sm uppercase tracking-wide">
 				Employment
 			</div>
-			<div class="p-5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-				{% for name in "department,role_title,subject_specialisation,hire_date,end_date,homeroom"|split:"," %}
+			<div class="p-5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4"
+				x-data="{ hasDept: {{ form.department.value|yesno:'true,false,false' }} }"
+				x-on:change="if ($event.target.name === 'department') hasDept = !!$event.target.value">
+				{% for name in "department,department_2,role_title,subject_specialisation,hire_date,end_date,homeroom"|split:"," %}
 				{% for field in form %}{% if field.name == name %}
 				<div>
 					<label class="block text-xs font-medium text-gray-600 mb-1">{{ field.label }}</label>
@@ -74,15 +76,25 @@
 				</div>
 				{% endif %}{% endfor %}
 				{% endfor %}
-				<div class="flex items-center gap-3 pt-5">
+
+				<div class="col-span-full flex flex-wrap items-center gap-x-6 gap-y-2 pt-2">
 					{% for field in form %}
-					{% if field.name == "does_attendance" or field.name == "active" %}
+					{% if field.name == "is_head_of_department" %}
+					<label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer"
+						x-bind:class="hasDept ? '' : 'opacity-50 cursor-not-allowed'"
+						title="A department must be selected first">
+						{{ field }} {{ field.label }}
+					</label>
+					{% elif field.name == "does_attendance" or field.name == "active" %}
 					<label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
 						{{ field }} {{ field.label }}
 					</label>
 					{% endif %}
 					{% endfor %}
 				</div>
+				{% for field in form %}{% if field.name == "is_head_of_department" and field.errors %}
+				<p class="col-span-full text-red-500 text-xs -mt-1">{{ field.errors.0 }}</p>
+				{% endif %}{% endfor %}
 			</div>
 		</div>
 
