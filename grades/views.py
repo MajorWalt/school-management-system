@@ -7,7 +7,7 @@ from django.http import HttpResponse
 from django.db.models import Q
 from core.decorators import tenant_required, admin_or_teacher_required
 from core.activity import log_activity
-from accounts.models import UserRole
+from accounts.utils import is_admin
 from scheduling.models import AcademicYear, Enrolment, Section
 from students.models import Student
 from .forms import BulkGradeUploadForm, EvaluationForm, GradeVisibilityForm
@@ -15,34 +15,27 @@ from .models import Evaluation, GradeComment, GradeEntry, GradeWindow, ReportCar
 from .utils import compute_student_average, grade_window_is_open
 
 
-def is_admin(user, school):
-    return UserRole.objects.filter(user=user, school=school, role="admin").exists() or user.is_superuser
-    pass
-
-
 def get_teacher_staff(user):
+    """Get the staff profile associated with a user"""
     try:
         return user.staff_profile
     except Exception:
         return None
-    pass
 
 
 def get_hod_departments(staff):
-    # Departments this staff member heads (empty unless flagged as HOD).
+    """Get departments this staff member heads (if flagged as HOD)"""
     if staff and staff.is_head_of_department:
         return [d for d in (staff.department, staff.department_2) if d]
     return []
-    pass
 
 
 def section_in_departments(section, departments):
-    # A section belongs to a department via the department of its course (subject master).
+    """Check if a section belongs to any of the given departments"""
     if not departments:
         return False
     dept = section.course.department
     return bool(dept) and dept in departments
-    pass
 
 
 # -- Grades Home ---------------------------------------------------------------
@@ -97,7 +90,6 @@ def grades_home(request):
             "current_staff": staff,
         },
     )
-    pass
 
 
 # -- Section Grade Table -------------------------------------------------------

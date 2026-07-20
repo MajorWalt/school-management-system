@@ -4,14 +4,10 @@ from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from core.decorators import tenant_required, admin_required
 from core.activity import log_activity
-from accounts.models import UserRole
+from accounts.utils import is_admin
 from scheduling.models import AcademicYear, Enrolment, Form, Homeroom, TermConfig
 from .forms import BulkEnrolForm, GuardianForm, StudentForm, StudentGuardianForm, StudentStatusForm
 from .models import Student, StudentStatusLog
-
-
-def is_admin(user, school):
-    return UserRole.objects.filter(user=user, school=school, role="admin").exists() or user.is_superuser
 
 
 @login_required

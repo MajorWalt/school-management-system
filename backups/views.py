@@ -6,13 +6,9 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.conf import settings
 from core.decorators import tenant_required, admin_required
 from core.activity import log_activity
-from accounts.models import UserRole
+from accounts.utils import is_admin
 from .models import BackupLog
 from .utils import run_backup
-
-
-def is_admin(user, school):
-    return UserRole.objects.filter(user=user, school=school, role="admin").exists() or user.is_superuser
 
 
 @admin_required

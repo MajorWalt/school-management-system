@@ -19,7 +19,6 @@ def _non_school_set(school, start, end):
 def is_school_day(school, target_date, non_school_dates=None):
     if target_date.weekday() >= 5:  # Sat / Sun
         return False
-        pass
     if non_school_dates is not None:
         return target_date not in non_school_dates
         pass
@@ -33,12 +32,10 @@ def get_cycle_day(school, target_date, settings=None):
 
     if target_date.weekday() >= 5:
         return None
-        pass
 
     if settings.mode == WEEKDAY:
         if NonSchoolDay.objects.filter(school=school, date=target_date).exists():
             return None
-            pass
         return target_date.weekday() + 1  # Mon=1 … Fri=5
         pass
 
@@ -46,12 +43,10 @@ def get_cycle_day(school, target_date, settings=None):
     anchor = settings.anchor_date
     if anchor is None or target_date < anchor:
         return None
-        pass
 
     non_school = _non_school_set(school, anchor, target_date)
     if target_date in non_school:
         return None
-        pass
 
     count = 0
     one = timedelta(days=1)
@@ -65,7 +60,6 @@ def get_cycle_day(school, target_date, settings=None):
 
     if count == 0:
         return None
-        pass
     return ((count - 1) % settings.cycle_length) + 1
     pass
 
@@ -171,7 +165,6 @@ def copy_timetable(source, target):
                 unmapped.append(label)
                 pass
             continue
-            pass
 
         _, created = TimetableSlot.objects.get_or_create(
             timetable=target,

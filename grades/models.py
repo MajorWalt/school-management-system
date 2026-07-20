@@ -99,7 +99,6 @@ class GradeEntry(models.Model):
         if self.evaluation.max_marks > 0:
             return round(float(self.marks_earned) / float(self.evaluation.max_marks) * 100, 1)
         return None
-        pass
 
 
 class GradeComment(models.Model):

@@ -10,7 +10,6 @@ def is_school_day(school, day):
 
     if day.weekday() >= 5:
         return False
-        pass
     blocked = NonSchoolDay.objects.filter(school=school, date=day).exists()
     return not blocked
     pass
@@ -126,4 +125,3 @@ def student_attendance_summary(student, academic_year=None, as_of=None):
         "days_present": days_present,
         "percentage": percentage,
     }
-    pass

@@ -149,7 +149,6 @@ def build_report_card(school, student, academic_year, up_to_term):
         "teachers": teachers,
         "terms": terms,
     }
-    pass
 
 
 def attendance_by_month(school, student, academic_year, as_of=None):

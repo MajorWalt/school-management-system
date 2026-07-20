@@ -88,7 +88,6 @@ def build_student_gradebook(school, student, academic_year):
 
         rec = by_course.setdefault(course.id, {"course": course, "terms": {}})
         rec["terms"][tn] = {"avg": avg, "items": items}
-        pass
 
     rows = []
     for rec in sorted(by_course.values(), key=lambda r: r["course"].name.lower()):
@@ -106,7 +105,6 @@ def build_student_gradebook(school, student, academic_year):
             td = rec["terms"].get(t.term_number)
             if td is None:
                 continue
-                pass
             detail_terms.append(
                 {
                     "term": t,

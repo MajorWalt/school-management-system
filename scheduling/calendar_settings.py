@@ -20,7 +20,6 @@ class AcademicYearDatesForm(forms.ModelForm):
             "start_date": forms.DateInput(attrs={"type": "date", "class": _DATE_CLASS}, format="%Y-%m-%d"),
             "end_date": forms.DateInput(attrs={"type": "date", "class": _DATE_CLASS}, format="%Y-%m-%d"),
         }
-        pass
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -47,7 +46,6 @@ class TermDatesForm(forms.ModelForm):
             "start_date": forms.DateInput(attrs={"type": "date", "class": _DATE_CLASS}, format="%Y-%m-%d"),
             "end_date": forms.DateInput(attrs={"type": "date", "class": _DATE_CLASS}, format="%Y-%m-%d"),
         }
-        pass
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

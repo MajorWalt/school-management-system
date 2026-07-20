@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from core.decorators import tenant_required, admin_required, admin_or_teacher_required
-from accounts.models import UserRole
+from accounts.utils import get_roles, is_admin
 from students.models import Student
 from staff.models import Staff
 from scheduling.models import AcademicYear, Enrolment, Form, Homeroom, Section
@@ -15,15 +15,8 @@ import datetime
 import calendar
 
 
-def get_roles(user, school):
-    return list(UserRole.objects.filter(user=user, school=school).values_list("role", flat=True))
-
-
-def is_admin(user, school):
-    return UserRole.objects.filter(user=user, school=school, role="admin").exists() or user.is_superuser
-
-
 def get_staff_profile(user):
+    """Get the staff profile associated with a user"""
     try:
         return user.staff_profile
     except Exception:
