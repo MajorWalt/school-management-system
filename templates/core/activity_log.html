@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Activity Log — {{ school.name }}{% endblock %}
+{% block title %}Activity Log - {{ school.name }}{% endblock %}
 {% block page_title %}Activity Log{% endblock %}
 
 {% block content %}
@@ -70,7 +70,7 @@
 				{% if is_admin %}
 				<td class="px-4 py-3">
 					<p class="font-medium text-gray-800 text-xs">
-						{{ log.user.get_full_name|default:"—" }}
+						{{ log.user.get_full_name|default:"-" }}
 					</p>
 					<p class="text-gray-400 text-xs">{{ log.user.email|default:"" }}</p>
 				</td>
@@ -90,7 +90,7 @@
 				</td>
 				<td class="px-4 py-3 text-gray-700 text-sm">{{ log.description }}</td>
 				<td class="px-4 py-3 text-gray-400 text-xs font-mono">
-					{{ log.ip_address|default:"—" }}
+					{{ log.ip_address|default:"-" }}
 				</td>
 			</tr>
 			{% empty %}

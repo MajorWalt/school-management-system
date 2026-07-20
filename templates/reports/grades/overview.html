@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load accounts_tags %}
-{% block title %}Class Grade Overview — {{ school.name }}{% endblock %}
+{% block title %}Class Grade Overview - {{ school.name }}{% endblock %}
 {% block page_title %}Class Grade Overview{% endblock %}
 
 {% block content %}
@@ -38,7 +38,7 @@
 		<label class="block text-xs font-medium text-gray-600 mb-1">Year</label>
 		<select name="year"
 				class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-			<option value="">— Select Year —</option>
+			<option value="">- Select Year -</option>
 			{% for year in years %}
 			<option value="{{ year.pk }}"
 					{% if year_pk == year.pk|stringformat:"s" %}selected{% endif %}>
@@ -63,7 +63,7 @@
 		<label class="block text-xs font-medium text-gray-600 mb-1">Form</label>
 		<select name="form"
 				class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-			<option value="">— Select Form —</option>
+			<option value="">- Select Form -</option>
 			{% for f in forms %}
 			<option value="{{ f.pk }}"
 					{% if form_pk == f.pk|stringformat:"s" %}selected{% endif %}>
@@ -74,10 +74,10 @@
 	</div>
 
 	<div>
-		<label class="block text-xs font-medium text-gray-600 mb-1">— or Homeroom —</label>
+		<label class="block text-xs font-medium text-gray-600 mb-1">- or Homeroom -</label>
 		<select name="homeroom"
 				class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-			<option value="">— Select Homeroom —</option>
+			<option value="">- Select Homeroom -</option>
 			{% for hr in homerooms %}
 			<option value="{{ hr.pk }}"
 					{% if homeroom_pk == hr.pk|stringformat:"s" %}selected{% endif %}>
@@ -105,7 +105,7 @@
 	<span class="flex items-center gap-1.5">
 		<span class="w-3 h-3 rounded-full bg-red-500 inline-block"></span> Below 55%
 	</span>
-	<span class="text-gray-400">— = no grades entered</span>
+	<span class="text-gray-400">- = no grades entered</span>
 </div>
 
 <div class="bg-white rounded-xl shadow overflow-hidden">
@@ -180,7 +180,7 @@
 							{{ avg }}%
 						</span>
 					{% else %}
-						<span class="text-gray-200">—</span>
+						<span class="text-gray-200">-</span>
 					{% endif %}
 				</td>
 				{% endwith %}
@@ -196,7 +196,7 @@
 						{{ row.overall }}%
 					</span>
 					{% else %}
-					<span class="text-gray-300">—</span>
+					<span class="text-gray-300">-</span>
 					{% endif %}
 				</td>
 			</tr>

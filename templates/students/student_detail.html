@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}{{ student.get_full_name }} — {{ school.name }}{% endblock %}
+{% block title %}{{ student.get_full_name }} - {{ school.name }}{% endblock %}
 {% block page_title %}Student Record{% endblock %}
 
 {% block content %}
@@ -88,14 +88,14 @@
 		<div class="p-5 grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
 			<div><span class="text-gray-400 block text-xs">Student ID</span><p class="font-medium font-mono">{{ student.student_id }}</p></div>
 			<div><span class="text-gray-400 block text-xs">First Name</span><p class="font-medium">{{ student.first_name }}</p></div>
-			<div><span class="text-gray-400 block text-xs">Middle Name</span><p class="font-medium">{{ student.middle_name|default:"—" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Middle Name</span><p class="font-medium">{{ student.middle_name|default:"-" }}</p></div>
 			<div><span class="text-gray-400 block text-xs">Last Name</span><p class="font-medium">{{ student.last_name }}</p></div>
-			<div><span class="text-gray-400 block text-xs">Gender</span><p class="font-medium">{{ student.get_gender_display|default:"—" }}</p></div>
-			<div><span class="text-gray-400 block text-xs">Date of Birth</span><p class="font-medium">{{ student.date_of_birth|default:"—" }}</p></div>
-			<div><span class="text-gray-400 block text-xs">Nationality</span><p class="font-medium">{{ student.nationality|default:"—" }}</p></div>
-			<div><span class="text-gray-400 block text-xs">Religion</span><p class="font-medium">{{ student.get_religion_display|default:"—" }}</p></div>
-			<div><span class="text-gray-400 block text-xs">House</span><p class="font-medium">{{ student.house|default:"—" }}</p></div>
-			<div><span class="text-gray-400 block text-xs">Lives With</span><p class="font-medium">{{ student.get_lives_with_display|default:"—" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Gender</span><p class="font-medium">{{ student.get_gender_display|default:"-" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Date of Birth</span><p class="font-medium">{{ student.date_of_birth|default:"-" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Nationality</span><p class="font-medium">{{ student.nationality|default:"-" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Religion</span><p class="font-medium">{{ student.get_religion_display|default:"-" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">House</span><p class="font-medium">{{ student.house|default:"-" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Lives With</span><p class="font-medium">{{ student.get_lives_with_display|default:"-" }}</p></div>
 		</div>
 	</div>
 
@@ -105,12 +105,12 @@
 			Contact & Address
 		</div>
 		<div class="p-5 grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-			<div><span class="text-gray-400 block text-xs">Phone</span><p class="font-medium">{{ student.phone|default:"—" }}</p></div>
-			<div><span class="text-gray-400 block text-xs">Email</span><p class="font-medium">{{ student.email|default:"—" }}</p></div>
-			<div><span class="text-gray-400 block text-xs">Parish</span><p class="font-medium">{{ student.parish|default:"—" }}</p></div>
-			<div><span class="text-gray-400 block text-xs">Community</span><p class="font-medium">{{ student.community|default:"—" }}</p></div>
-			<div><span class="text-gray-400 block text-xs">City</span><p class="font-medium">{{ student.city|default:"—" }}</p></div>
-			<div class="col-span-2"><span class="text-gray-400 block text-xs">Address</span><p class="font-medium">{{ student.address|default:"—" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Phone</span><p class="font-medium">{{ student.phone|default:"-" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Email</span><p class="font-medium">{{ student.email|default:"-" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Parish</span><p class="font-medium">{{ student.parish|default:"-" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Community</span><p class="font-medium">{{ student.community|default:"-" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">City</span><p class="font-medium">{{ student.city|default:"-" }}</p></div>
+			<div class="col-span-2"><span class="text-gray-400 block text-xs">Address</span><p class="font-medium">{{ student.address|default:"-" }}</p></div>
 		</div>
 	</div>
 
@@ -120,17 +120,17 @@
 			Academic Details
 		</div>
 		<div class="p-5 grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-			<div><span class="text-gray-400 block text-xs">Form</span><p class="font-medium">{{ student.form|default:"—" }}</p></div>
-			<div><span class="text-gray-400 block text-xs">Homeroom</span><p class="font-medium">{{ student.homeroom|default:"—" }}</p></div>
-			<div><span class="text-gray-400 block text-xs">Admission Date</span><p class="font-medium">{{ student.admission_date|default:"—" }}</p></div>
-			<div><span class="text-gray-400 block text-xs">Previous School</span><p class="font-medium">{{ student.previous_school|default:"—" }}</p></div>
-			<div><span class="text-gray-400 block text-xs">EMIS ID</span><p class="font-medium font-mono">{{ student.emis_id|default:"—" }}</p></div>
-			<div><span class="text-gray-400 block text-xs">CSEC Candidate No.</span><p class="font-medium font-mono">{{ student.csec_candidate_no|default:"—" }}</p></div>
-			<div><span class="text-gray-400 block text-xs">Cohort Grade</span><p class="font-medium">{{ student.cohort_grade|default:"—" }}</p></div>
-			<div><span class="text-gray-400 block text-xs">Cohort Year</span><p class="font-medium">{{ student.cohort_year|default:"—" }}</p></div>
-			<div><span class="text-gray-400 block text-xs">Repeated</span><p class="font-medium">{{ student.repeated|default:"—" }}</p></div>
-			<div><span class="text-gray-400 block text-xs">Sponsor</span><p class="font-medium">{{ student.sponsor|default:"—" }}</p></div>
-			<div><span class="text-gray-400 block text-xs">Grad Date</span><p class="font-medium">{{ student.grad_date|default:"—" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Form</span><p class="font-medium">{{ student.form|default:"-" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Homeroom</span><p class="font-medium">{{ student.homeroom|default:"-" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Admission Date</span><p class="font-medium">{{ student.admission_date|default:"-" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Previous School</span><p class="font-medium">{{ student.previous_school|default:"-" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">EMIS ID</span><p class="font-medium font-mono">{{ student.emis_id|default:"-" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">CSEC Candidate No.</span><p class="font-medium font-mono">{{ student.csec_candidate_no|default:"-" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Cohort Grade</span><p class="font-medium">{{ student.cohort_grade|default:"-" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Cohort Year</span><p class="font-medium">{{ student.cohort_year|default:"-" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Repeated</span><p class="font-medium">{{ student.repeated|default:"-" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Sponsor</span><p class="font-medium">{{ student.sponsor|default:"-" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Grad Date</span><p class="font-medium">{{ student.grad_date|default:"-" }}</p></div>
 		</div>
 	</div>
 
@@ -140,12 +140,12 @@
 			GSNA Results
 		</div>
 		<div class="p-5 grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-			<div><span class="text-gray-400 block text-xs">GSNA Year</span><p class="font-medium">{{ student.gsna_year|default:"—" }}</p></div>
-			<div><span class="text-gray-400 block text-xs">GSNA Award</span><p class="font-medium">{{ student.gsna_award|default:"—" }}</p></div>
-			<div><span class="text-gray-400 block text-xs">English</span><p class="font-medium">{{ student.get_gsna_english_display|default:"—" }}</p></div>
-			<div><span class="text-gray-400 block text-xs">Mathematics</span><p class="font-medium">{{ student.get_gsna_mathematics_display|default:"—" }}</p></div>
-			<div><span class="text-gray-400 block text-xs">Science</span><p class="font-medium">{{ student.get_gsna_science_display|default:"—" }}</p></div>
-			<div><span class="text-gray-400 block text-xs">Social Studies</span><p class="font-medium">{{ student.get_gsna_social_studies_display|default:"—" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">GSNA Year</span><p class="font-medium">{{ student.gsna_year|default:"-" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">GSNA Award</span><p class="font-medium">{{ student.gsna_award|default:"-" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">English</span><p class="font-medium">{{ student.get_gsna_english_display|default:"-" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Mathematics</span><p class="font-medium">{{ student.get_gsna_mathematics_display|default:"-" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Science</span><p class="font-medium">{{ student.get_gsna_science_display|default:"-" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Social Studies</span><p class="font-medium">{{ student.get_gsna_social_studies_display|default:"-" }}</p></div>
 		</div>
 	</div>
 
@@ -155,12 +155,12 @@
 			Emergency Contact
 		</div>
 		<div class="p-5 grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-			<div><span class="text-gray-400 block text-xs">Name</span><p class="font-medium">{{ student.emergency_contact_name|default:"—" }}</p></div>
-			<div><span class="text-gray-400 block text-xs">Relation</span><p class="font-medium">{{ student.emergency_relation|default:"—" }}</p></div>
-			<div><span class="text-gray-400 block text-xs">Phone 1</span><p class="font-medium">{{ student.emergency_phone_1|default:"—" }}</p></div>
-			<div><span class="text-gray-400 block text-xs">Phone 2</span><p class="font-medium">{{ student.emergency_phone_2|default:"—" }}</p></div>
-			<div><span class="text-gray-400 block text-xs">Work Phone</span><p class="font-medium">{{ student.emergency_work_phone|default:"—" }}</p></div>
-			<div><span class="text-gray-400 block text-xs">Workplace</span><p class="font-medium">{{ student.emergency_workplace|default:"—" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Name</span><p class="font-medium">{{ student.emergency_contact_name|default:"-" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Relation</span><p class="font-medium">{{ student.emergency_relation|default:"-" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Phone 1</span><p class="font-medium">{{ student.emergency_phone_1|default:"-" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Phone 2</span><p class="font-medium">{{ student.emergency_phone_2|default:"-" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Work Phone</span><p class="font-medium">{{ student.emergency_work_phone|default:"-" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Workplace</span><p class="font-medium">{{ student.emergency_workplace|default:"-" }}</p></div>
 		</div>
 	</div>
 
@@ -171,8 +171,8 @@
 				Doctor / Child Care
 			</div>
 			<div class="p-5 grid grid-cols-1 gap-4 text-sm">
-				<div><span class="text-gray-400 block text-xs">Doctor</span><p class="font-medium">{{ student.doctor_name|default:"—" }}</p></div>
-				<div><span class="text-gray-400 block text-xs">Doctor Phone</span><p class="font-medium">{{ student.doctor_phone|default:"—" }}</p></div>
+				<div><span class="text-gray-400 block text-xs">Doctor</span><p class="font-medium">{{ student.doctor_name|default:"-" }}</p></div>
+				<div><span class="text-gray-400 block text-xs">Doctor Phone</span><p class="font-medium">{{ student.doctor_phone|default:"-" }}</p></div>
 			</div>
 		</div>
 		<div class="bg-white rounded-xl shadow overflow-hidden">
@@ -180,8 +180,8 @@
 				Contact Restrictions
 			</div>
 			<div class="p-5 grid grid-cols-1 gap-4 text-sm">
-				<div><span class="text-gray-400 block text-xs">Restrict Contact With 1</span><p class="font-medium">{{ student.restrict_contact_1|default:"—" }}</p></div>
-				<div><span class="text-gray-400 block text-xs">Restrict Contact With 2</span><p class="font-medium">{{ student.restrict_contact_2|default:"—" }}</p></div>
+				<div><span class="text-gray-400 block text-xs">Restrict Contact With 1</span><p class="font-medium">{{ student.restrict_contact_1|default:"-" }}</p></div>
+				<div><span class="text-gray-400 block text-xs">Restrict Contact With 2</span><p class="font-medium">{{ student.restrict_contact_2|default:"-" }}</p></div>
 			</div>
 		</div>
 	</div>
@@ -192,8 +192,8 @@
 			Legal / Birth Parents
 		</div>
 		<div class="p-5 grid grid-cols-2 gap-4 text-sm">
-			<div><span class="text-gray-400 block text-xs">Father Name</span><p class="font-medium">{{ student.father_name|default:"—" }}</p></div>
-			<div><span class="text-gray-400 block text-xs">Mother Name</span><p class="font-medium">{{ student.mother_name|default:"—" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Father Name</span><p class="font-medium">{{ student.father_name|default:"-" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Mother Name</span><p class="font-medium">{{ student.mother_name|default:"-" }}</p></div>
 		</div>
 	</div>
 
@@ -222,7 +222,7 @@
 				<tr>
 					<td class="px-4 py-2 font-medium">{{ sg.guardian.get_full_name }}</td>
 					<td class="px-4 py-2 text-gray-600">{{ sg.get_relationship_display }}</td>
-					<td class="px-4 py-2 text-gray-600">{{ sg.guardian.phone|default:"—" }}</td>
+					<td class="px-4 py-2 text-gray-600">{{ sg.guardian.phone|default:"-" }}</td>
 					<td class="px-4 py-2">{% if sg.is_primary %}<span class="bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full">Primary</span>{% endif %}</td>
 					<td class="px-4 py-2">{% if sg.can_pickup %}<span class="bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full">Yes</span>{% endif %}</td>
 				</tr>
@@ -263,9 +263,9 @@
 							{{ log.get_status_display }}
 						</span>
 					</td>
-					<td class="px-4 py-2 text-gray-500 text-xs">{{ log.reason|default:"—" }}</td>
-					<td class="px-4 py-2 text-gray-400 text-xs">{{ log.description|default:"—" }}</td>
-					<td class="px-4 py-2 text-gray-500 text-xs">{{ log.changed_by|default:"—" }}</td>
+					<td class="px-4 py-2 text-gray-500 text-xs">{{ log.reason|default:"-" }}</td>
+					<td class="px-4 py-2 text-gray-400 text-xs">{{ log.description|default:"-" }}</td>
+					<td class="px-4 py-2 text-gray-500 text-xs">{{ log.changed_by|default:"-" }}</td>
 				</tr>
 				{% empty %}
 				<tr>
@@ -290,7 +290,7 @@
 		<div class="px-5 py-4 border-b bg-gray-50 flex items-center justify-between">
 			<div>
 				<h2 class="font-semibold text-gray-700">Staff Notes</h2>
-				<p class="text-xs text-gray-400">Visible to teachers and admins only — not to students or parents.</p>
+				<p class="text-xs text-gray-400">Visible to teachers and admins only - not to students or parents.</p>
 			</div>
 			<button type="button" onclick="noteShowAddForm()"
 				class="text-sm text-blue-600 hover:underline" id="note-add-link">
@@ -324,7 +324,7 @@
 				<p class="text-sm text-gray-600 whitespace-pre-line" id="note-body-{{ note.pk }}">{{ note.body }}</p>
 
 				<p class="text-xs text-gray-400 mt-1.5">
-					— {% if note.author %}{{ note.author.get_full_name|default:note.author.email }}{% else %}Unknown{% endif %}
+					- {% if note.author %}{{ note.author.get_full_name|default:note.author.email }}{% else %}Unknown{% endif %}
 					<span class="text-gray-300">·</span>
 					{{ note.created_at|date:"d M Y, g:i A" }}
 					{% if note.updated_at and note.updated_at != note.created_at %}<span class="italic">· edited</span>{% endif %}
@@ -401,7 +401,7 @@
 								{% endif %}
 							</td>
 							<td class="py-1.5 text-gray-500">
-								{% if enr.section.teacher %}{{ enr.section.teacher.get_full_name }}{% else %}—{% endif %}
+								{% if enr.section.teacher %}{{ enr.section.teacher.get_full_name }}{% else %}-{% endif %}
 							</td>
 						</tr>
 						{% endfor %}

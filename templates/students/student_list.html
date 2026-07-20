@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Students — {{ school.name }}{% endblock %}
+{% block title %}Students - {{ school.name }}{% endblock %}
 
 {% block content %}
 <div class="flex items-center justify-between mb-6">
@@ -132,7 +132,7 @@
 			{% else %}
 				All Students
 			{% endif %}
-			— <strong>{{ students.count }}</strong> student{{ students.count|pluralize }}
+			- <strong>{{ students.count }}</strong> student{{ students.count|pluralize }}
 			{% if query %} matching <em>"{{ query }}"</em>{% endif %}
 		</span>
 	</div>
@@ -157,9 +157,9 @@
 						{{ student.get_full_name }}
 					</a>
 				</td>
-				<td class="px-4 py-3 text-gray-600">{{ student.form|default:"—" }}</td>
-				<td class="px-4 py-3 text-gray-600">{{ student.homeroom|default:"—" }}</td>
-				<td class="px-4 py-3 text-gray-600">{{ student.house|default:"—" }}</td>
+				<td class="px-4 py-3 text-gray-600">{{ student.form|default:"-" }}</td>
+				<td class="px-4 py-3 text-gray-600">{{ student.homeroom|default:"-" }}</td>
+				<td class="px-4 py-3 text-gray-600">{{ student.house|default:"-" }}</td>
 				<td class="px-4 py-3">
 					{% with s=student.current_status %}
 					{% if s == "enrolled" %}
@@ -201,7 +201,7 @@
 
 {% else %}
 
-<!-- Empty state — nothing selected yet -->
+<!-- Empty state - nothing selected yet -->
 <div class="bg-white rounded-xl shadow p-16 text-center text-gray-400">
 	<p class="text-lg font-medium text-gray-600 mb-1">Select a form or homeroom above</p>
 	<p class="text-sm">Or click "All Students" to view everyone</p>

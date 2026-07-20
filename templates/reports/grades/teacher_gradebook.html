@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Teacher Gradebook — {{ school.name }}{% endblock %}
+{% block title %}Teacher Gradebook - {{ school.name }}{% endblock %}
 {% block page_title %}Teacher Gradebook{% endblock %}
 
 {% block content %}
@@ -81,7 +81,7 @@
 			<div class="px-5 py-3 bg-gray-800 text-white flex items-center justify-between flex-wrap gap-2">
 				<div>
 					<span class="font-semibold">{{ selected_section.course.name }}</span>
-					<span class="text-gray-300 text-sm ml-2">— {{ selected_section.form }} · Term {{ selected_section.term_number }}</span>
+					<span class="text-gray-300 text-sm ml-2">- {{ selected_section.form }} · Term {{ selected_section.term_number }}</span>
 				</div>
 				{% if selected_section.teacher %}
 				<span class="text-amber-300 text-sm">{{ selected_section.teacher.get_full_name }}</span>
@@ -122,7 +122,7 @@
 									{{ cell.pct }}%
 								</span>
 							{% else %}
-								<span class="text-gray-300">—</span>
+								<span class="text-gray-300">-</span>
 							{% endif %}
 						</td>
 						{% endfor %}
@@ -132,7 +132,7 @@
 								{{ row.avg }}%
 							</span>
 							{% else %}
-							<span class="text-gray-300">—</span>
+							<span class="text-gray-300">-</span>
 							{% endif %}
 						</td>
 					</tr>

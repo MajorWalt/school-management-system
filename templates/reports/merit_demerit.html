@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Merit & Demerit Report — {{ school.name }}{% endblock %}
+{% block title %}Merit & Demerit Report - {{ school.name }}{% endblock %}
 {% block page_title %}Merit & Demerit Report{% endblock %}
 
 {% block content %}
@@ -103,7 +103,7 @@
 		});
 	});
 
-	// When Generate is clicked, do NOT let the button override — hidden input already holds current type
+	// When Generate is clicked, do NOT let the button override - hidden input already holds current type
 	generateBtn.addEventListener('click', function (e) {
 		// hiddenType already has the correct value; just submit normally
 	});
@@ -188,7 +188,7 @@
 							{% if report_type == 'merit' %}border-emerald-200 text-emerald-700 bg-emerald-50
 							{% else %}border-rose-200 text-rose-700 bg-rose-50{% endif %}">
 							{{ rec.date|date:"d M" }} · {{ rec.get_category_display }} · {{ rec.count }}
-							{% if rec.reason %} — {{ rec.reason|truncatechars:30 }}{% endif %}
+							{% if rec.reason %} - {{ rec.reason|truncatechars:30 }}{% endif %}
 						</span>
 						{% endfor %}
 					</div>

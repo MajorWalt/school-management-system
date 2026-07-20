@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Course Master — {{ school.name }}{% endblock %}
+{% block title %}Course Master - {{ school.name }}{% endblock %}
 {% block page_title %}Course Master{% endblock %}
 
 {% block content %}
@@ -52,28 +52,28 @@
 		<tbody class="divide-y divide-gray-100">
 			{% for course in courses %}
 			<tr class="hover:bg-gray-50 transition {% if not course.active %}opacity-60{% endif %}">
-				<td class="px-4 py-3 font-mono text-gray-500 text-xs">{{ course.code|default:"—" }}</td>
+				<td class="px-4 py-3 font-mono text-gray-500 text-xs">{{ course.code|default:"-" }}</td>
 				<td class="px-4 py-3 font-medium text-gray-800">
 					<a href="{% url 'scheduling:course_detail' course.pk %}" class="hover:underline">
 						{{ course.name }}
 					</a>
 				</td>
-				<td class="px-4 py-3 text-gray-500 text-xs">{{ course.short_description|default:"—" }}</td>
-				<td class="px-4 py-3 text-gray-500 text-xs">{{ course.get_subject_area_display|default:"—" }}</td>
-				<td class="px-4 py-3 text-gray-500 text-xs">{{ course.teacher|default:"—" }}</td>
+				<td class="px-4 py-3 text-gray-500 text-xs">{{ course.short_description|default:"-" }}</td>
+				<td class="px-4 py-3 text-gray-500 text-xs">{{ course.get_subject_area_display|default:"-" }}</td>
+				<td class="px-4 py-3 text-gray-500 text-xs">{{ course.teacher|default:"-" }}</td>
 				<td class="px-4 py-3 text-center text-gray-400 text-xs">{{ course.sequence }}</td>
 				<td class="px-4 py-3 text-center">
 					{% if course.web_visible %}
 						<span class="text-green-500 text-xs">✓</span>
 					{% else %}
-						<span class="text-gray-300 text-xs">—</span>
+						<span class="text-gray-300 text-xs">-</span>
 					{% endif %}
 				</td>
 				<td class="px-4 py-3 text-center">
 					{% if course.calc_average %}
 						<span class="text-green-500 text-xs">✓</span>
 					{% else %}
-						<span class="text-gray-300 text-xs">—</span>
+						<span class="text-gray-300 text-xs">-</span>
 					{% endif %}
 				</td>
 				<td class="px-4 py-3 text-center">

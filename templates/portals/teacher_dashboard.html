@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Teacher Dashboard — {{ school.name }}{% endblock %}
+{% block title %}Teacher Dashboard - {{ school.name }}{% endblock %}
 {% block page_title %}Dashboard{% endblock %}
 
 {% block content %}
@@ -30,7 +30,7 @@
 <div class="dashboard-panel teacher-panel mb-6">
 	<div class="dashboard-panel-header">
 		<div>
-			<h2 class="dashboard-panel-title">My Homerooms — Today</h2>
+			<h2 class="dashboard-panel-title">My Homerooms - Today</h2>
 			<p class="dashboard-panel-subtitle">Attendance registers assigned to you</p>
 		</div>
 	</div>
@@ -154,7 +154,7 @@
 	<ul class="divide-y divide-gray-100">
 		{% for entry in recent_logins %}
 		<li class="px-5 py-2.5 flex items-center justify-between">
-			<span class="text-xs text-gray-500">{{ entry.ip_address|default:"—" }}</span>
+			<span class="text-xs text-gray-500">{{ entry.ip_address|default:"-" }}</span>
 			<span class="text-xs text-gray-400 font-mono">{{ entry.created_at|date:"d M Y, H:i" }}</span>
 		</li>
 		{% endfor %}

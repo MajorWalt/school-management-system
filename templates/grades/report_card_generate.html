@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Generate Report Cards — {{ school.name }}{% endblock %}
+{% block title %}Generate Report Cards - {{ school.name }}{% endblock %}
 
 {% block content %}
 <div class="max-w-2xl mx-auto space-y-6">
@@ -40,13 +40,13 @@
 		</div>
 
 		<div class="border-t border-gray-100 pt-4">
-			<p class="text-xs uppercase font-semibold text-gray-400 mb-3">Scope — fill one (most specific wins)</p>
+			<p class="text-xs uppercase font-semibold text-gray-400 mb-3">Scope - fill one (most specific wins)</p>
 
 			<div class="space-y-3">
 				<div>
 					<label class="block text-sm font-medium text-gray-700 mb-1">Whole form</label>
 					<select name="form" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-						<option value="">—</option>
+						<option value="">-</option>
 						{% for f in forms %}
 						<option value="{{ f.pk }}">{{ f.name }}</option>
 						{% endfor %}
@@ -55,7 +55,7 @@
 				<div>
 					<label class="block text-sm font-medium text-gray-700 mb-1">Homeroom</label>
 					<select name="homeroom" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-						<option value="">—</option>
+						<option value="">-</option>
 						{% for hr in homerooms %}
 						<option value="{{ hr.pk }}">{{ hr.name }} ({{ hr.form }})</option>
 						{% endfor %}
@@ -64,7 +64,7 @@
 				<div>
 					<label class="block text-sm font-medium text-gray-700 mb-1">Individual student</label>
 					<select name="student" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-						<option value="">—</option>
+						<option value="">-</option>
 						{% for st in students %}
 						<option value="{{ st.pk }}">{{ st.get_full_name }}</option>
 						{% endfor %}

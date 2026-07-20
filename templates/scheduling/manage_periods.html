@@ -13,9 +13,9 @@
       <tr class="border-b">
         <td class="p-3">{{ p.order }}</td>
         <td>{{ p.name }}</td>
-        <td>{{ p.start_time|default:"—" }}</td>
-        <td>{{ p.end_time|default:"—" }}</td>
-        <td>{% if p.is_break %}Yes{% else %}—{% endif %}</td>
+        <td>{{ p.start_time|default:"-" }}</td>
+        <td>{{ p.end_time|default:"-" }}</td>
+        <td>{% if p.is_break %}Yes{% else %}-{% endif %}</td>
         <td>
           <form method="post">{% csrf_token %}
             <button name="delete" value="{{ p.id }}" class="text-red-600">Delete</button>

@@ -9,7 +9,7 @@
     <div>
       <label class="block text-sm font-medium mb-1">Form</label>
       <select name="form" class="border rounded-lg px-3 py-2 text-sm">
-        <option value="">— choose form —</option>
+        <option value="">- choose form -</option>
         {% for f in forms %}
           <option value="{{ f.id }}" {% if selected_form.id == f.id %}selected{% endif %}>{{ f }}</option>
         {% endfor %}
@@ -18,7 +18,7 @@
     <div>
       <label class="block text-sm font-medium mb-1">Term</label>
       <select name="term" class="border rounded-lg px-3 py-2 text-sm">
-        <option value="">— choose term —</option>
+        <option value="">- choose term -</option>
         {% for t in term_opts %}
           <option value="{{ t.value }}" {% if selected_term_value == t.value %}selected{% endif %}>{{ t.label }}</option>
         {% endfor %}
@@ -36,7 +36,7 @@
 
   {% if timetable %}
   <p class="app-muted text-sm mb-3">
-    Editing <strong>{{ timetable.form }}</strong> — {{ timetable.academic_year }} Term {{ timetable.term_number }}.
+    Editing <strong>{{ timetable.form }}</strong> - {{ timetable.academic_year }} Term {{ timetable.term_number }}.
     Add several sections to one cell for a switch/split period.
   </p>
 
@@ -92,7 +92,7 @@
                   <select name="section" class="border rounded px-1 py-1 text-xs w-full">
                     <option value="">section…</option>
                     {% for s in available_sections %}
-                      <option value="{{ s.id }}">{{ s.course.code|default:s.course }}{% if s.teacher %} — {{ s.teacher.last_name }}{% endif %}</option>
+                      <option value="{{ s.id }}">{{ s.course.code|default:s.course }}{% if s.teacher %} - {{ s.teacher.last_name }}{% endif %}</option>
                     {% endfor %}
                   </select>
                   <button class="text-xs px-2 rounded bg-blue-600 text-white">✓</button>

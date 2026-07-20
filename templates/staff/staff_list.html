@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Staff — {{ school.name }}{% endblock %}
+{% block title %}Staff - {{ school.name }}{% endblock %}
 
 {% block content %}
 <div class="flex items-center justify-between mb-6">
@@ -46,8 +46,8 @@
                         {{ member.get_full_name }}
                     </a>
                 </td>
-                <td class="px-4 py-3 text-gray-600">{{ member.department|default:"—" }}</td>
-                <td class="px-4 py-3 text-gray-600">{{ member.role_title|default:"—" }}</td>
+                <td class="px-4 py-3 text-gray-600">{{ member.department|default:"-" }}</td>
+                <td class="px-4 py-3 text-gray-600">{{ member.role_title|default:"-" }}</td>
                 <td class="px-4 py-3">
                     {% if member.active %}
                         <span class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full">Active</span>

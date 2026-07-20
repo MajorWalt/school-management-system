@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Grades — {{ enrolment.student.get_full_name }}{% endblock %}
+{% block title %}Grades - {{ enrolment.student.get_full_name }}{% endblock %}
 
 {% block content %}
 <div class="max-w-3xl mx-auto space-y-6">
@@ -7,8 +7,8 @@
 	<div class="flex items-center justify-between">
 		<div>
 			<p class="text-sm text-gray-500">
-				{{ enrolment.section.course.name }} —
-				{{ enrolment.section.form }} —
+				{{ enrolment.section.course.name }} -
+				{{ enrolment.section.form }} -
 				Term {{ enrolment.section.term_number }}
 			</p>
 			<h1 class="text-2xl font-bold text-gray-800">{{ enrolment.student.get_full_name }}</h1>
@@ -31,7 +31,7 @@
 				{{ result.exam_label }} ({{ result.exam_weight }}%)
 			</p>
 			<p class="text-2xl font-bold text-gray-800">
-				{% if result.has_exam %}{{ result.exam_mark }}%{% else %}—{% endif %}
+				{% if result.has_exam %}{{ result.exam_mark }}%{% else %}-{% endif %}
 			</p>
 		</div>
 		<div>

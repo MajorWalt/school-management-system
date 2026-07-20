@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Report Cards — {{ school.name }}{% endblock %}
+{% block title %}Report Cards - {{ school.name }}{% endblock %}
 
 {% block content %}
 <div class="flex items-center justify-between mb-6">
@@ -54,7 +54,7 @@
 					{% if rc.gpa >= 70 %}text-green-600
 					{% elif rc.gpa >= 50 %}text-yellow-600
 					{% else %}text-red-600{% endif %}">
-					{{ rc.gpa|default:"—" }}%
+					{{ rc.gpa|default:"-" }}%
 				</td>
 				<td class="px-4 py-3 flex gap-2">
 					{% if rc.pdf_file %}

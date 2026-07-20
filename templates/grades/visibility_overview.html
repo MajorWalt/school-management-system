@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load accounts_tags %}
-{% block title %}Access Control — {{ school.name }}{% endblock %}
+{% block title %}Access Control - {{ school.name }}{% endblock %}
 {% block page_title %}Access Control{% endblock %}
 
 {% block content %}
@@ -111,7 +111,7 @@
 						{% elif selected_homeroom %}Homeroom {{ selected_homeroom.name }}
 						{% endif %}
 					</span>
-					<span class="text-xs text-gray-400 ml-2">— {{ students.count }} student{{ students.count|pluralize }}</span>
+					<span class="text-xs text-gray-400 ml-2">- {{ students.count }} student{{ students.count|pluralize }}</span>
 				</div>
 
 				<!-- Select all / none shortcuts -->
@@ -145,7 +145,7 @@
 							</a>
 						</td>
 						<td class="px-4 py-3 font-mono text-gray-400 text-xs">{{ student.student_id }}</td>
-						<td class="px-4 py-3 text-gray-500">{{ student.homeroom|default:"—" }}</td>
+						<td class="px-4 py-3 text-gray-500">{{ student.homeroom|default:"-" }}</td>
 						<td class="px-4 py-3 text-center">
 							<label class="relative inline-flex items-center cursor-pointer"
 								title="Toggle grade visibility for {{ student.get_full_name }}">

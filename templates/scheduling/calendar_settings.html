@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Academic Calendar — {{ school.name }}{% endblock %}
+{% block title %}Academic Calendar - {{ school.name }}{% endblock %}
 
 {% block content %}
 <div class="max-w-xl mx-auto space-y-6">
@@ -30,7 +30,7 @@
 				class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
 				{% for y in years %}
 				<option value="{{ y.pk }}" {% if y.pk == academic_year.pk %}selected{% endif %}>
-					{{ y.name }}{% if y.is_current %} — current{% endif %}
+					{{ y.name }}{% if y.is_current %} - current{% endif %}
 				</option>
 				{% endfor %}
 			</select>

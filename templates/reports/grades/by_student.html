@@ -1,10 +1,10 @@
 {% extends "base.html" %}
-{% block title %}Grade Report by Student — {{ school.name }}{% endblock %}
+{% block title %}Grade Report by Student - {{ school.name }}{% endblock %}
 {% block page_title %}Grade Report by Student{% endblock %}
 
 {% block content %}
 <div class="flex items-center justify-between mb-5 flex-wrap gap-3">
-	<h1 class="text-xl font-bold text-gray-800">Grade Report — By Student</h1>
+	<h1 class="text-xl font-bold text-gray-800">Grade Report - By Student</h1>
 	<div class="flex gap-2 flex-wrap">
 		{% if selected_student and course_rows %}
 		<a href="?student={{ student_pk }}&year={{ year_pk }}&term={{ term }}&pdf=1"
@@ -27,7 +27,7 @@
 	<div>
 		<label class="block text-xs font-medium text-gray-600 mb-1">Year</label>
 		<select name="year" class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-			<option value="">— Select Year —</option>
+			<option value="">- Select Year -</option>
 			{% for year in years %}
 			<option value="{{ year.pk }}" {% if year_pk == year.pk|stringformat:"s" %}selected{% endif %}>{{ year.name }}</option>
 			{% endfor %}
@@ -63,7 +63,7 @@
 	<div>
 		<label class="block text-xs font-medium text-gray-600 mb-1">Student</label>
 		<select name="student" class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-			<option value="">— Select Student —</option>
+			<option value="">- Select Student -</option>
 			{% for s in students_qs %}
 			<option value="{{ s.pk }}" {% if student_pk == s.pk|stringformat:"s" %}selected{% endif %}>
 				{{ s.get_full_name }} ({{ s.student_id }})
@@ -133,7 +133,7 @@
 							{{ cell.pct }}%
 						</span>
 					{% else %}
-						<span class="text-gray-300">—</span>
+						<span class="text-gray-300">-</span>
 					{% endif %}
 				</td>
 				{% endfor %}
@@ -146,7 +146,7 @@
 						{{ cr.avg }}%
 					</span>
 					{% else %}
-					<span class="text-gray-300">—</span>
+					<span class="text-gray-300">-</span>
 					{% endif %}
 				</td>
 			</tr>

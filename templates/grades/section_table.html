@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load accounts_tags %}
-{% block title %}Gradebook — {{ section.course.name }}{% endblock %}
+{% block title %}Gradebook - {{ section.course.name }}{% endblock %}
 {% block page_title %}Gradebook{% endblock %}
 
 {% block content %}
@@ -9,7 +9,7 @@
 <div class="flex items-center justify-between mb-4">
 	<div>
 		<h1 class="text-xl font-bold text-gray-800">
-			{{ section.course.name }} — {{ section.form }}
+			{{ section.course.name }} - {{ section.form }}
 		</h1>
 		<p class="text-sm text-gray-500">
 			{{ section.academic_year.name }}
@@ -125,7 +125,7 @@
 							   name="grade_{{ cell.ev.pk }}_{{ row.student.pk }}"
 							   value="{% if cell.entry and not cell.absent %}{{ cell.entry.marks_earned }}{% endif %}"
 							   min="0" max="{{ cell.ev.max_marks }}" step="0.01"
-							   placeholder="—"
+							   placeholder="-"
 							   {% if cell.absent %}disabled{% endif %}
 							   class="w-20 text-center rounded border px-1.5 py-1 text-sm
 									  focus:outline-none focus:ring-1 focus:ring-blue-500
@@ -153,7 +153,7 @@
 								{{ cell.pct }}%
 							</span>
 						{% else %}
-							<span class="text-gray-300">—</span>
+							<span class="text-gray-300">-</span>
 						{% endif %}
 					{% endif %}
 				</td>
@@ -169,7 +169,7 @@
 						{{ row.avg }}%
 					</span>
 					{% else %}
-					<span class="text-gray-300 text-xs">—</span>
+					<span class="text-gray-300 text-xs">-</span>
 					{% endif %}
 				</td>
 			</tr>
@@ -182,7 +182,7 @@
 						<label class="text-xs text-gray-400 uppercase tracking-wide mt-1.5 flex-shrink-0">Comment</label>
 						<textarea name="comment_{{ row.student.pk }}"
 								  rows="1"
-								  placeholder="Optional comment for this student — shown on the report card"
+								  placeholder="Optional comment for this student - shown on the report card"
 								  class="flex-1 text-sm rounded border border-gray-200 px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-y">{{ row.comment }}</textarea>
 					</div>
 					{% elif row.comment %}

@@ -66,12 +66,12 @@
 				{% if cell.absent %}ABS
 				{% elif cell.pct is not None %}
 					{{ cell.entry.marks_earned }} ({{ cell.pct }}%)
-				{% else %}—{% endif %}
+				{% else %}-{% endif %}
 			</td>
 			{% endfor %}
 			<td class="avg-col
 				{% if cr.avg is not None %}{% if cr.avg < 55 %}red{% elif cr.avg < 70 %}yellow{% else %}green{% endif %}{% endif %}">
-				{% if cr.avg is not None %}{{ cr.avg }}%{% else %}—{% endif %}
+				{% if cr.avg is not None %}{{ cr.avg }}%{% else %}-{% endif %}
 			</td>
 		</tr>
 	</tbody>

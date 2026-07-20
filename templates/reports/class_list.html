@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Class List — {{ school.name }}{% endblock %}
+{% block title %}Class List - {{ school.name }}{% endblock %}
 {% block page_title %}Class List{% endblock %}
 
 {% block content %}
@@ -45,7 +45,7 @@
 	<div class="px-5 py-3 border-b bg-gray-50 flex items-center justify-between">
 		<div>
 			<span class="text-sm font-semibold text-gray-700">Homeroom {{ selected_homeroom.name }}</span>
-			<span class="text-xs text-gray-400 ml-2">— {{ selected_homeroom.form }}</span>
+			<span class="text-xs text-gray-400 ml-2">- {{ selected_homeroom.form }}</span>
 		</div>
 		<span class="text-xs text-gray-400">{{ students|length }} enrolled student{{ students|length|pluralize }}</span>
 	</div>
@@ -71,10 +71,10 @@
 						{{ student.get_full_name }}
 					</a>
 				</td>
-				<td class="px-4 py-2.5 text-gray-500">{{ student.get_gender_display|default:"—" }}</td>
-				<td class="px-4 py-2.5 text-gray-500">{{ student.date_of_birth|default:"—" }}</td>
-				<td class="px-4 py-2.5 text-gray-500">{{ student.house|default:"—" }}</td>
-				<td class="px-4 py-2.5 text-gray-500">{{ student.phone|default:"—" }}</td>
+				<td class="px-4 py-2.5 text-gray-500">{{ student.get_gender_display|default:"-" }}</td>
+				<td class="px-4 py-2.5 text-gray-500">{{ student.date_of_birth|default:"-" }}</td>
+				<td class="px-4 py-2.5 text-gray-500">{{ student.house|default:"-" }}</td>
+				<td class="px-4 py-2.5 text-gray-500">{{ student.phone|default:"-" }}</td>
 			</tr>
 			{% empty %}
 			<tr>

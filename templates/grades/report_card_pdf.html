@@ -388,12 +388,12 @@
 
 				<div class="box placement-box">
 					{% if term_number == 3 %}
-					<b>Student Placement</b> — {{ card.student.get_full_name }}<br/>
+					<b>Student Placement</b> - {{ card.student.get_full_name }}<br/>
 					[ &nbsp; ] Will be promoted<br/>
 					[ &nbsp; ] On probation, will be promoted<br/>
 					[ &nbsp; ] Will repeat
 					{% else %}
-					<b>Predicted to</b> — {{ card.student.get_full_name }}<br/>
+					<b>Predicted to</b> - {{ card.student.get_full_name }}<br/>
 					[ &nbsp; ] Be promoted &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; [ &nbsp; ] Repeat
 					{% endif %}
 				</div>

@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Database Backups — {{ school.name }}{% endblock %}
+{% block title %}Database Backups - {{ school.name }}{% endblock %}
 
 {% block content %}
 <div class="max-w-3xl mx-auto space-y-6">
@@ -44,7 +44,7 @@
 				{% for log in logs %}
 				<tr class="hover:bg-gray-50 transition">
 					<td class="px-4 py-3 font-mono text-xs text-gray-700">
-						{{ log.filename|default:"—" }}
+						{{ log.filename|default:"-" }}
 					</td>
 					<td class="px-4 py-3">
 						{% if log.status == "success" %}
@@ -61,7 +61,7 @@
 						{{ log.file_size_display }}
 					</td>
 					<td class="px-4 py-3 text-gray-600">
-						{{ log.triggered_by|default:"—" }}
+						{{ log.triggered_by|default:"-" }}
 					</td>
 					<td class="px-4 py-3 text-gray-400 text-xs">
 						{{ log.created_at|date:"d M Y H:i" }}

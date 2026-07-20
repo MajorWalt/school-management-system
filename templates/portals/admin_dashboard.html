@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Dashboard — {{ school.name }}{% endblock %}
+{% block title %}Dashboard - {{ school.name }}{% endblock %}
 {% block page_title %}Dashboard{% endblock %}
 
 {% block content %}
@@ -113,7 +113,7 @@
 			</div>
 			<div class="dashboard-kpi-wide-body">
 				<p class="text-xl font-bold text-emerald-600 tracking-tight">{{ stats.merits_this_month }}</p>
-				<p class="text-xs text-slate-400 font-medium">Merits — This Month</p>
+				<p class="text-xs text-slate-400 font-medium">Merits - This Month</p>
 			</div>
 		</a>
 
@@ -126,7 +126,7 @@
 			</div>
 			<div>
 				<p class="text-xl font-bold text-rose-600 tracking-tight">{{ stats.demerits_this_month }}</p>
-				<p class="text-xs text-slate-400 font-medium">Demerits — This Month</p>
+				<p class="text-xs text-slate-400 font-medium">Demerits - This Month</p>
 			</div>
 		</a>
 	</div>
@@ -165,12 +165,12 @@
 							</a>
 						</td>
 						<td class="px-4 py-2.5 text-sm text-slate-500">
-							{{ record.homeroom|default:"—" }}
+							{{ record.homeroom|default:"-" }}
 						</td>
 						<td class="px-4 py-2.5">
 							<span class="text-xs text-slate-400 font-mono">{{ record.date }}</span>
 						</td>
-						<td class="px-4 py-2.5 text-xs text-slate-400">{{ record.note|default:"—" }}</td>
+						<td class="px-4 py-2.5 text-xs text-slate-400">{{ record.note|default:"-" }}</td>
 					</tr>
 					{% endfor %}
 				</tbody>
@@ -298,7 +298,7 @@
 							<p class="text-xs font-medium text-slate-700 truncate">
 								{{ entry.user.get_full_name }}
 							</p>
-							<p class="text-xs text-slate-400 truncate">{{ entry.ip_address|default:"—" }}</p>
+							<p class="text-xs text-slate-400 truncate">{{ entry.ip_address|default:"-" }}</p>
 						</div>
 						<span class="text-xs text-slate-400 whitespace-nowrap flex-shrink-0 font-mono">
 							{{ entry.created_at|date:"d M, H:i" }}

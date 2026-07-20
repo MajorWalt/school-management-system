@@ -39,10 +39,10 @@
 			<td>{{ forloop.counter }}</td>
 			<td>{{ member.employee_number }}</td>
 			<td>{{ member.get_full_name }}</td>
-			<td>{{ member.department|default:"—" }}</td>
-			<td>{{ member.role_title|default:"—" }}</td>
-			<td>{{ member.phone_1|default:"—" }}</td>
-			<td>{{ member.email_work|default:"—" }}</td>
+			<td>{{ member.department|default:"-" }}</td>
+			<td>{{ member.role_title|default:"-" }}</td>
+			<td>{{ member.phone_1|default:"-" }}</td>
+			<td>{{ member.email_work|default:"-" }}</td>
 		</tr>
 		{% endfor %}
 	</tbody>

@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Attendance Summary — {{ school.name }}{% endblock %}
+{% block title %}Attendance Summary - {{ school.name }}{% endblock %}
 {% block page_title %}Attendance Summary{% endblock %}
 
 {% block content %}
@@ -51,7 +51,7 @@
 		<label class="block text-xs font-medium text-gray-600 mb-1">Homeroom</label>
 		<select name="homeroom"
 				class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-			<option value="">— Select Homeroom —</option>
+			<option value="">- Select Homeroom -</option>
 			{% for hr in homerooms %}
 			<option value="{{ hr.pk }}" {% if homeroom_pk == hr.pk|stringformat:"s" %}selected{% endif %}>
 				{{ hr.name }} ({{ hr.form }})
@@ -61,7 +61,7 @@
 	</div>
 	{% if is_admin %}
 	<div>
-		<label class="block text-xs font-medium text-gray-600 mb-1">— or Form —</label>
+		<label class="block text-xs font-medium text-gray-600 mb-1">- or Form -</label>
 		<select name="form"
 				class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
 			<option value="">All Forms</option>
@@ -154,18 +154,18 @@
 			{% with t_enrolled=0 t_attended=0 t_absent=0 %}
 			<tr class="bg-gray-100 font-semibold text-gray-700 border-t-2 border-gray-400">
 				<td class="px-3 py-2 border border-gray-300 text-right text-xs" colspan="2">
-					Total — (Student-Days)
+					Total - (Student-Days)
 				</td>
 				<td class="px-2 py-2 border border-gray-300 text-center">
 					{{ rows|length }}
 				</td>
-				<td class="px-2 py-2 border border-gray-300 text-center">—</td>
-				<td class="px-2 py-2 border border-gray-300 text-center">—</td>
-				<td class="px-2 py-2 border border-gray-300 text-center">—</td>
-				<td class="px-2 py-2 border border-gray-300 text-center">—</td>
-				<td class="px-2 py-2 border border-gray-300 text-center">—</td>
-				<td class="px-2 py-2 border border-gray-300 text-center">—</td>
-				<td class="px-2 py-2 border border-gray-300 text-center">—</td>
+				<td class="px-2 py-2 border border-gray-300 text-center">-</td>
+				<td class="px-2 py-2 border border-gray-300 text-center">-</td>
+				<td class="px-2 py-2 border border-gray-300 text-center">-</td>
+				<td class="px-2 py-2 border border-gray-300 text-center">-</td>
+				<td class="px-2 py-2 border border-gray-300 text-center">-</td>
+				<td class="px-2 py-2 border border-gray-300 text-center">-</td>
+				<td class="px-2 py-2 border border-gray-300 text-center">-</td>
 			</tr>
 			{% endwith %}
 		</tbody>

@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Course List — {{ school.name }}{% endblock %}
+{% block title %}Course List - {{ school.name }}{% endblock %}
 {% block page_title %}Course List{% endblock %}
 
 {% block content %}
@@ -120,7 +120,7 @@
 				<td class="px-4 py-3 text-gray-500">{{ section.form }}</td>
 				<td class="px-4 py-3 text-gray-500">Term {{ section.term_number }}</td>
 				<td class="px-4 py-3 text-gray-500 text-xs">{{ section.academic_year.name }}</td>
-				{% if is_admin %}<td class="px-4 py-3 text-gray-500 text-xs">{{ section.teacher|default:"—" }}</td>{% endif %}
+				{% if is_admin %}<td class="px-4 py-3 text-gray-500 text-xs">{{ section.teacher|default:"-" }}</td>{% endif %}
 				<td class="px-4 py-3 text-center text-gray-500">{{ section.enrolments.count }}</td>
 				<td class="px-4 py-3">
 					<a href="?section={{ section.pk }}&view=list{% if selected_year %}&year={{ selected_year }}{% endif %}"
@@ -146,7 +146,7 @@
 		<div>
 			<span class="text-sm font-semibold text-gray-700">{{ selected_section.course.name }}</span>
 			<span class="text-xs text-gray-400 ml-2">
-				— {{ selected_section.form }} · Term {{ selected_section.term_number }} · {{ selected_section.academic_year.name }}
+				- {{ selected_section.form }} · Term {{ selected_section.term_number }} · {{ selected_section.academic_year.name }}
 			</span>
 		</div>
 		<span class="text-xs text-gray-400">{{ enrolments|length }} student{{ enrolments|length|pluralize }}</span>
@@ -172,9 +172,9 @@
 						{{ enrolment.student.get_full_name }}
 					</a>
 				</td>
-				<td class="px-4 py-2.5 text-gray-500">{{ enrolment.student.homeroom|default:"—" }}</td>
-				<td class="px-4 py-2.5 text-gray-500">{{ enrolment.student.get_gender_display|default:"—" }}</td>
-				<td class="px-4 py-2.5 text-gray-500">{{ enrolment.student.date_of_birth|default:"—" }}</td>
+				<td class="px-4 py-2.5 text-gray-500">{{ enrolment.student.homeroom|default:"-" }}</td>
+				<td class="px-4 py-2.5 text-gray-500">{{ enrolment.student.get_gender_display|default:"-" }}</td>
+				<td class="px-4 py-2.5 text-gray-500">{{ enrolment.student.date_of_birth|default:"-" }}</td>
 			</tr>
 			{% empty %}
 			<tr>

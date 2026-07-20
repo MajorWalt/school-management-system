@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Bulk Grade Upload — {{ section.course.name }}{% endblock %}
+{% block title %}Bulk Grade Upload - {{ section.course.name }}{% endblock %}
 {% block page_title %}Bulk Grade Upload{% endblock %}
 
 {% block content %}
@@ -9,7 +9,7 @@
 		<div>
 			<h1 class="text-xl font-bold text-gray-800">Bulk Grade Upload</h1>
 			<p class="text-sm text-gray-500">
-				{{ section.course.name }} — {{ section.form }} — Term {{ section.term_number }}
+				{{ section.course.name }} - {{ section.form }} - Term {{ section.term_number }}
 			</p>
 		</div>
 		<a href="{% url 'grades:section_table' section.pk %}"
@@ -30,12 +30,12 @@
 
 	{% else %}
 
-	<!-- Step 1 — Download template -->
+	<!-- Step 1 - Download template -->
 	<div class="bg-white rounded-xl shadow p-6">
 		<div class="flex items-start gap-4">
 			<div class="bg-blue-100 text-blue-700 rounded-lg p-3 text-xl flex-shrink-0">📥</div>
 			<div class="flex-1">
-				<h2 class="font-semibold text-gray-700 mb-1">Step 1 — Download Template</h2>
+				<h2 class="font-semibold text-gray-700 mb-1">Step 1 - Download Template</h2>
 				<p class="text-sm text-gray-500 mb-3">
 					The template is pre-filled with student names and evaluation columns.
 					Use <code class="bg-gray-100 px-1 rounded">*</code>, <code class="bg-gray-100 px-1 rounded">ABS</code>,
@@ -63,12 +63,12 @@
 		</div>
 	</div>
 
-	<!-- Step 2 — Upload -->
+	<!-- Step 2 - Upload -->
 	<div class="bg-white rounded-xl shadow p-6">
 		<div class="flex items-start gap-4">
 			<div class="bg-green-100 text-green-700 rounded-lg p-3 text-xl flex-shrink-0">📤</div>
 			<div class="flex-1">
-				<h2 class="font-semibold text-gray-700 mb-1">Step 2 — Upload Completed File</h2>
+				<h2 class="font-semibold text-gray-700 mb-1">Step 2 - Upload Completed File</h2>
 				<p class="text-sm text-gray-500 mb-4">
 					If any cell has an invalid value, the entire upload is rejected.
 					Absent markers (<code>*</code>, <code>ABS</code>, blank) are accepted and excluded from averages.
@@ -97,7 +97,7 @@
 	{% if errors %}
 	<div class="bg-red-50 border border-red-200 rounded-xl overflow-hidden">
 		<div class="px-5 py-4 bg-red-100 border-b border-red-200">
-			<h2 class="font-semibold text-red-800">Upload Rejected — {{ errors|length }} error{{ errors|length|pluralize }}</h2>
+			<h2 class="font-semibold text-red-800">Upload Rejected - {{ errors|length }} error{{ errors|length|pluralize }}</h2>
 		</div>
 		<ul class="p-5 space-y-1">
 			{% for err in errors %}

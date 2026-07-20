@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Merits — {{ student.get_full_name }}{% endblock %}
+{% block title %}Merits - {{ student.get_full_name }}{% endblock %}
 
 {% block content %}
 <div class="max-w-3xl mx-auto space-y-6">
@@ -48,7 +48,7 @@
 				<td class="px-4 py-2 text-gray-500">{{ merit.date }}</td>
 				<td class="px-4 py-2 text-gray-600 text-xs">{{ merit.get_category_display }}</td>
 				<td class="px-4 py-2 text-gray-700">{{ merit.reason }}</td>
-				<td class="px-4 py-2 text-gray-500 text-xs">{{ merit.awarded_by|default:"—" }}</td>
+				<td class="px-4 py-2 text-gray-500 text-xs">{{ merit.awarded_by|default:"-" }}</td>
 				<td class="px-4 py-2 text-right font-bold text-green-600">{{ merit.count }}</td>
 				</tr>
 				{% empty %}
@@ -81,7 +81,7 @@
 				<td class="px-4 py-2 text-gray-500">{{ demerit.date }}</td>
 				<td class="px-4 py-2 text-gray-600 text-xs">{{ demerit.get_category_display }}</td>
 				<td class="px-4 py-2 text-gray-700">{{ demerit.reason }}</td>
-				<td class="px-4 py-2 text-gray-500 text-xs">{{ demerit.awarded_by|default:"—" }}</td>
+				<td class="px-4 py-2 text-gray-500 text-xs">{{ demerit.awarded_by|default:"-" }}</td>
 				<td class="px-4 py-2 text-right font-bold text-red-600">{{ demerit.count }}</td>
 				</tr>
 				{% empty %}

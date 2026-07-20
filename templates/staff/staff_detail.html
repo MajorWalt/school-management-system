@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}{{ member.get_full_name }} — {{ school.name }}{% endblock %}
+{% block title %}{{ member.get_full_name }} - {{ school.name }}{% endblock %}
 
 {% block content %}
 <div class="max-w-4xl mx-auto space-y-6">
@@ -41,13 +41,13 @@
 		<div class="px-5 py-3 bg-gray-50 border-b font-semibold text-gray-700 text-sm uppercase tracking-wide">Personal Information</div>
 		<div class="p-5 grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
 			<div><span class="text-gray-400 block text-xs">Employee #</span><p class="font-medium font-mono">{{ member.employee_number }}</p></div>
-			<div><span class="text-gray-400 block text-xs">Salutation</span><p class="font-medium">{{ member.salutation|default:"—" }}</p></div>
-			<div><span class="text-gray-400 block text-xs">Gender</span><p class="font-medium">{{ member.get_gender_display|default:"—" }}</p></div>
-			<div><span class="text-gray-400 block text-xs">Date of Birth</span><p class="font-medium">{{ member.date_of_birth|default:"—" }}</p></div>
-			<div><span class="text-gray-400 block text-xs">Nationality</span><p class="font-medium">{{ member.nationality|default:"—" }}</p></div>
-			<div><span class="text-gray-400 block text-xs">Social Security No.</span><p class="font-medium font-mono">{{ member.social_security_no|default:"—" }}</p></div>
-			<div><span class="text-gray-400 block text-xs">House</span><p class="font-medium">{{ member.house|default:"—" }}</p></div>
-			<div><span class="text-gray-400 block text-xs">EMIS ID</span><p class="font-medium font-mono">{{ member.emis_id|default:"—" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Salutation</span><p class="font-medium">{{ member.salutation|default:"-" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Gender</span><p class="font-medium">{{ member.get_gender_display|default:"-" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Date of Birth</span><p class="font-medium">{{ member.date_of_birth|default:"-" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Nationality</span><p class="font-medium">{{ member.nationality|default:"-" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Social Security No.</span><p class="font-medium font-mono">{{ member.social_security_no|default:"-" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">House</span><p class="font-medium">{{ member.house|default:"-" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">EMIS ID</span><p class="font-medium font-mono">{{ member.emis_id|default:"-" }}</p></div>
 			<div><span class="text-gray-400 block text-xs">Status</span>
 				<p>{% if member.active %}<span class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full">Active</span>
 				{% else %}<span class="bg-red-100 text-red-700 text-xs px-2 py-1 rounded-full">Inactive</span>{% endif %}</p>
@@ -59,15 +59,15 @@
 	<div class="bg-white rounded-xl shadow overflow-hidden">
 		<div class="px-5 py-3 bg-gray-50 border-b font-semibold text-gray-700 text-sm uppercase tracking-wide">Contact Information</div>
 		<div class="p-5 grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-			<div><span class="text-gray-400 block text-xs">Phone 1</span><p class="font-medium">{{ member.phone_1|default:"—" }}</p></div>
-			<div><span class="text-gray-400 block text-xs">Phone 2</span><p class="font-medium">{{ member.phone_2|default:"—" }}</p></div>
-			<div><span class="text-gray-400 block text-xs">Phone 3</span><p class="font-medium">{{ member.phone_3|default:"—" }}</p></div>
-			<div><span class="text-gray-400 block text-xs">Work Email</span><p class="font-medium">{{ member.email_work|default:"—" }}</p></div>
-			<div><span class="text-gray-400 block text-xs">Personal Email</span><p class="font-medium">{{ member.email_personal|default:"—" }}</p></div>
-			<div><span class="text-gray-400 block text-xs">EMIS Email</span><p class="font-medium">{{ member.email_emis|default:"—" }}</p></div>
-			<div><span class="text-gray-400 block text-xs">Parish</span><p class="font-medium">{{ member.parish|default:"—" }}</p></div>
-			<div><span class="text-gray-400 block text-xs">City</span><p class="font-medium">{{ member.city|default:"—" }}</p></div>
-			<div class="col-span-full"><span class="text-gray-400 block text-xs">Address</span><p class="font-medium">{{ member.address|default:"—" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Phone 1</span><p class="font-medium">{{ member.phone_1|default:"-" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Phone 2</span><p class="font-medium">{{ member.phone_2|default:"-" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Phone 3</span><p class="font-medium">{{ member.phone_3|default:"-" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Work Email</span><p class="font-medium">{{ member.email_work|default:"-" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Personal Email</span><p class="font-medium">{{ member.email_personal|default:"-" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">EMIS Email</span><p class="font-medium">{{ member.email_emis|default:"-" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Parish</span><p class="font-medium">{{ member.parish|default:"-" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">City</span><p class="font-medium">{{ member.city|default:"-" }}</p></div>
+			<div class="col-span-full"><span class="text-gray-400 block text-xs">Address</span><p class="font-medium">{{ member.address|default:"-" }}</p></div>
 		</div>
 	</div>
 
@@ -75,16 +75,16 @@
 	<div class="bg-white rounded-xl shadow overflow-hidden">
 		<div class="px-5 py-3 bg-gray-50 border-b font-semibold text-gray-700 text-sm uppercase tracking-wide">Employment</div>
 		<div class="p-5 grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-			<div><span class="text-gray-400 block text-xs">Department</span><p class="font-medium">{{ member.get_department_display|default:"—" }}</p></div>
-			<div><span class="text-gray-400 block text-xs">Second Department</span><p class="font-medium">{{ member.get_department_2_display|default:"—" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Department</span><p class="font-medium">{{ member.get_department_display|default:"-" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Second Department</span><p class="font-medium">{{ member.get_department_2_display|default:"-" }}</p></div>
 			<div><span class="text-gray-400 block text-xs">Head of Department</span>
 				<p>{% if member.is_head_of_department %}<span class="bg-indigo-100 text-indigo-700 text-xs px-2 py-1 rounded-full">Yes</span>{% else %}<span class="font-medium">No</span>{% endif %}</p>
 			</div>
-			<div><span class="text-gray-400 block text-xs">Role Title</span><p class="font-medium">{{ member.role_title|default:"—" }}</p></div>
-			<div><span class="text-gray-400 block text-xs">Specialisation</span><p class="font-medium">{{ member.subject_specialisation|default:"—" }}</p></div>
-			<div><span class="text-gray-400 block text-xs">Start Date</span><p class="font-medium">{{ member.hire_date|default:"—" }}</p></div>
-			<div><span class="text-gray-400 block text-xs">End / Resign Date</span><p class="font-medium">{{ member.end_date|default:"—" }}</p></div>
-			<div><span class="text-gray-400 block text-xs">Homeroom</span><p class="font-medium">{{ member.homeroom|default:"—" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Role Title</span><p class="font-medium">{{ member.role_title|default:"-" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Specialisation</span><p class="font-medium">{{ member.subject_specialisation|default:"-" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Start Date</span><p class="font-medium">{{ member.hire_date|default:"-" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">End / Resign Date</span><p class="font-medium">{{ member.end_date|default:"-" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Homeroom</span><p class="font-medium">{{ member.homeroom|default:"-" }}</p></div>
 			<div><span class="text-gray-400 block text-xs">Does Attendance</span><p class="font-medium">{% if member.does_attendance %}Yes{% else %}No{% endif %}</p></div>
 		</div>
 	</div>
@@ -93,9 +93,9 @@
 	<div class="bg-white rounded-xl shadow overflow-hidden">
 		<div class="px-5 py-3 bg-gray-50 border-b font-semibold text-gray-700 text-sm uppercase tracking-wide">Emergency Contact</div>
 		<div class="p-5 grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-			<div><span class="text-gray-400 block text-xs">Name</span><p class="font-medium">{{ member.emergency_contact_name|default:"—" }}</p></div>
-			<div><span class="text-gray-400 block text-xs">Phone</span><p class="font-medium">{{ member.emergency_contact_phone|default:"—" }}</p></div>
-			<div><span class="text-gray-400 block text-xs">Relation</span><p class="font-medium">{{ member.get_emergency_contact_relation_display|default:"—" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Name</span><p class="font-medium">{{ member.emergency_contact_name|default:"-" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Phone</span><p class="font-medium">{{ member.emergency_contact_phone|default:"-" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Relation</span><p class="font-medium">{{ member.get_emergency_contact_relation_display|default:"-" }}</p></div>
 		</div>
 	</div>
 
@@ -103,12 +103,12 @@
 	<div class="bg-white rounded-xl shadow overflow-hidden">
 		<div class="px-5 py-3 bg-gray-50 border-b font-semibold text-gray-700 text-sm uppercase tracking-wide">MoE Teaching &amp; Qualification</div>
 		<div class="p-5 grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-			<div><span class="text-gray-400 block text-xs">Teacher Type / Status</span><p class="font-medium">{{ member.get_teacher_type_display|default:"—" }}</p></div>
-			<div><span class="text-gray-400 block text-xs">Date Started Teaching</span><p class="font-medium">{{ member.date_started_teaching|default:"—" }}</p></div>
-			<div><span class="text-gray-400 block text-xs">Date Appointed</span><p class="font-medium">{{ member.date_appointed|default:"—" }}</p></div>
-			<div><span class="text-gray-400 block text-xs">Highest Degree</span><p class="font-medium">{{ member.get_highest_degree_display|default:"—" }}</p></div>
-			<div class="col-span-full"><span class="text-gray-400 block text-xs">Previous Schools Taught</span><p class="font-medium whitespace-pre-line">{{ member.previous_schools|default:"—" }}</p></div>
-			<div class="col-span-full"><span class="text-gray-400 block text-xs">Degree Specification</span><p class="font-medium whitespace-pre-line">{{ member.degree_specification|default:"—" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Teacher Type / Status</span><p class="font-medium">{{ member.get_teacher_type_display|default:"-" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Date Started Teaching</span><p class="font-medium">{{ member.date_started_teaching|default:"-" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Date Appointed</span><p class="font-medium">{{ member.date_appointed|default:"-" }}</p></div>
+			<div><span class="text-gray-400 block text-xs">Highest Degree</span><p class="font-medium">{{ member.get_highest_degree_display|default:"-" }}</p></div>
+			<div class="col-span-full"><span class="text-gray-400 block text-xs">Previous Schools Taught</span><p class="font-medium whitespace-pre-line">{{ member.previous_schools|default:"-" }}</p></div>
+			<div class="col-span-full"><span class="text-gray-400 block text-xs">Degree Specification</span><p class="font-medium whitespace-pre-line">{{ member.degree_specification|default:"-" }}</p></div>
 		</div>
 	</div>
 

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load accounts_tags %}
-{% block title %}Mark Entry Window — {{ school.name }}{% endblock %}
+{% block title %}Mark Entry Window - {{ school.name }}{% endblock %}
 {% block page_title %}Mark Entry Window{% endblock %}
 
 {% block content %}
@@ -36,7 +36,7 @@
 		{% csrf_token %}
 		<div class="bg-white rounded-xl shadow overflow-hidden">
 			<div class="px-5 py-4 border-b bg-gray-50 flex items-center justify-between">
-				<h2 class="font-semibold text-gray-700">{{ year.name }} — Toggle Windows</h2>
+				<h2 class="font-semibold text-gray-700">{{ year.name }} - Toggle Windows</h2>
 				<p class="text-xs text-gray-400">
 					Green = open (teachers can enter grades). Grey = closed.
 				</p>

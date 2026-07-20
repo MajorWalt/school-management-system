@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}My Portal — {{ school.name }}{% endblock %}
+{% block title %}My Portal - {{ school.name }}{% endblock %}
 
 {% block content %}
 <div class="student-dashboard-page">
@@ -160,7 +160,7 @@
 								{{ cell.avg|floatformat:1 }}%
 							</span>
 							{% else %}
-							<span class="text-gray-300">—</span>
+							<span class="text-gray-300">-</span>
 							{% endif %}
 						</td>
 						{% endfor %}
@@ -242,7 +242,7 @@
 									{{ item.marks|floatformat:"-2" }} / {{ item.evaluation.max_marks|floatformat:"-2" }}
 								</span>
 								{% else %}
-								<span class="text-gray-300">—</span>
+								<span class="text-gray-300">-</span>
 								{% endif %}
 							</td>
 							<td class="py-1.5 text-right whitespace-nowrap">
@@ -254,7 +254,7 @@
 									{{ item.pct|floatformat:1 }}%
 								</span>
 								{% else %}
-								<span class="text-gray-300">—</span>
+								<span class="text-gray-300">-</span>
 								{% endif %}
 							</td>
 						</tr>

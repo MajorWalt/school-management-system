@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Merit Summary — {{ school.name }}{% endblock %}
+{% block title %}Merit Summary - {{ school.name }}{% endblock %}
 
 {% block content %}
 <div class="flex items-center justify-between mb-6">
@@ -38,8 +38,8 @@
 							{{ row.student__first_name }} {{ row.student__last_name }}
 						</a>
 					</td>
-					<td class="px-4 py-3 text-gray-500 text-xs">{{ row.student__homeroom__name|default:"—" }}</td>
-					<td class="px-4 py-3 text-gray-500 text-xs">{{ row.student__form__name|default:"—" }}</td>
+					<td class="px-4 py-3 text-gray-500 text-xs">{{ row.student__homeroom__name|default:"-" }}</td>
+					<td class="px-4 py-3 text-gray-500 text-xs">{{ row.student__form__name|default:"-" }}</td>
 					<td class="px-4 py-3 text-right font-bold text-green-600">{{ row.total }}</td>
 				</tr>
 				{% empty %}
@@ -74,8 +74,8 @@
 							{{ row.student__first_name }} {{ row.student__last_name }}
 						</a>
 					</td>
-					<td class="px-4 py-3 text-gray-500 text-xs">{{ row.student__homeroom__name|default:"—" }}</td>
-					<td class="px-4 py-3 text-gray-500 text-xs">{{ row.student__form__name|default:"—" }}</td>
+					<td class="px-4 py-3 text-gray-500 text-xs">{{ row.student__homeroom__name|default:"-" }}</td>
+					<td class="px-4 py-3 text-gray-500 text-xs">{{ row.student__form__name|default:"-" }}</td>
 					<td class="px-4 py-3 text-right font-bold text-red-600">{{ row.total }}</td>
 				</tr>
 				{% empty %}

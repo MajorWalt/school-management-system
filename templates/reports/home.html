@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Reports — {{ school.name }}{% endblock %}
+{% block title %}Reports - {{ school.name }}{% endblock %}
 {% block page_title %}Reports{% endblock %}
 
 {% block content %}
@@ -98,7 +98,7 @@ class="bg-white rounded-xl border border-gray-200 p-6 hover:border-gray-300 hove
 		<div>
 			<h2 class="font-semibold text-gray-800 mb-1">Attendance Summary</h2>
 			<p class="text-sm text-gray-500">
-				Monthly attendance report by homeroom — absences, lates and percentages.
+				Monthly attendance report by homeroom - absences, lates and percentages.
 				{% if not is_admin %}Only your assigned homerooms.{% endif %}
 			</p>
 			<span class="text-xs text-rose-600 mt-2 inline-block">View or Download PDF →</span>

@@ -63,11 +63,11 @@
             </td>
             {% for avg in row.course_avgs_list %}
             <td class="{% if avg is not None %}{% if avg < 55 %}red{% elif avg < 70 %}yellow{% else %}green{% endif %}{% endif %}">
-                {% if avg is not None %}{{ avg }}%{% else %}—{% endif %}
+                {% if avg is not None %}{{ avg }}%{% else %}-{% endif %}
             </td>
             {% endfor %}
             <td class="avg-col {% if row.overall is not None %}{% if row.overall < 55 %}red{% elif row.overall < 70 %}yellow{% else %}green{% endif %}{% endif %}">
-                {% if row.overall is not None %}{{ row.overall }}%{% else %}—{% endif %}
+                {% if row.overall is not None %}{{ row.overall }}%{% else %}-{% endif %}
             </td>
         </tr>
         {% endfor %}

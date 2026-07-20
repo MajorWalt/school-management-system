@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Academic Years — {{ school.name }}{% endblock %}
+{% block title %}Academic Years - {{ school.name }}{% endblock %}
 
 {% block content %}
 <div class="flex items-center justify-between mb-6">
@@ -64,7 +64,7 @@
 			{% for rule in year.form_term_rules.all %}
 			<div class="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
 				<div>
-					<p class="text-sm font-medium text-gray-700">{{ rule.form }} — Term {{ rule.term_number }}</p>
+					<p class="text-sm font-medium text-gray-700">{{ rule.form }} - Term {{ rule.term_number }}</p>
 					<p class="text-xs text-gray-400">
 						{{ rule.exam_label }}
 						{% if rule.exam_replaces_final %}

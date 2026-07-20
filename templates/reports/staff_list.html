@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Staff List — {{ school.name }}{% endblock %}
+{% block title %}Staff List - {{ school.name }}{% endblock %}
 {% block page_title %}Staff List{% endblock %}
 
 {% block content %}
@@ -75,11 +75,11 @@
 						{{ member.get_full_name }}
 					</a>
 				</td>
-				<td class="px-4 py-2.5 text-gray-500 text-xs">{{ member.department|default:"—" }}</td>
-				<td class="px-4 py-2.5 text-gray-500 text-xs">{{ member.role_title|default:"—" }}</td>
-				<td class="px-4 py-2.5 text-gray-500 text-xs">{{ member.subject_specialisation|default:"—" }}</td>
-				<td class="px-4 py-2.5 text-gray-500 text-xs">{{ member.phone_1|default:"—" }}</td>
-				<td class="px-4 py-2.5 text-gray-500 text-xs">{{ member.email_work|default:"—" }}</td>
+				<td class="px-4 py-2.5 text-gray-500 text-xs">{{ member.department|default:"-" }}</td>
+				<td class="px-4 py-2.5 text-gray-500 text-xs">{{ member.role_title|default:"-" }}</td>
+				<td class="px-4 py-2.5 text-gray-500 text-xs">{{ member.subject_specialisation|default:"-" }}</td>
+				<td class="px-4 py-2.5 text-gray-500 text-xs">{{ member.phone_1|default:"-" }}</td>
+				<td class="px-4 py-2.5 text-gray-500 text-xs">{{ member.email_work|default:"-" }}</td>
 				<td class="px-4 py-2.5 text-center">
 					{% if member.active %}
 						<span class="bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full">Active</span>

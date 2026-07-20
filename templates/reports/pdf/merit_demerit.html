@@ -45,7 +45,7 @@
 <body>
 
 <div class="header-top">
-	{{ school.name }} —
+	{{ school.name }} -
 	{% if report_type == "merit" %}Merit Report{% else %}Demerit Report{% endif %}
 </div>
 <div class="header-meta">
@@ -87,7 +87,7 @@
 			<td>
 				{% for rec in row.records %}
 				{{ rec.date|date:"d/m" }} · {{ rec.get_category_display }} · {{ rec.count }}
-				{% if rec.reason %} — {{ rec.reason|truncatechars:40 }}{% endif %}
+				{% if rec.reason %} - {{ rec.reason|truncatechars:40 }}{% endif %}
 				{% if not forloop.last %}<br>{% endif %}
 				{% endfor %}
 			</td>
@@ -95,7 +95,7 @@
 		{% endfor %}
 		<tr class="subtotal">
 			<td colspan="2" style="text-align:right;">Subtotal</td>
-			<td style="text-align:center;">—</td>
+			<td style="text-align:center;">-</td>
 			<td style="text-align:center;">{{ rows|length }}</td>
 			<td>{% if threshold_on %}★ = {{ threshold_label }}{% endif %}</td>
 		</tr>

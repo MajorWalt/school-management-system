@@ -1,10 +1,10 @@
 {% extends "base.html" %}
-{% block title %}Grade Report by Course — {{ school.name }}{% endblock %}
+{% block title %}Grade Report by Course - {{ school.name }}{% endblock %}
 {% block page_title %}Grade Report by Course{% endblock %}
 
 {% block content %}
 <div class="flex items-center justify-between mb-5 flex-wrap gap-3">
-	<h1 class="text-xl font-bold text-gray-800">Grade Report — By Course</h1>
+	<h1 class="text-xl font-bold text-gray-800">Grade Report - By Course</h1>
 	<div class="flex gap-2 flex-wrap">
 		{% if selected_section and rows %}
 		<a href="?section={{ section_pk }}&year={{ year_pk }}&term={{ term }}&pdf=1"
@@ -45,10 +45,10 @@
 	<div>
 		<label class="block text-xs font-medium text-gray-600 mb-1">Section</label>
 		<select name="section" class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-			<option value="">— Select Section —</option>
+			<option value="">- Select Section -</option>
 			{% for sec in sections %}
 			<option value="{{ sec.pk }}" {% if section_pk == sec.pk|stringformat:"s" %}selected{% endif %}>
-				{{ sec.course.name }} — {{ sec.form }} — Term {{ sec.term_number }} ({{ sec.academic_year.name }})
+				{{ sec.course.name }} - {{ sec.form }} - Term {{ sec.term_number }} ({{ sec.academic_year.name }})
 			</option>
 			{% endfor %}
 		</select>
@@ -63,7 +63,7 @@
 		<div>
 			<span class="font-semibold">{{ selected_section.course.name }}</span>
 			<span class="text-gray-300 text-sm ml-2">
-				— {{ selected_section.form }} · Term {{ selected_section.term_number }} · {{ selected_section.academic_year.name }}
+				- {{ selected_section.form }} · Term {{ selected_section.term_number }} · {{ selected_section.academic_year.name }}
 			</span>
 		</div>
 		{% if selected_section.teacher %}
@@ -116,7 +116,7 @@
 							{{ cell.pct }}%
 						</span>
 					{% else %}
-						<span class="text-gray-300 text-xs">—</span>
+						<span class="text-gray-300 text-xs">-</span>
 					{% endif %}
 				</td>
 				{% endfor %}
@@ -129,7 +129,7 @@
 						{{ row.avg }}%
 					</span>
 					{% else %}
-					<span class="text-gray-300 text-xs">—</span>
+					<span class="text-gray-300 text-xs">-</span>
 					{% endif %}
 				</td>
 			</tr>

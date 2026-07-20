@@ -1,11 +1,11 @@
 {% extends "base.html" %}
-{% block title %}Grades — {{ section }}{% endblock %}
+{% block title %}Grades - {{ section }}{% endblock %}
 
 {% block content %}
 <div class="flex items-center justify-between mb-6">
 	<div>
-		<p class="text-sm text-gray-500">{{ section.academic_year.name }} — Term {{ section.term_number }}</p>
-		<h1 class="text-2xl font-bold text-gray-800">{{ section.course.name }} — {{ section.form }}</h1>
+		<p class="text-sm text-gray-500">{{ section.academic_year.name }} - Term {{ section.term_number }}</p>
+		<h1 class="text-2xl font-bold text-gray-800">{{ section.course.name }} - {{ section.form }}</h1>
 	</div>
 	<div class="flex gap-2">
 		<a href="{% url 'grades:report_card_generate' section.pk %}"
@@ -40,7 +40,7 @@
 				{% if row.result %}
 				<td class="px-4 py-3 text-right text-gray-600">{{ row.result.coursework_avg }}%</td>
 				<td class="px-4 py-3 text-right text-gray-600">
-					{% if row.result.has_exam %}{{ row.result.exam_mark }}%{% else %}—{% endif %}
+					{% if row.result.has_exam %}{{ row.result.exam_mark }}%{% else %}-{% endif %}
 				</td>
 				<td class="px-4 py-3 text-right">
 					<span class="font-semibold
