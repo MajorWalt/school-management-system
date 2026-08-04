@@ -18,6 +18,100 @@ from .forms import (
 from .models import AcademicYear, Course, Enrolment, Form, FormTermRule, Homeroom, NonSchoolDay, Section, TermConfig, YearPlacement
 
 
+# ── Placement Processing Helpers ──────────────────────────────────────────────
+
+STATUS_OUTCOME_MAP = {
+    "transferred": "transferred",
+    "withdrawn": "withdrawn",
+    "graduated": "graduated",
+    "not_graduated": "not_graduated",
+}
+
+
+def _process_exit_placements(request, post_data, new_year, outcome_counts, processed_students):
+    """Process student exit choices (graduated, transferred, etc.)"""
+    for key, value in post_data.items():
+        if not (key.startswith("student_") and key.endswith("_exit") and value.startswith("exit_")):
+            continue
+
+        parts = key.split("_")
+        student_id = int(parts[1])
+        if student_id in processed_students:
+            continue
+        processed_students.add(student_id)
+
+        student = get_object_or_404(Student, pk=student_id, school=request.school)
+        exit_code = value.split("_", 1)[1]
+
+        if exit_code in outcome_counts:
+            outcome_counts[exit_code] += 1
+            YearPlacement.objects.create(
+                student=student,
+                academic_year=new_year,
+                outcome=exit_code,
+                recorded_by=request.user,
+            )
+
+            if exit_code in STATUS_OUTCOME_MAP:
+                StudentStatusLog.objects.create(
+                    student=student,
+                    academic_year=new_year,
+                    status=STATUS_OUTCOME_MAP[exit_code],
+                    change_date=datetime.now().date(),
+                    reason="Year promotion - exit",
+                    changed_by=request.user,
+                )
+
+            student.homeroom = None
+            student.form = None
+            student.save()
+
+
+def _process_continuing_placements(request, post_data, new_year, outcome_counts, processed_students):
+    """Process student continuing placements (new homeroom/form)"""
+    for key, value in post_data.items():
+        if not (key.startswith("student_") and key.endswith("_placement") and value):
+            continue
+
+        parts = key.split("_")
+        student_id = int(parts[1])
+        if student_id in processed_students:
+            continue
+        processed_students.add(student_id)
+
+        student = get_object_or_404(Student, pk=student_id, school=request.school)
+        try:
+            homeroom_id = int(value)
+            homeroom = get_object_or_404(Homeroom, pk=homeroom_id, school=request.school)
+            outcome_counts["continuing"] += 1
+            YearPlacement.objects.create(
+                student=student,
+                academic_year=new_year,
+                outcome="continuing",
+                homeroom=homeroom,
+                recorded_by=request.user,
+            )
+            student.homeroom = homeroom
+            student.form = homeroom.form
+            student.save()
+        except (ValueError, TypeError):
+            pass
+
+
+def _build_promotion_summary(outcome_counts):
+    """Build a summary string of promotion outcomes."""
+    summary = f"Promoted {outcome_counts['continuing']} continuing"
+    if outcome_counts["transferred"] > 0:
+        summary += f", {outcome_counts['transferred']} transferred"
+    if outcome_counts["withdrawn"] > 0:
+        summary += f", {outcome_counts['withdrawn']} withdrawn"
+    if outcome_counts["graduated"] > 0:
+        summary += f", {outcome_counts['graduated']} graduated"
+    if outcome_counts["not_graduated"] > 0:
+        summary += f", {outcome_counts['not_graduated']} not graduated"
+    return summary
+
+
 # ── Academic Years ────────────────────────────────────────────────────────────
 
 
@@ -428,91 +522,13 @@ def year_promote(request):
                         },
                     )
 
-                # 3. Process POST data for student placements
-                # Form field names:
-                #   - student_<id>_placement: homeroom_id (for continuing students)
-                #   - student_<id>_exit: exit_<code> (for students exiting)
+                # 3. Process student placements
                 processed_students = set()
-
-                # Process exit choices first (radio buttons)
-                for key, value in request.POST.items():
-                    if key.startswith("student_") and key.endswith("_exit") and value.startswith("exit_"):
-                        parts = key.split("_")
-                        student_id = int(parts[1])
-                        if student_id in processed_students:
-                            continue
-                        processed_students.add(student_id)
-
-                        student = get_object_or_404(Student, pk=student_id, school=request.school)
-                        exit_code = value.split("_", 1)[1]
-
-                        if exit_code in outcome_counts:
-                            outcome_counts[exit_code] += 1
-                            YearPlacement.objects.create(
-                                student=student,
-                                academic_year=new_year,
-                                outcome=exit_code,
-                                recorded_by=request.user,
-                            )
-                            # Create status log (map outcome → status)
-                            status_map = {
-                                "transferred": "transferred",
-                                "withdrawn": "withdrawn",
-                                "graduated": "graduated",
-                                "not_graduated": "not_graduated",
-                            }
-                            if exit_code in status_map:
-                                StudentStatusLog.objects.create(
-                                    student=student,
-                                    academic_year=new_year,
-                                    status=status_map[exit_code],
-                                    change_date=datetime.now().date(),
-                                    reason="Year promotion - exit",
-                                    changed_by=request.user,
-                                )
-                            # Clear form and homeroom for exiting students
-                            student.homeroom = None
-                            student.form = None
-                            student.save()
-
-                # Process homeroom placements (continuing students)
-                for key, value in request.POST.items():
-                    if key.startswith("student_") and key.endswith("_placement") and value:
-                        parts = key.split("_")
-                        student_id = int(parts[1])
-                        if student_id in processed_students:
-                            continue  # Skip if already processed as exit
-                        processed_students.add(student_id)
-
-                        student = get_object_or_404(Student, pk=student_id, school=request.school)
-                        try:
-                            homeroom_id = int(value)
-                            homeroom = get_object_or_404(Homeroom, pk=homeroom_id, school=request.school)
-                            outcome_counts["continuing"] += 1
-                            YearPlacement.objects.create(
-                                student=student,
-                                academic_year=new_year,
-                                outcome="continuing",
-                                homeroom=homeroom,
-                                recorded_by=request.user,
-                            )
-                            student.homeroom = homeroom
-                            student.form = homeroom.form
-                            student.save()
-                        except (ValueError, TypeError):
-                            pass  # Skip invalid entries
+                _process_exit_placements(request, request.POST, new_year, outcome_counts, processed_students)
+                _process_continuing_placements(request, request.POST, new_year, outcome_counts, processed_students)
 
                 # 4. Log activity
-                summary = f"Promoted {outcome_counts['continuing']} continuing"
-                if outcome_counts["transferred"] > 0:
-                    summary += f", {outcome_counts['transferred']} transferred"
-                if outcome_counts["withdrawn"] > 0:
-                    summary += f", {outcome_counts['withdrawn']} withdrawn"
-                if outcome_counts["graduated"] > 0:
-                    summary += f", {outcome_counts['graduated']} graduated"
-                if outcome_counts["not_graduated"] > 0:
-                    summary += f", {outcome_counts['not_graduated']} not graduated"
-
+                summary = _build_promotion_summary(outcome_counts)
                 log_activity(request, "year_promotion", summary)
 
                 # Clear session buffer
