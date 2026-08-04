@@ -10,6 +10,38 @@ from .forms import BulkEnrolForm, GuardianForm, StudentForm, StudentGuardianForm
 from .models import Student, StudentStatusLog
 
 
+def _get_student_sort_key(student):
+    """Generate a sort key for a student for consistent ordering."""
+    if student.homeroom and student.homeroom.form:
+        form_order = student.homeroom.form.order
+        homeroom_name = student.homeroom.name
+    else:
+        form_order = 999
+        homeroom_name = ""
+    return (form_order, homeroom_name, student.last_name, student.first_name)
+
+
+def _build_student_list_context(request, students_qs, status_filter, forms, homerooms, selected_form, selected_homeroom, show_all, query):
+    """Build the context dictionary for the student list view."""
+    students_list = list(students_qs)
+    if status_filter and status_filter != "all":
+        students_list = [s for s in students_list if s.current_status() == status_filter]
+
+    students_list.sort(key=_get_student_sort_key)
+
+    return {
+        "students": students_list,
+        "query": query,
+        "status": status_filter,
+        "forms": forms,
+        "homerooms": homerooms,
+        "selected_form": selected_form,
+        "selected_homeroom": selected_homeroom,
+        "show_all": show_all,
+        "is_admin": is_admin(request.user, request.school),
+    }
+
+
 @login_required
 @tenant_required
 def student_list(request):
@@ -35,12 +67,10 @@ def student_list(request):
         students = students.filter(homeroom_id=homeroom_pk)
         selected_homeroom = homerooms.filter(pk=homeroom_pk).first()
 
-    # If no form/homeroom selected, require explicit "all" or default to showing only students with a form
-    # EXCEPTION: if filtering by terminal statuses (graduated, transferred, withdrawn, not_graduated),
-    # include students without form assignment
+    # Default filtering logic: show only active students (with form)
+    # EXCEPTION: if filtering by terminal statuses, include students without form
     is_terminal_status_filter = status_filter in ["graduated", "transferred", "withdrawn", "not_graduated"]
     if not form_pk and not homeroom_pk and not show_all and not is_terminal_status_filter:
-        # Default: show students with a form assigned (active students)
         students = students.filter(form__isnull=False)
 
     # Search query filter
@@ -51,32 +81,8 @@ def student_list(request):
             q_filter |= Q(first_name__icontains=term) | Q(last_name__icontains=term) | Q(middle_name__icontains=term) | Q(student_id__icontains=term)
         students = students.filter(q_filter).distinct()
 
-    # Convert to list and filter by status using current_status()
-    # This is done in Python because we need to call the method on each student
-    students_list = list(students)
-    if status_filter and status_filter != "all":
-        students_list = [s for s in students_list if s.current_status() == status_filter]
-
-    # Re-order students
-    students_list.sort(
-        key=lambda s: (s.homeroom.form.order if s.homeroom and s.homeroom.form else 999, s.homeroom.name if s.homeroom else "", s.last_name, s.first_name)
-    )
-
-    return render(
-        request,
-        "students/student_list.html",
-        {
-            "students": students_list,
-            "query": query,
-            "status": status_filter,
-            "forms": forms,
-            "homerooms": homerooms,
-            "selected_form": selected_form,
-            "selected_homeroom": selected_homeroom,
-            "show_all": show_all,
-            "is_admin": is_admin(request.user, request.school),
-        },
-    )
+    context = _build_student_list_context(request, students, status_filter, forms, homerooms, selected_form, selected_homeroom, show_all, query)
+    return render(request, "students/student_list.html", context)
 
 
 @login_required
