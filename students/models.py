@@ -198,20 +198,6 @@ class Student(models.Model):
         # Default: no logs found
         return "enrolled"
 
-        # Get status log for this specific academic year (explicitly scoped)
-        log = self.status_logs.filter(academic_year=academic_year).order_by("-change_date").first()
-        if log:
-            return log.status
-
-        # Fallback: if no year-scoped logs exist, use the most recent status log overall
-        # This handles backwards compatibility with old logs that weren't scoped to a year
-        log = self.status_logs.order_by("-change_date").first()
-        return log.status if log else "enrolled"
-
-        # Get status log for this specific academic year
-        log = self.status_logs.filter(academic_year=academic_year).order_by("-change_date").first()
-        return log.status if log else "enrolled"
-
     def current_status_display(self):
         status = self.current_status()
         return dict(self.STATUS_CHOICES).get(status, status)

@@ -109,7 +109,6 @@ def student_detail(request, pk):
         buckets = {}
         for enr in enrolments:
             buckets.setdefault(enr.section.term_number, []).append(enr)
-            pass
 
         term_names = dict(TermConfig.objects.filter(academic_year=current_year).values_list("term_number", "name"))
 
@@ -121,8 +120,6 @@ def student_detail(request, pk):
                     "enrolments": buckets.get(tn, []),
                 }
             )
-            pass
-        pass
 
     # Staff notes thread (teachers + admin only).
     staff_notes = StudentNote.objects.filter(school=request.school, student=student).select_related("author").order_by("-created_at")
@@ -149,10 +146,6 @@ def student_detail(request, pk):
 @admin_required
 @tenant_required
 def student_add(request):
-    if not is_admin(request.user, request.school):
-        messages.error(request, "Access denied.")
-        return redirect("students:list")
-
     form = StudentForm(request.POST or None, request.FILES or None, school=request.school)
     if request.method == "POST" and form.is_valid():
         student = form.save(commit=False)
@@ -174,10 +167,6 @@ def student_add(request):
 @admin_required
 @tenant_required
 def student_bulk_enrol(request):
-    if not is_admin(request.user, request.school):
-        messages.error(request, "Access denied.")
-        return redirect("students:list")
-
     form = BulkEnrolForm(request.POST or None, request.FILES or None)
     results = []
     errors = []
@@ -339,10 +328,6 @@ def student_bulk_enrol(request):
 @admin_required
 @tenant_required
 def student_edit(request, pk):
-    if not is_admin(request.user, request.school):
-        messages.error(request, "Access denied.")
-        return redirect("students:list")
-
     student = get_object_or_404(Student, pk=pk, school=request.school)
     form = StudentForm(request.POST or None, request.FILES or None, instance=student, school=request.school)
     if request.method == "POST" and form.is_valid():
@@ -411,10 +396,6 @@ from .forms import WithdrawForm
 @admin_required
 @tenant_required
 def student_withdraw(request, pk):
-    if not is_admin(request.user, request.school):
-        messages.error(request, "Access denied.")
-        return redirect("students:list")
-
     student = get_object_or_404(Student, pk=pk, school=request.school)
 
     # Already withdrawn
