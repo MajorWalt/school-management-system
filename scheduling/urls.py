@@ -11,6 +11,8 @@ urlpatterns = [
     # Academic years
     path("years/", views.year_list, name="year_list"),
     path("years/add/", views.year_add, name="year_add"),
+    path("years/new/", views.year_new, name="year_new"),
+    path("years/promote/", views.year_promote, name="year_promote"),
     path("years/<int:pk>/edit/", views.year_edit, name="year_edit"),
     # Term configs
     path("years/<int:year_pk>/terms/add/", views.term_add, name="term_add"),

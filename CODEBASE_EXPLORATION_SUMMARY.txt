@@ -1,0 +1,215 @@
+================================================================================
+   COMPREHENSIVE CODEBASE EXPLORATION SUMMARY
+   School Management System - Academic Year Promotion Wizard
+================================================================================
+
+TIMESTAMP: August 4, 2026
+LOCATION: C:\Users\wal_g\OneDrive\Documents\dev\school-management-system
+
+================================================================================
+1. PROJECT STRUCTURE
+================================================================================
+
+MAIN APPLICATIONS:
+  ✓ core/          - School model, decorators, activity logging
+  ✓ accounts/      - User authentication, email-based, UserRole per school
+  ✓ staff/         - Staff member profiles with departments
+  ✓ students/      - Student records, guardians, status logging
+  ✓ scheduling/    - Academic years, forms, homerooms, courses, sections, timetables
+  ✓ attendance/    - Attendance tracking with utility functions
+  ✓ grades/        - Evaluations, grade entries, report cards, visibility rules
+  ✓ merits/        - Merit and demerit records
+  ✓ portals/       - Student/parent/staff portals (views only)
+  ✓ reports/       - Report generation (views only)
+  ✓ branding/      - School branding (views only)
+  ✓ backups/       - Database backups (views only)
+
+CONFIGURATION:
+  ✓ config/        - Django settings, URLs, WSGI/ASGI
+  ✓ templates/     - HTML templates (base, page templates)
+  ✓ static/        - CSS, JavaScript, images
+
+ARCHITECTURE:
+  ✓ Multi-tenant: Single database, multiple schools via School FK
+  ✓ Authentication: Email-based User model with roles per school
+  ✓ Middleware: TenantMiddleware sets request.school
+  ✓ Activity logging: log_activity() function in core/activity.py
+
+================================================================================
+2. KEY MODELS FOR PROMOTION WIZARD
+================================================================================
+
+ACADEMIC YEAR HIERARCHY:
+  School
+    └─ AcademicYear (2024-2025, is_current=True/False)
+        ├─ TermConfig (Term 1, 2, 3 with weights)
+        ├─ FormTermRule (per-form overrides)
+        ├─ Section (course offerings)
+        └─ Timetable (schedule)
+
+STUDENT HIERARCHY:
+  Form (year group: Form 1-6, ordered)
+    └─ Homeroom (class: 1A, 1B, 1C)
+        └─ Student (student_id unique per school)
+            ├─ form: FK to Form (can be NULL for graduated)
+            ├─ homeroom: FK to Homeroom
+            ├─ cohort_grade: original entry level
+            ├─ cohort_year: cohort tracking
+            ├─ repeated: history of repeated forms
+            ├─ status_logs: StudentStatusLog records (enrolled, graduated, etc)
+            ├─ enrolments: Enrolment → Section relationships
+            ├─ grade_entries: grades across evaluations
+            ├─ attendance: Attendance records
+            ├─ grade_comments: teacher comments per section
+            ├─ merit_records: awarded merits
+            └─ demerit_records: issued demerits
+
+CRITICAL FIELDS FOR PROMOTION:
+  Student.form              - Updated to next Form.order
+  Student.homeroom          - Assigned in new form
+  Student.status_logs       - Created if graduating
+  StudentStatusLog.status   - "graduated" when reaching final form
+  Student.repeated          - Track repeat history
+
+COURSE STRUCTURE:
+  Course (master definition: name, code, department, teacher)
+    └─ Section (per academic_year, term, form offering)
+        ├─ Enrolment (student ↔ section)
+        ├─ Evaluation (assessments: tests, exams)
+        │   └─ GradeEntry (marks_earned, is_absent)
+        └─ TimetableSlot (day, period placement)
+
+GRADING INFRASTRUCTURE:
+  GradeWindow (controls when teachers can enter grades)
+    - academic_year, term_number, form, is_open
+  
+  Evaluation (assessment created by teacher)
+    - section, title, max_marks, weight, is_final_exam
+  
+  GradeEntry (one per student per evaluation)
+    - marks_earned, is_absent, percentage property
+  
+  GradeComment (optional teacher comment per section/student)
+  
+  ReportCard (generated final record)
+    - gpa, comment, pdf_file
+
+================================================================================
+3. CRITICAL RELATIONSHIPS FOR PROMOTION
+================================================================================
+
+BEFORE PROMOTION (Current Year):
+  School
+    └─ AcademicYear (2024-2025, is_current=True)
+        └─ Form 1, 2, 3, 4, 5, 6
+            └─ Homeroom (1A, 1B, 1C, etc)
+                └─ Students (enrolled status)
+                    ├─ Sections (enrolments for courses)
+                    ├─ GradeEntry (coursework, exams)
+                    ├─ Attendance (date-based records)
+                    └─ ReportCard (generated summary)
+
+DURING PROMOTION (Atomic Transaction):
+  For each Student in current Form:
+    1. Get next Form (current.form.order + 1)
+    2. If exists: student.form = next_form
+    3. If not: student.status = "graduated", create StudentStatusLog
+    4. Assign homeroom in new form
+    5. Save student
+    
+  For next Academic Year (optional):
+    6. Create Enrolments to new Sections
+    7. Create GradeWindows for new form
+
+AFTER PROMOTION (Next Year):
+  School
+    └─ AcademicYear (2025-2026, is_current=True)
+        └─ Form 2, 3, 4, 5, 6 (with promoted students)
+            └─ Homeroom
+                └─ Students (now in next form)
+                    ├─ New Sections
+                    └─ Pending new evaluations
+
+================================================================================
+4. ATTENDANCE UTILITY FUNCTIONS
+================================================================================
+
+FILE: attendance/utils.py
+
+FUNCTIONS:
+  get_active_academic_year(school)
+    └─ Returns AcademicYear with is_current=True (or most recent)
+  
+  is_school_day(school, day)
+    └─ Returns boolean if weekday and not NonSchoolDay
+  
+  count_school_days(school, start_date, end_date)
+    └─ Returns integer count of actual school days
+  
+  student_attendance_summary(student, academic_year=None, as_of=None)
+    └─ Returns dict:
+       {
+         "academic_year": AcademicYear,
+         "start_date": date,
+         "end_date": date,
+         "school_days": 150,
+         "days_absent": 5,
+         "days_present": 145,
+         "percentage": 96.7
+       }
+
+USAGE:
+  from attendance.utils import student_attendance_summary
+  summary = student_attendance_summary(student, academic_year)
+
+================================================================================
+5. ACTIVITY LOGGING SYSTEM
+================================================================================
+
+FILE: core/activity.py
+
+FUNCTION:
+  log_activity(request, action, description)
+    - Logs to core.models.ActivityLog
+    - Automatically skips if user is student-only
+    - Captures IP address and timestamp
+
+MODEL (core.models.ActivityLog):
+  - school (FK)
+  - user (FK, SET_NULL)
+  - action (CharField with choices)
+  - description (TextField)
+  - ip_address (GenericIPAddress)
+  - created_at (auto_now_add)
+
+ACTION_CHOICES INCLUDE:
+  "student_add", "student_edit", "student_status", "student_bulk_enrol",
+  "grades_saved", "grade_window_updated", "report_card_generated",
+  "merit_awarded", "demerit_issued", "enrolment_added", "section_created"
+
+USAGE PATTERN:
+  from core.activity import log_activity
+  
+  log_activity(request, "student_promotion",
+               f"Promoted 190 students to next form, 5 graduated")
+
+================================================================================
+6. DECORATOR PATTERNS
+================================================================================
+
+FILE: core/decorators.py
+
+DECORATORS:
+  @login_required
+    - Django built-in, redirects to LOGIN_URL if not authenticated
+  
+  @tenant_required
+    - Custom decorator, ensures request.school exists
+    - Applied after @login_required in most views
+  
+  @admin_required
+    - Custom decorator, checks user has "admin" role at request.school
+    - Used for sensitive operations (promotion, grade windows, etc)
+
+USAGE PATTERN:
+  from django.con

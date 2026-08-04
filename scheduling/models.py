@@ -329,3 +329,53 @@ class TimetableSlot(models.Model):
     def __str__(self):
         return f"Day {self.day_number} / {self.period} → {self.section}"
         pass
+
+
+class YearPlacement(models.Model):
+    """
+    Records a student's placement (form/homeroom) for a given academic year.
+    Preserves historical homeroom assignments per year and tracks exit outcomes.
+    outcome='continuing' → homeroom is set; any exit → homeroom is null.
+    """
+
+    OUTCOME_CHOICES = [
+        ("continuing", "Continuing"),
+        ("transferred", "Transferred"),
+        ("withdrawn", "Withdrawn"),
+        ("graduated", "Graduated"),
+        ("not_graduated", "Not Graduated"),
+    ]
+
+    student = models.ForeignKey("students.Student", on_delete=models.CASCADE, related_name="year_placements")
+    academic_year = models.ForeignKey(AcademicYear, on_delete=models.CASCADE, related_name="placements")
+    homeroom = models.ForeignKey(
+        Homeroom,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="year_placements",
+    )
+    outcome = models.CharField(max_length=20, choices=OUTCOME_CHOICES, default="continuing")
+    recorded_by = models.ForeignKey("accounts.User", on_delete=models.SET_NULL, null=True, related_name="year_placements_recorded")
+    recorded_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "year_placements"
+        unique_together = ("student", "academic_year")
+        ordering = ["-academic_year__name", "student"]
+
+    def __str__(self):
+        return f"{self.student} — {self.academic_year.name} ({self.outcome})"
+
+    def clean(self):
+        """Invariant: outcome='continuing' ⇒ homeroom set; exits ⇒ homeroom null."""
+        from django.core.exceptions import ValidationError
+
+        if self.outcome == "continuing" and not self.homeroom:
+            raise ValidationError("Continuing students must have a homeroom assigned.")
+        elif self.outcome != "continuing" and self.homeroom:
+            raise ValidationError(f"Exit outcome '{self.outcome}' cannot have a homeroom.")
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)

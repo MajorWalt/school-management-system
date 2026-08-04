@@ -136,6 +136,11 @@ def generate_report_cards(request):
             existing_rc = ReportCard.objects.filter(student=student, academic_year=year, term_number=up_to_term).first()
             data["comment"] = existing_rc.comment if existing_rc and existing_rc.comment else ""
 
+            # Use historical homeroom for this academic year via YearPlacement
+            from scheduling.utils import get_homeroom_for_year
+
+            data["homeroom_for_year"] = get_homeroom_for_year(student, year)
+
             _save_report_card_pdf(request, school, student, year, up_to_term, data)
 
             cards.append(data)

@@ -29,6 +29,7 @@ class Student(models.Model):
         ("withdrawn", "Withdrawn"),
         ("suspended", "Suspended"),
         ("graduated", "Graduated"),
+        ("not_graduated", "Not Graduated"),
         ("transferred", "Transferred"),
         ("on_leave", "On Leave"),
     ]
@@ -157,7 +158,58 @@ class Student(models.Model):
         return f"{self.first_name} {self.last_name}"
 
     def current_status(self):
+        """Get the student's status in the active/current academic year."""
+        from attendance.utils import get_active_academic_year
+
+        active_year = get_active_academic_year(self.school)
+        return self.status_for_year(active_year)
+
+    def status_for_year(self, academic_year):
+        """Get the student's status for a specific academic year.
+
+        Logic:
+        1. Look for status logs explicitly scoped to the requested year
+        2. If none found, look for unscoped logs (academic_year=NULL) as fallback
+           This preserves backwards compatibility with old records
+        3. Default to "enrolled" if no logs exist
+
+        This ensures year isolation:
+        - A status change in year 2025 won't affect year 2024
+        - Old unscoped logs provide baseline for all years
+        """
+        if academic_year is None:
+            # No year specified - use most recent log overall
+            log = self.status_logs.order_by("-change_date").first()
+            return log.status if log else "enrolled"
+
+        # First, try to find a log explicitly scoped to this academic year
+        year_scoped_log = self.status_logs.filter(academic_year=academic_year).order_by("-change_date").first()
+
+        if year_scoped_log:
+            return year_scoped_log.status
+
+        # Second, try to find an unscoped log (NULL academic_year)
+        # These are backwards-compatible logs from before year-scoping
+        unscoped_log = self.status_logs.filter(academic_year__isnull=True).order_by("-change_date").first()
+
+        if unscoped_log:
+            return unscoped_log.status
+
+        # Default: no logs found
+        return "enrolled"
+
+        # Get status log for this specific academic year (explicitly scoped)
+        log = self.status_logs.filter(academic_year=academic_year).order_by("-change_date").first()
+        if log:
+            return log.status
+
+        # Fallback: if no year-scoped logs exist, use the most recent status log overall
+        # This handles backwards compatibility with old logs that weren't scoped to a year
         log = self.status_logs.order_by("-change_date").first()
+        return log.status if log else "enrolled"
+
+        # Get status log for this specific academic year
+        log = self.status_logs.filter(academic_year=academic_year).order_by("-change_date").first()
         return log.status if log else "enrolled"
 
     def current_status_display(self):
@@ -214,6 +266,7 @@ class StudentStatusLog(models.Model):
     STATUS_CHOICES = Student.STATUS_CHOICES
 
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name="status_logs")
+    academic_year = models.ForeignKey("scheduling.AcademicYear", on_delete=models.CASCADE, null=True, blank=True, related_name="student_status_logs")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES)
     change_date = models.DateField()
     reason = models.CharField(max_length=200, blank=True)  # short reason/category

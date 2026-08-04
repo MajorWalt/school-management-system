@@ -9,6 +9,7 @@ from .models import (
     NonSchoolDay,
     Section,
     TermConfig,
+    YearPlacement,
 )
 
 
@@ -79,3 +80,11 @@ class EnrolmentAdmin(admin.ModelAdmin):
     list_display = ["student", "section", "date_enrolled"]
     list_filter = ["section__academic_year", "section__term_number"]
     search_fields = ["student__first_name", "student__last_name"]
+
+
+@admin.register(YearPlacement)
+class YearPlacementAdmin(admin.ModelAdmin):
+    list_display = ["student", "academic_year", "homeroom", "outcome", "recorded_at"]
+    list_filter = ["academic_year", "outcome"]
+    search_fields = ["student__first_name", "student__last_name"]
+    readonly_fields = ["recorded_at", "recorded_by"]

@@ -295,7 +295,7 @@
 		<div class="school">{{ school.name }}</div>
 		<div class="report-title">Report Card</div>
 		<div class="muted report-meta">{{ academic_year.name }} &bull; Generated {{ today }}</div>
-		<div class="student-name">{{ card.student.get_full_name }} &nbsp; ({{ card.student.homeroom }})</div>
+		<div class="student-name">{{ card.student.get_full_name }} &nbsp; ({{ card.homeroom_for_year|default:card.student.homeroom }})</div>
 	</div>
 
 	<div class="header-line"></div>
