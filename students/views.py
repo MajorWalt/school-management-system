@@ -17,43 +17,58 @@ def student_list(request):
     homeroom_pk = request.GET.get("homeroom")
     show_all = request.GET.get("all")
     query = request.GET.get("q", "")
-    status = request.GET.get("status", "enrolled")
+    status_filter = request.GET.get("status", "enrolled")
 
-    forms = Form.objects.filter(school=request.school)
-    homerooms = Homeroom.objects.filter(school=request.school)
-    students = None
+    forms = Form.objects.filter(school=request.school).order_by("order")
+    homerooms = Homeroom.objects.filter(school=request.school).order_by("form__order", "name")
+    students = Student.objects.filter(school=request.school).select_related("form", "homeroom", "house")
     selected_form = None
     selected_homeroom = None
 
-    if form_pk or homeroom_pk or show_all:
-        students = Student.objects.filter(school=request.school)
+    # Form filter
+    if form_pk:
+        students = students.filter(form_id=form_pk)
+        selected_form = forms.filter(pk=form_pk).first()
 
-        if form_pk:
-            students = students.filter(form_id=form_pk)
-            selected_form = forms.filter(pk=form_pk).first()
+    # Homeroom filter
+    if homeroom_pk:
+        students = students.filter(homeroom_id=homeroom_pk)
+        selected_homeroom = homerooms.filter(pk=homeroom_pk).first()
 
-        if homeroom_pk:
-            students = students.filter(homeroom_id=homeroom_pk)
-            selected_homeroom = homerooms.filter(pk=homeroom_pk).first()
+    # If no form/homeroom selected, require explicit "all" or default to showing only students with a form
+    # EXCEPTION: if filtering by terminal statuses (graduated, transferred, withdrawn, not_graduated),
+    # include students without form assignment
+    is_terminal_status_filter = status_filter in ["graduated", "transferred", "withdrawn", "not_graduated"]
+    if not form_pk and not homeroom_pk and not show_all and not is_terminal_status_filter:
+        # Default: show students with a form assigned (active students)
+        students = students.filter(form__isnull=False)
 
-        if query:
-            terms = query.split()
-            q_filter = Q()
-            for term in terms:
-                q_filter |= Q(first_name__icontains=term) | Q(last_name__icontains=term) | Q(middle_name__icontains=term) | Q(student_id__icontains=term)
-            students = students.filter(q_filter).distinct()
+    # Search query filter
+    if query:
+        terms = query.split()
+        q_filter = Q()
+        for term in terms:
+            q_filter |= Q(first_name__icontains=term) | Q(last_name__icontains=term) | Q(middle_name__icontains=term) | Q(student_id__icontains=term)
+        students = students.filter(q_filter).distinct()
 
-        if status and status != "all":
-            enrolled_ids = [s.pk for s in students if s.current_status() == status]
-            students = students.filter(pk__in=enrolled_ids)
+    # Convert to list and filter by status using current_status()
+    # This is done in Python because we need to call the method on each student
+    students_list = list(students)
+    if status_filter and status_filter != "all":
+        students_list = [s for s in students_list if s.current_status() == status_filter]
+
+    # Re-order students
+    students_list.sort(
+        key=lambda s: (s.homeroom.form.order if s.homeroom and s.homeroom.form else 999, s.homeroom.name if s.homeroom else "", s.last_name, s.first_name)
+    )
 
     return render(
         request,
         "students/student_list.html",
         {
-            "students": students,
+            "students": students_list,
             "query": query,
-            "status": status,
+            "status": status_filter,
             "forms": forms,
             "homerooms": homerooms,
             "selected_form": selected_form,
