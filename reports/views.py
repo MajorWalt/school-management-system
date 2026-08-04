@@ -108,6 +108,12 @@ def student_roster(request):
             filename="student_roster.pdf",
         )
 
+    as_excel = request.GET.get("excel") == "1"
+    if as_excel:
+        from .excel_utils import export_student_roster_excel
+
+        return export_student_roster_excel(school, students, selected_form, selected_homeroom, status)
+
     return render(
         request,
         "reports/student_roster.html",
@@ -160,6 +166,12 @@ def staff_list_report(request):
             },
             filename="staff_list.pdf",
         )
+
+    as_excel = request.GET.get("excel") == "1"
+    if as_excel:
+        from .excel_utils import export_staff_list_excel
+
+        return export_staff_list_excel(school, staff)
 
     return render(
         request,
@@ -218,6 +230,12 @@ def class_list(request):
             },
             filename=f"classlist_{selected_homeroom.name}.pdf",
         )
+
+    as_excel = request.GET.get("excel") == "1"
+    if as_excel and selected_homeroom:
+        from .excel_utils import export_class_list_excel
+
+        return export_class_list_excel(school, selected_homeroom, students)
 
     return render(
         request,
@@ -282,6 +300,12 @@ def course_list_report(request):
             },
             filename=f"courselist_{selected_section.course.code or selected_section.course.name}.pdf",
         )
+
+    as_excel = request.GET.get("excel") == "1"
+    if as_excel and selected_section:
+        from .excel_utils import export_course_list_excel
+
+        return export_course_list_excel(school, selected_section, enrolments)
 
     return render(
         request,
@@ -472,6 +496,12 @@ def attendance_summary(request):
     if as_pdf and all_rows:
         return _render_pdf(request, "reports/pdf/attendance_summary.html", context, filename=f"attendance_{month_name.replace(' ', '_')}.pdf")
 
+    as_excel = request.GET.get("excel") == "1"
+    if as_excel and all_rows:
+        from .excel_utils import export_attendance_summary_excel
+
+        return export_attendance_summary_excel(school, dict(homeroom_groups), grand, month_name, days_open)
+
     return render(request, "reports/attendance_summary.html", context)
 
 
@@ -586,6 +616,12 @@ def merit_demerit_report(request):
             context,
             filename=f"{'merits' if report_type == 'merit' else 'demerits'}_{month_name.replace(' ', '_')}.pdf",
         )
+
+    as_excel = request.GET.get("excel") == "1"
+    if as_excel and groups:
+        from .excel_utils import export_merit_demerit_excel
+
+        return export_merit_demerit_excel(school, groups, month_name, report_type, grand_points, grand_students)
 
     return render(request, "reports/merit_demerit.html", context)
 
@@ -723,6 +759,12 @@ def grade_by_course(request):
             filename=f"grades_{selected_section.course.code or selected_section.course.name}_term{selected_section.term_number}.pdf",
         )
 
+    as_excel = request.GET.get("excel") == "1"
+    if as_excel and selected_section and rows:
+        from .excel_utils import export_grade_report_excel
+
+        return export_grade_report_excel(school, "by_course", section=selected_section, rows=rows, evaluations=evaluations)
+
     return render(request, "reports/grades/by_course.html", context)
 
 
@@ -816,6 +858,24 @@ def grade_by_student(request):
             request, "reports/pdf/grade_by_student.html", context, filename=f"grades_{selected_student.last_name}_{selected_student.first_name}.pdf"
         )
 
+    as_excel = request.GET.get("excel") == "1"
+    if as_excel and selected_student and course_rows:
+        from .excel_utils import export_grade_report_excel
+
+        # Format course_rows for Excel export
+        course_rows_formatted = []
+        for row in course_rows:
+            course_rows_formatted.append(
+                {
+                    "course_name": row["section"].course.name,
+                    "form_name": row["section"].form.name,
+                    "section_name": f"{row['section'].course.code or row['section'].course.name}",
+                    "average": f"{row['avg']}%" if row["avg"] is not None else "",
+                }
+            )
+
+        return export_grade_report_excel(school, "by_student", student=selected_student, rows=course_rows_formatted)
+
     return render(request, "reports/grades/by_student.html", context)
 
 
@@ -907,6 +967,14 @@ def teacher_gradebook(request):
             "reports/pdf/grade_by_course.html",
             context,
             filename=f"gradebook_{selected_section.teacher.last_name if selected_section.teacher else 'unassigned'}_{selected_section.course.code or selected_section.course.name}.pdf",
+        )
+
+    as_excel = request.GET.get("excel") == "1"
+    if as_excel and selected_section and rows:
+        from .excel_utils import export_grade_report_excel
+
+        return export_grade_report_excel(
+            school, "gradebook", section=selected_section, rows=rows, evaluations=evaluations, month_name=selected_section.course.name
         )
 
     return render(request, "reports/grades/teacher_gradebook.html", context)
@@ -1044,5 +1112,11 @@ def grade_overview(request):
     as_pdf = request.GET.get("pdf") == "1"
     if as_pdf and matrix_rows:
         return _render_pdf(request, "reports/pdf/grade_overview.html", context, filename=f"grade_overview_{'ytd' if not term else 'term' + term}.pdf")
+
+    as_excel = request.GET.get("excel") == "1"
+    if as_excel and matrix_rows:
+        from .excel_utils import export_grade_report_excel
+
+        return export_grade_report_excel(school, "overview", rows=matrix_rows)
 
     return render(request, "reports/grades/overview.html", context)
