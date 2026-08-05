@@ -13,6 +13,7 @@ class Attendance(models.Model):
 
     school = models.ForeignKey(School, on_delete=models.CASCADE, related_name="attendance_records")
     student = models.ForeignKey("students.Student", on_delete=models.CASCADE, related_name="attendance_records")
+    academic_year = models.ForeignKey("scheduling.AcademicYear", on_delete=models.CASCADE, null=True, blank=True, related_name="attendance_records")
     homeroom = models.ForeignKey("scheduling.Homeroom", on_delete=models.CASCADE, related_name="attendance_records", null=True, blank=True)
     section = models.ForeignKey("scheduling.Section", on_delete=models.SET_NULL, null=True, blank=True, related_name="attendance_records")
     date = models.DateField()
@@ -24,7 +25,7 @@ class Attendance(models.Model):
 
     class Meta:
         db_table = "attendance"
-        unique_together = ("student", "homeroom", "date")
+        unique_together = ("student", "academic_year", "date")
         ordering = ["-date"]
 
     def __str__(self):

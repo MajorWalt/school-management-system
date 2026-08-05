@@ -334,8 +334,8 @@ class TimetableSlot(models.Model):
 class YearPlacement(models.Model):
     """
     Records a student's placement (form/homeroom) for a given academic year.
-    Preserves historical homeroom assignments per year and tracks exit outcomes.
-    outcome='continuing' → homeroom is set; any exit → homeroom is null.
+    Preserves historical form and homeroom assignments per year and tracks exit outcomes.
+    outcome='continuing' → form and homeroom are set; any exit → homeroom is null.
     """
 
     OUTCOME_CHOICES = [
@@ -348,6 +348,13 @@ class YearPlacement(models.Model):
 
     student = models.ForeignKey("students.Student", on_delete=models.CASCADE, related_name="year_placements")
     academic_year = models.ForeignKey(AcademicYear, on_delete=models.CASCADE, related_name="placements")
+    form = models.ForeignKey(
+        Form,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="year_placements",
+    )
     homeroom = models.ForeignKey(
         Homeroom,
         on_delete=models.SET_NULL,

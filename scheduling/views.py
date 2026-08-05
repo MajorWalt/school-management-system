@@ -88,6 +88,7 @@ def _process_continuing_placements(request, post_data, new_year, outcome_counts,
                 student=student,
                 academic_year=new_year,
                 outcome="continuing",
+                form=homeroom.form,
                 homeroom=homeroom,
                 recorded_by=request.user,
             )

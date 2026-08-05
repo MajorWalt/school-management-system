@@ -23,6 +23,14 @@ def get_staff_profile(user):
         return None
 
 
+def get_academic_year_for_date(school, date):
+    """
+    Get the academic year containing the given date.
+    Returns the AcademicYear instance, or None if no matching year is found.
+    """
+    return AcademicYear.objects.filter(school=school, start_date__lte=date, end_date__gte=date).first()
+
+
 # ── Reports Home ──────────────────────────────────────────────────────────────
 
 
@@ -382,13 +390,21 @@ def attendance_summary(request):
 
     students_qs = [s for s in students_qs if s.current_status() in ("enrolled", "withdrawn")]
 
+    # Determine academic year for the selected month/year
+    academic_year = get_academic_year_for_date(school, first_day)
+
     if students_qs:
-        att_records = Attendance.objects.filter(
+        att_query = Attendance.objects.filter(
             school=school,
             student__in=students_qs,
             date__gte=first_day,
             date__lte=last_day,
         )
+        # Add academic_year filter if we found one for this date
+        if academic_year:
+            att_query = att_query.filter(academic_year=academic_year)
+
+        att_records = att_query
         att_map = {}
         for rec in att_records:
             att_map[(rec.student_id, rec.date)] = rec
@@ -433,11 +449,24 @@ def attendance_summary(request):
                 return 0.0
             return round(n / total * 100, 2)
 
-        hr_key = student.homeroom.name if student.homeroom else "No Homeroom"
+        # Use year-scoped form/homeroom for this academic year
+        year_form = None
+        year_homeroom = None
+        if academic_year:
+            from scheduling.utils import get_form_for_year, get_homeroom_for_year
+
+            year_form = get_form_for_year(student, academic_year)
+            year_homeroom = get_homeroom_for_year(student, academic_year)
+
+        # Fall back to current form/homeroom if no academic year found
+        year_form = year_form or student.form
+        year_homeroom = year_homeroom or student.homeroom
+
+        hr_key = year_homeroom.name if year_homeroom else "No Homeroom"
         homeroom_groups[hr_key].append(
             {
                 "student": student,
-                "grade_homeroom": f"{student.form}/{student.homeroom}" if student.form and student.homeroom else "—",
+                "grade_homeroom": f"{year_form}/{year_homeroom}" if year_form and year_homeroom else "—",
                 "enrolled": days_open,
                 "attended": attended,
                 "absent_unexec": absent_unexec,
@@ -554,6 +583,9 @@ def merit_demerit_report(request):
         threshold = MIN_DEMERITS
         threshold_label = f"{MIN_DEMERITS}+ demerits"
 
+    # Determine academic year for the selected month/year
+    academic_year = get_academic_year_for_date(school, first_day)
+
     # Students who have records this month
     students = (
         Student.objects.filter(school=school, pk__in=student_totals.keys())
@@ -569,7 +601,17 @@ def merit_demerit_report(request):
         if threshold_on and pts < threshold:
             continue
 
-        hr_name = student.homeroom.name if student.homeroom else "No Homeroom"
+        # Use year-scoped homeroom for this academic year
+        year_homeroom = None
+        if academic_year:
+            from scheduling.utils import get_homeroom_for_year
+
+            year_homeroom = get_homeroom_for_year(student, academic_year)
+
+        # Fall back to current homeroom if no academic year found
+        year_homeroom = year_homeroom or student.homeroom
+
+        hr_name = year_homeroom.name if year_homeroom else "No Homeroom"
         key = hr_name
 
         if key not in groups:
@@ -1006,12 +1048,18 @@ def grade_overview(request):
     courses = []
 
     if selected_year and (selected_form or selected_homeroom):
-        students_qs = Student.objects.filter(school=school).select_related("form", "homeroom").order_by("last_name", "first_name")
+        # Use YearPlacement to filter students by year-scoped form/homeroom
+        from scheduling.models import YearPlacement
+
+        placement_query = YearPlacement.objects.filter(academic_year=selected_year, outcome="continuing")
 
         if selected_homeroom:
-            students_qs = students_qs.filter(homeroom=selected_homeroom)
+            placement_query = placement_query.filter(homeroom=selected_homeroom)
         elif selected_form:
-            students_qs = students_qs.filter(form=selected_form)
+            placement_query = placement_query.filter(form=selected_form)
+
+        student_ids = placement_query.values_list("student_id", flat=True)
+        students_qs = Student.objects.filter(school=school, pk__in=student_ids).select_related("form", "homeroom").order_by("last_name", "first_name")
 
         students_list = [s for s in students_qs if s.current_status() == "enrolled"]
 

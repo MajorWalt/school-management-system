@@ -41,15 +41,38 @@ def _pdf_link_callback(uri, rel):
     return uri
 
 
-def _gather_students(school, form_id, homeroom_id, student_id):
+def _gather_students(school, form_id, homeroom_id, student_id, academic_year=None):
+    """
+    Gather students based on form/homeroom/student filters.
+    If academic_year is provided, uses YearPlacement for historical year-scoped data.
+    Otherwise uses current student.form/homeroom (for current year reports).
+    """
     if student_id:
         return Student.objects.filter(school=school, pk=student_id)
-    if homeroom_id:
-        return Student.objects.filter(school=school, homeroom_id=homeroom_id).order_by("last_name", "first_name")
-    if form_id:
-        return Student.objects.filter(school=school, form_id=form_id).order_by("homeroom__name", "last_name", "first_name")
+
+    if academic_year:
+        # Year-scoped queries using YearPlacement
+        from scheduling.models import YearPlacement
+
+        if homeroom_id:
+            placement_ids = YearPlacement.objects.filter(academic_year=academic_year, homeroom_id=homeroom_id, outcome="continuing").values_list(
+                "student_id", flat=True
+            )
+            return Student.objects.filter(school=school, pk__in=placement_ids).order_by("last_name", "first_name")
+
+        if form_id:
+            placement_ids = YearPlacement.objects.filter(academic_year=academic_year, form_id=form_id, outcome="continuing").values_list(
+                "student_id", flat=True
+            )
+            return Student.objects.filter(school=school, pk__in=placement_ids).order_by("last_name", "first_name")
+    else:
+        # Current year queries using student.form/homeroom
+        if homeroom_id:
+            return Student.objects.filter(school=school, homeroom_id=homeroom_id).order_by("last_name", "first_name")
+        if form_id:
+            return Student.objects.filter(school=school, form_id=form_id).order_by("homeroom__name", "last_name", "first_name")
+
     return Student.objects.none()
-    pass
 
 
 def _save_report_card_pdf(request, school, student, year, up_to_term, data):
@@ -118,7 +141,7 @@ def generate_report_cards(request):
             return _render_form(request, years, active_year, forms, homerooms, students)
 
         up_to_term = int(term)
-        picked = _gather_students(school, form_id, homeroom_id, student_id)
+        picked = _gather_students(school, form_id, homeroom_id, student_id, academic_year=year)
         if not picked.exists():
             messages.error(request, "No students matched that selection.")
             return _render_form(request, years, active_year, forms, homerooms, students)
@@ -136,10 +159,11 @@ def generate_report_cards(request):
             existing_rc = ReportCard.objects.filter(student=student, academic_year=year, term_number=up_to_term).first()
             data["comment"] = existing_rc.comment if existing_rc and existing_rc.comment else ""
 
-            # Use historical homeroom for this academic year via YearPlacement
-            from scheduling.utils import get_homeroom_for_year
+            # Use historical homeroom and form for this academic year via YearPlacement
+            from scheduling.utils import get_homeroom_for_year, get_form_for_year
 
             data["homeroom_for_year"] = get_homeroom_for_year(student, year)
+            data["form_for_year"] = get_form_for_year(student, year)
 
             _save_report_card_pdf(request, school, student, year, up_to_term, data)
 
