@@ -185,7 +185,16 @@
 			</tr>
 			{% empty %}
 			<tr>
-				<td colspan="6" class="px-4 py-8 text-center text-gray-400">No students enrolled.</td>
+				<td class="px-4 py-2.5 text-gray-400 text-xs">{{ forloop.counter }}</td>
+				<td class="px-4 py-2.5 font-mono text-gray-500 text-xs">{{ enrolment.student.student_id }}</td>
+				<td class="px-4 py-2.5 font-medium text-gray-800">
+					<a href="{% url 'students:detail' enrolment.student.pk %}" class="hover:underline">
+						{{ enrolment.student.get_full_name }}
+					</a>
+				</td>
+				<td class="px-4 py-2.5 text-gray-500">{{ enrolment.student_homeroom_for_year|default:enrolment.student.homeroom|default:"-" }}</td>
+				<td class="px-4 py-2.5 text-gray-500">{{ enrolment.student.get_gender_display|default:"-" }}</td>
+				<td class="px-4 py-2.5 text-gray-500">{{ enrolment.student.date_of_birth|default:"-" }}</td>
 			</tr>
 			{% endfor %}
 		</tbody>

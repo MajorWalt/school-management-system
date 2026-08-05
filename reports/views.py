@@ -294,6 +294,15 @@ def course_list_report(request):
         if selected_section:
             enrolments = Enrolment.objects.filter(section=selected_section).select_related("student").order_by("student__last_name", "student__first_name")
 
+            # Augment enrolments with year-scoped homeroom
+            from scheduling.utils import get_homeroom_for_year
+
+            for enr in enrolments:
+                enr.student_homeroom_for_year = get_homeroom_for_year(enr.student, selected_section.academic_year)
+                # Fall back to current homeroom if no placement found
+                if not enr.student_homeroom_for_year:
+                    enr.student_homeroom_for_year = enr.student.homeroom
+
     as_pdf = request.GET.get("pdf") == "1"
     if as_pdf and selected_section:
         return _render_pdf(
@@ -839,6 +848,17 @@ def grade_by_student(request):
 
     selected_student = Student.objects.filter(pk=student_pk, school=school).select_related("form", "homeroom").first() if student_pk else None
 
+    # Get year-scoped form and homeroom for selected student
+    selected_student_form_for_year = None
+    selected_student_homeroom_for_year = None
+    if selected_student and year_pk:
+        from scheduling.utils import get_form_for_year, get_homeroom_for_year
+
+        selected_year = AcademicYear.objects.filter(pk=year_pk, school=school).first()
+        if selected_year:
+            selected_student_form_for_year = get_form_for_year(selected_student, selected_year)
+            selected_student_homeroom_for_year = get_homeroom_for_year(selected_student, selected_year)
+
     course_rows = []
 
     if selected_student and year_pk:
@@ -885,6 +905,8 @@ def grade_by_student(request):
         "homerooms": homerooms,
         "students_qs": students_qs,
         "selected_student": selected_student,
+        "selected_student_form_for_year": selected_student_form_for_year,
+        "selected_student_homeroom_for_year": selected_student_homeroom_for_year,
         "course_rows": course_rows,
         "year_pk": year_pk,
         "term": term,

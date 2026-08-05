@@ -38,8 +38,8 @@
 {% if selected_student %}
 <div class="student-bar">
 	{{ selected_student.get_full_name }} ({{ selected_student.student_id }})
-	{% if selected_student.form %}&nbsp;·&nbsp; {{ selected_student.form }}{% endif %}
-	{% if selected_student.homeroom %}&nbsp;·&nbsp; Homeroom {{ selected_student.homeroom }}{% endif %}
+	{% if selected_student_form_for_year %}&nbsp;·&nbsp; {{ selected_student_form_for_year }}{% elif selected_student.form %}&nbsp;·&nbsp; {{ selected_student.form }}{% endif %}
+	{% if selected_student_homeroom_for_year %}&nbsp;·&nbsp; Homeroom {{ selected_student_homeroom_for_year }}{% elif selected_student.homeroom %}&nbsp;·&nbsp; Homeroom {{ selected_student.homeroom }}{% endif %}
 	&nbsp;·&nbsp; {% if not term %}Year-to-Date{% else %}Term {{ term }}{% endif %}
 </div>
 
