@@ -15,6 +15,7 @@ class MeritRecord(models.Model):
 
     school = models.ForeignKey(School, on_delete=models.CASCADE, related_name="merit_records")
     student = models.ForeignKey("students.Student", on_delete=models.CASCADE, related_name="merit_records")
+    academic_year = models.ForeignKey("scheduling.AcademicYear", on_delete=models.CASCADE, null=True, blank=True, related_name="merit_records")
     awarded_by = models.ForeignKey("staff.Staff", on_delete=models.SET_NULL, null=True, related_name="merits_awarded")
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES)
     reason = models.TextField()
@@ -42,6 +43,7 @@ class DemeritRecord(models.Model):
 
     school = models.ForeignKey(School, on_delete=models.CASCADE, related_name="demerit_records")
     student = models.ForeignKey("students.Student", on_delete=models.CASCADE, related_name="demerit_records")
+    academic_year = models.ForeignKey("scheduling.AcademicYear", on_delete=models.CASCADE, null=True, blank=True, related_name="demerit_records")
     awarded_by = models.ForeignKey("staff.Staff", on_delete=models.SET_NULL, null=True, related_name="demerits_awarded")
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES)
     reason = models.TextField()
