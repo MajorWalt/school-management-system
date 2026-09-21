@@ -21,7 +21,7 @@ class GradeWindow(models.Model):
 
     def __str__(self):
         state = "Open" if self.is_open else "Closed"
-        return f"{self.form} — {self.academic_year.name} Term {self.term_number} — {state}"
+        return f"{self.form} - {self.academic_year.name} Term {self.term_number} - {state}"
         pass
 
 
@@ -63,7 +63,7 @@ class Evaluation(models.Model):
         ordering = ["date", "created_at"]
 
     def __str__(self):
-        return f"{self.section} — {self.title}"
+        return f"{self.section} - {self.title}"
         pass
 
     def clean(self):
@@ -89,7 +89,7 @@ class GradeEntry(models.Model):
         unique_together = ("evaluation", "student")
 
     def __str__(self):
-        return f"{self.student} — {self.evaluation.title} — {self.marks_earned}"
+        return f"{self.student} - {self.evaluation.title} - {self.marks_earned}"
         pass
 
     @property
@@ -120,7 +120,7 @@ class GradeComment(models.Model):
         unique_together = ("section", "student")
 
     def __str__(self):
-        return f"{self.student} — {self.section} — comment"
+        return f"{self.student} - {self.section} - comment"
         pass
 
 
@@ -141,7 +141,7 @@ class ReportCard(models.Model):
         ordering = ["-academic_year__name", "term_number"]
 
     def __str__(self):
-        return f"{self.student} — {self.academic_year.name} Term {self.term_number}"
+        return f"{self.student} - {self.academic_year.name} Term {self.term_number}"
         pass
 
 
@@ -166,5 +166,5 @@ class GradeVisibilityRule(models.Model):
     def __str__(self):
         target = self.student or "School-wide"
         state = "Visible" if self.is_visible else "Hidden"
-        return f"{target} — {state}"
+        return f"{target} - {state}"
         pass

@@ -15,9 +15,9 @@ def marquee_content(request):
         non_school_day = NonSchoolDay.objects.filter(school=school, date=today).first()
 
         if non_school_day:
-            # Format: "No school — Holiday Label · Day, Date"
+            # Format: "No school - Holiday Label · Day, Date"
             type_label = dict(NonSchoolDay.TYPE_CHOICES).get(non_school_day.type, non_school_day.type)
-            content = f"No school — {non_school_day.label} ({type_label})"
+            content = f"No school - {non_school_day.label} ({type_label})"
         else:
             # Regular school day: find current term
             try:

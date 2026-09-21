@@ -88,7 +88,7 @@ def manage_periods(request):
 
 
 # ---------------------------------------------------------------------------
-#  Cycle calendar (school-wide — the cycle is the same for every form)
+#  Cycle calendar (school-wide - the cycle is the same for every form)
 # ---------------------------------------------------------------------------
 @login_required
 def cycle_calendar(request):
@@ -154,7 +154,7 @@ def _term_options(school):
     out = []
     for t in terms:
         value = f"{t.academic_year_id}:{t.term_number}"
-        label = f"{t.academic_year} — {t.name}"
+        label = f"{t.academic_year} - {t.name}"
         out.append({"value": value, "label": label, "year_id": t.academic_year_id, "term_number": t.term_number})
         pass
     return out
@@ -173,7 +173,7 @@ def _parse_term_value(value):
 
 
 # ---------------------------------------------------------------------------
-#  Timetable builder — per form, per term, multi-section cells
+#  Timetable builder - per form, per term, multi-section cells
 # ---------------------------------------------------------------------------
 @login_required
 def timetable_grid(request):
@@ -292,7 +292,7 @@ def timetable_copy(request, pk):
             messages.warning(request, "No matching section this term for: " + ", ".join(unmapped) + ". Create those sections, then copy again.")
             pass
         if not copied and not unmapped:
-            messages.info(request, "Nothing to copy — the source timetable is empty.")
+            messages.info(request, "Nothing to copy - the source timetable is empty.")
             pass
         url = reverse("scheduling:timetable_grid")
         return redirect(f"{url}?form={target.form_id}&term={target.academic_year_id}:{target.term_number}")

@@ -28,7 +28,7 @@ class MeritRecord(models.Model):
         ordering = ["-date"]
 
     def __str__(self):
-        return f"{self.student} — Merit — {self.count} — {self.date}"
+        return f"{self.student} - Merit - {self.count} - {self.date}"
 
 
 class DemeritRecord(models.Model):
@@ -56,4 +56,4 @@ class DemeritRecord(models.Model):
         ordering = ["-date"]
 
     def __str__(self):
-        return f"{self.student} — Demerit — {self.count} — {self.date}"
+        return f"{self.student} - Demerit - {self.count} - {self.date}"

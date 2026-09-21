@@ -57,7 +57,7 @@ class Student(models.Model):
     ]
 
     GSNA_CHOICES = [
-        ("", "—"),
+        ("", "-"),
         ("1", "Grade 1"),
         ("2", "Grade 2"),
         ("3", "Grade 3"),

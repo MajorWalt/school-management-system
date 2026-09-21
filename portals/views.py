@@ -286,13 +286,13 @@ def student_dashboard(request):
     can_see_grades = grades_visible_for_student(school, student)
     current_year = AcademicYear.objects.filter(school=school, is_current=True).first()
 
-    # Attendance — present days derived from the school calendar.
+    # Attendance - present days derived from the school calendar.
     summary = student_attendance_summary(student, academic_year=current_year)
     attendance_pct = summary["percentage"]
     absent_records = summary["days_absent"]
     school_days = summary["school_days"]
 
-    # Online gradebook — subject x term matrix plus per-subject detail.
+    # Online gradebook - subject x term matrix plus per-subject detail.
     gb_terms, gb_rows = build_student_gradebook(school, student, current_year)
 
     # Merits / demerits

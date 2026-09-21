@@ -1,9 +1,9 @@
 """
 Tests for the backups app views:
-  - backup_list     (GET — admin only)
-  - backup_run      (POST — admin only, GET redirects to list)
-  - backup_download (GET — admin only, file missing → redirect)
-  - backup_delete   (GET — admin only)
+  - backup_list     (GET - admin only)
+  - backup_run      (POST - admin only, GET redirects to list)
+  - backup_download (GET - admin only, file missing → redirect)
+  - backup_delete   (GET - admin only)
 """
 import os
 import tempfile

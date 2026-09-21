@@ -11,7 +11,7 @@ class TenantMiddleware:
         host = request.get_host().split(":")[0].lower()
 
         # Bypass middleware for Django admin and local dev
-        if host in ("localhost", "127.0.0.1"):
+        if host in ("localhost", "127.0.0.1", "api.smadominica.com"):
             # Allow django admin through without a tenant
             if request.path.startswith("/django-admin/"):
                 request.school = None

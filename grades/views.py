@@ -260,7 +260,7 @@ def evaluation_edit(request, pk):
         {
             "form": form,
             "section": ev.section,
-            "title": f"Edit — {ev.title}",
+            "title": f"Edit - {ev.title}",
             "ev": ev,
         },
     )
@@ -461,7 +461,7 @@ def bulk_grade_upload(request, section_pk):
             row_data.append((student, grades_row))
 
         if errors:
-            messages.error(request, f"Upload rejected — {len(errors)} error(s). Fix and re-upload.")
+            messages.error(request, f"Upload rejected - {len(errors)} error(s). Fix and re-upload.")
         else:
             for student, grades_row in row_data:
                 for ev_pk, (status, marks) in grades_row.items():
@@ -800,7 +800,7 @@ def visibility_set_student(request, student_pk):
         "grades/visibility_form.html",
         {
             "form": form,
-            "title": f"Grade Visibility — {student.get_full_name()}",
+            "title": f"Grade Visibility - {student.get_full_name()}",
             "student": student,
         },
     )
@@ -865,10 +865,10 @@ def report_card_detail(request, pk):
         result = None
         if coursework_avg is not None or exam_mark is not None:
             result = {
-                "coursework_avg": coursework_avg if coursework_avg is not None else "—",
+                "coursework_avg": coursework_avg if coursework_avg is not None else "-",
                 "exam_mark": exam_mark,
                 "has_exam": has_exam,
-                "term_grade": term_grade if term_grade is not None else "—",
+                "term_grade": term_grade if term_grade is not None else "-",
             }
 
         rows.append({"course": section.course, "result": result})

@@ -66,4 +66,4 @@ class ActivityLog(models.Model):
         ordering = ["-created_at"]
 
     def __str__(self):
-        return f"{self.user} — {self.get_action_display()} — {self.created_at:%Y-%m-%d %H:%M}"
+        return f"{self.user} - {self.get_action_display()} - {self.created_at:%Y-%m-%d %H:%M}"

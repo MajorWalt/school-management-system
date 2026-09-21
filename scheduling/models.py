@@ -33,7 +33,7 @@ class Homeroom(models.Model):
         unique_together = ("school", "name")
 
     def __str__(self):
-        return f"{self.form.name} — {self.name}"
+        return f"{self.form.name} - {self.name}"
 
 
 class AcademicYear(models.Model):
@@ -78,7 +78,7 @@ class TermConfig(models.Model):
         unique_together = ("academic_year", "term_number")
 
     def __str__(self):
-        return f"{self.academic_year.name} — {self.name}"
+        return f"{self.academic_year.name} - {self.name}"
 
     def clean(self):
         if self.has_final_exam:
@@ -111,7 +111,7 @@ class FormTermRule(models.Model):
         unique_together = ("academic_year", "form", "term_number")
 
     def __str__(self):
-        return f"{self.form} — Term {self.term_number} — {self.exam_label}"
+        return f"{self.form} - Term {self.term_number} - {self.exam_label}"
 
 
 class NonSchoolDay(models.Model):
@@ -189,13 +189,13 @@ class Course(models.Model):
         unique_together = ("school", "name")
 
     def __str__(self):
-        return f"{self.code} — {self.name}" if self.code else self.name
+        return f"{self.code} - {self.name}" if self.code else self.name
 
 
 class Section(models.Model):
     """
     A specific class offering of a Course in a Term for a Form.
-    This is the pivot — grades, attendance, enrolments all attach here.
+    This is the pivot - grades, attendance, enrolments all attach here.
     """
 
     school = models.ForeignKey(School, on_delete=models.CASCADE, related_name="sections")
@@ -211,7 +211,7 @@ class Section(models.Model):
         ordering = ["academic_year", "term_number", "course"]
 
     def __str__(self):
-        return f"{self.course} — {self.form} — Term {self.term_number} ({self.academic_year})"
+        return f"{self.course} - {self.form} - Term {self.term_number} ({self.academic_year})"
 
 
 class Enrolment(models.Model):
@@ -262,7 +262,7 @@ class TimetableSettings(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"Timetable settings — {self.school}"
+        return f"Timetable settings - {self.school}"
         pass
 
     @property
@@ -272,14 +272,14 @@ class TimetableSettings(models.Model):
 
 
 class TimetablePeriod(models.Model):
-    """The bell schedule — shared across every day and every form."""
+    """The bell schedule - shared across every day and every form."""
 
     school = models.ForeignKey("core.School", on_delete=models.CASCADE, related_name="timetable_periods")
     name = models.CharField(max_length=50)  # "Period 1", "Lunch"
     order = models.PositiveSmallIntegerField(default=1)
     start_time = models.TimeField(null=True, blank=True)
     end_time = models.TimeField(null=True, blank=True)
-    is_break = models.BooleanField(default=False, help_text="Recess, lunch, assembly — no class scheduled.")
+    is_break = models.BooleanField(default=False, help_text="Recess, lunch, assembly - no class scheduled.")
 
     class Meta:
         ordering = ["order"]
@@ -305,13 +305,13 @@ class Timetable(models.Model):
         ordering = ["form", "academic_year", "term_number"]
 
     def __str__(self):
-        return f"{self.form} — {self.academic_year} Term {self.term_number}"
+        return f"{self.form} - {self.academic_year} Term {self.term_number}"
         pass
 
 
 class TimetableSlot(models.Model):
     """One section placed in a (day, period) cell of a form's term timetable.
-    Multiple slots may share the same (timetable, day, period) cell — that is a
+    Multiple slots may share the same (timetable, day, period) cell - that is a
     switch/split period (e.g. French 101 + Spanish 101 in the same slot)."""
 
     timetable = models.ForeignKey(Timetable, on_delete=models.CASCADE, related_name="slots")
@@ -322,7 +322,7 @@ class TimetableSlot(models.Model):
 
     class Meta:
         # Same section can't be placed twice in one cell, but several different
-        # sections CAN share a cell — that is the split/switch class.
+        # sections CAN share a cell - that is the split/switch class.
         unique_together = ("timetable", "day_number", "period", "section")
         ordering = ["day_number", "period__order"]
 
@@ -372,7 +372,7 @@ class YearPlacement(models.Model):
         ordering = ["-academic_year__name", "student"]
 
     def __str__(self):
-        return f"{self.student} — {self.academic_year.name} ({self.outcome})"
+        return f"{self.student} - {self.academic_year.name} ({self.outcome})"
 
     def clean(self):
         """Invariant: outcome='continuing' ⇒ homeroom set; exits ⇒ homeroom null."""

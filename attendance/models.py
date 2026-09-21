@@ -29,4 +29,4 @@ class Attendance(models.Model):
         ordering = ["-date"]
 
     def __str__(self):
-        return f"{self.student} — {self.date} — {self.status}"
+        return f"{self.student} - {self.date} - {self.status}"

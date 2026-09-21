@@ -43,4 +43,4 @@ class UserRole(models.Model):
         unique_together = ("user", "school", "role")
 
     def __str__(self):
-        return f"{self.user} — {self.role} @ {self.school}"
+        return f"{self.user} - {self.role} @ {self.school}"

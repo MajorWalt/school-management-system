@@ -23,7 +23,7 @@ def compute_student_average(student, evaluations, grade_entries_map):
         max_m = Decimal(str(ev.max_marks))
         weight = Decimal(str(ev.weight))
 
-        # Cap marks at max_marks — prevents > 100%
+        # Cap marks at max_marks - prevents > 100%
         if marks > max_m:
             marks = max_m
 
@@ -36,7 +36,7 @@ def compute_student_average(student, evaluations, grade_entries_map):
 
     result = weighted_sum / total_weight
 
-    # Safety cap — should never exceed 100 but guard anyway
+    # Safety cap - should never exceed 100 but guard anyway
     if result > Decimal("100"):
         result = Decimal("100")
 

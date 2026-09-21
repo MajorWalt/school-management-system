@@ -78,7 +78,7 @@ def _gather_students(school, form_id, homeroom_id, student_id, academic_year=Non
 def _save_report_card_pdf(request, school, student, year, up_to_term, data):
     """
     Renders a single-student PDF and saves it to that student's ReportCard row.
-    Overwrites any previously generated version — old file is deleted from
+    Overwrites any previously generated version - old file is deleted from
     disk first so regenerating never leaves orphaned PDFs behind.
     """
     single_html = render_to_string(

@@ -305,7 +305,7 @@ def course_edit(request, pk):
         "scheduling/course_form.html",
         {
             "form": form,
-            "title": f"Edit — {course.name}",
+            "title": f"Edit - {course.name}",
             "course": course,
         },
     )

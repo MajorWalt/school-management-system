@@ -475,7 +475,7 @@ def attendance_summary(request):
         homeroom_groups[hr_key].append(
             {
                 "student": student,
-                "grade_homeroom": f"{year_form}/{year_homeroom}" if year_form and year_homeroom else "—",
+                "grade_homeroom": f"{year_form}/{year_homeroom}" if year_form and year_homeroom else "-",
                 "enrolled": days_open,
                 "attended": attended,
                 "absent_unexec": absent_unexec,

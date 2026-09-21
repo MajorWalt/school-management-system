@@ -192,7 +192,7 @@ def student_bulk_enrol(request):
         # Read headers from row 1
         headers = [ws.cell(row=1, column=c).value for c in range(1, ws.max_column + 1)]
 
-        # Validate all rows first — collect all errors before touching the DB
+        # Validate all rows first - collect all errors before touching the DB
         rows_data = []
         for row_num in range(3, ws.max_row + 1):
             row = {headers[c]: ws.cell(row=row_num, column=c + 1).value for c in range(len(headers)) if headers[c]}
@@ -249,8 +249,8 @@ def student_bulk_enrol(request):
                 errors.append(
                     {
                         "row": row_num - 2,
-                        "sid": sid or "—",
-                        "name": f"{first_name} {last_name}".strip() or "—",
+                        "sid": sid or "-",
+                        "name": f"{first_name} {last_name}".strip() or "-",
                         "errors": row_errors,
                     }
                 )
@@ -284,9 +284,9 @@ def student_bulk_enrol(request):
                     }
                 )
 
-        # If ANY errors — reject entire upload
+        # If ANY errors - reject entire upload
         if errors:
-            messages.error(request, f"Upload rejected — {len(errors)} error(s) found. Fix them and re-upload.")
+            messages.error(request, f"Upload rejected - {len(errors)} error(s) found. Fix them and re-upload.")
             return render(
                 request,
                 "students/bulk_enrol.html",
@@ -297,7 +297,7 @@ def student_bulk_enrol(request):
                 },
             )
 
-        # All rows valid — now create
+        # All rows valid - now create
         from datetime import date as date_cls
 
         created_count = 0

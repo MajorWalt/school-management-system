@@ -36,7 +36,7 @@ def get_accessible_homerooms(user, school):
     roles = list(UserRole.objects.filter(user=user, school=school).values_list("role", flat=True))
     if "admin" in roles:
         return Homeroom.objects.filter(school=school).select_related("form")
-    # Teacher — only their assigned homerooms
+    # Teacher - only their assigned homerooms
     try:
         staff = user.staff_profile
         return Homeroom.objects.filter(school=school, staff_members=staff).select_related("form")
@@ -47,7 +47,7 @@ def get_accessible_homerooms(user, school):
 @admin_or_teacher_required
 @tenant_required
 def attendance_home(request):
-    """Step 1 — pick a date."""
+    """Step 1 - pick a date."""
     if not can_do_attendance(request.user, request.school):
         messages.error(request, "Access denied.")
         return redirect("portals:dashboard")
@@ -95,7 +95,7 @@ def attendance_home(request):
 @admin_or_teacher_required
 @tenant_required
 def homeroom_select(request, date):
-    """Step 2 — pick a homeroom."""
+    """Step 2 - pick a homeroom."""
     if not can_do_attendance(request.user, request.school):
         messages.error(request, "Access denied.")
         return redirect("portals:dashboard")
@@ -135,7 +135,7 @@ def homeroom_select(request, date):
 @admin_or_teacher_required
 @tenant_required
 def attendance_mark(request, date, homeroom_pk):
-    """Step 3 — mark exceptions for the homeroom."""
+    """Step 3 - mark exceptions for the homeroom."""
     if not can_do_attendance(request.user, request.school):
         messages.error(request, "Access denied.")
         return redirect("portals:dashboard")
@@ -172,7 +172,7 @@ def attendance_mark(request, date, homeroom_pk):
     }
 
     if request.method == "POST":
-        # Save only exceptions — delete present records if they exist
+        # Save only exceptions - delete present records if they exist
         saved = 0
         for student in students:
             status = request.POST.get(f"status_{student.pk}", "present")
@@ -202,7 +202,7 @@ def attendance_mark(request, date, homeroom_pk):
                     )
                 saved += 1
 
-        # Mark as "register submitted" — create a sentinel if zero exceptions
+        # Mark as "register submitted" - create a sentinel if zero exceptions
         # so we know attendance was taken even if everyone was present
         if saved == 0:
             Attendance.objects.get_or_create(
@@ -220,7 +220,7 @@ def attendance_mark(request, date, homeroom_pk):
         messages.success(request, f"Attendance saved for {homeroom} on {mark_date}.")
         return redirect("attendance:home")
 
-    # Build rows — default everyone to present
+    # Build rows - default everyone to present
     rows = []
     for student in students:
         record = existing.get(student.pk)

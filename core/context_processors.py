@@ -13,7 +13,7 @@ def user_roles(request):
     Add user role information to all templates.
     Provides: is_admin, is_teacher, is_student, user_roles, is_admin_or_teacher
     """
-    if not request.user.is_authenticated or not hasattr(request, "school"):
+    if not hasattr(request, 'user') or not request.user.is_authenticated or not hasattr(request, "school"):
         return {
             "is_admin": False,
             "is_teacher": False,

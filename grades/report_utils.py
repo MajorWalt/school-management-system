@@ -22,7 +22,7 @@ def _mean(values):
 
 
 def _section_grades(school, student, section):
-    """(term_value, exam_value) for one section — coursework avg and final-exam mark."""
+    """(term_value, exam_value) for one section - coursework avg and final-exam mark."""
     evals = list(Evaluation.objects.filter(school=school, section=section))
     if not evals:
         return None, None

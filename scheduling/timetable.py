@@ -65,7 +65,7 @@ def get_cycle_day(school, target_date, settings=None):
 
 
 def get_cycle_map(school, start_date, end_date, settings=None):
-    """{date: cycle_day or None} across a range — efficient for calendars."""
+    """{date: cycle_day or None} across a range - efficient for calendars."""
     settings = settings or get_settings(school)
     result = {}
     one = timedelta(days=1)

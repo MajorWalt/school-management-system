@@ -121,7 +121,7 @@ class Migration(migrations.Migration):
                 ("order", models.PositiveSmallIntegerField(default=1)),
                 ("start_time", models.TimeField(blank=True, null=True)),
                 ("end_time", models.TimeField(blank=True, null=True)),
-                ("is_break", models.BooleanField(default=False, help_text="Recess, lunch, assembly — no class scheduled.")),
+                ("is_break", models.BooleanField(default=False, help_text="Recess, lunch, assembly - no class scheduled.")),
             ],
             options={
                 "ordering": ["order"],

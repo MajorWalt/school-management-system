@@ -18,4 +18,4 @@ class SchoolProfile(models.Model):
         db_table = "school_profiles"
 
     def __str__(self):
-        return f"{self.school.name} — Profile"
+        return f"{self.school.name} - Profile"

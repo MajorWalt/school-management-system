@@ -3,7 +3,7 @@ Tests for the staff app views:
   - staff_list    (GET, search)
   - staff_add     (GET, POST valid, POST invalid)
   - staff_detail  (GET, 404 for wrong school)
-  - staff_edit    (GET, POST valid) — also covers the bug fix
+  - staff_edit    (GET, POST valid) - also covers the bug fix
   - staff_deactivate / staff_reactivate (GET)
 """
 from django.test import TestCase, Client

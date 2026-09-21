@@ -21,7 +21,7 @@ def run_backup(school_slug):
 
     try:
         if "sqlite3" in engine:
-            # SQLite — just copy the db file compressed
+            # SQLite - just copy the db file compressed
             db_path = str(db["NAME"])
             with open(db_path, "rb") as f_in:
                 with gzip.open(filepath, "wb") as f_out:

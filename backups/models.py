@@ -22,12 +22,12 @@ class BackupLog(models.Model):
         ordering = ["-created_at"]
 
     def __str__(self):
-        return f"{self.school} — {self.filename} — {self.status}"
+        return f"{self.school} - {self.filename} - {self.status}"
 
     @property
     def file_size_display(self):
         if not self.file_size_bytes:
-            return "—"
+            return "-"
         kb = self.file_size_bytes / 1024
         if kb < 1024:
             return f"{kb:.1f} KB"

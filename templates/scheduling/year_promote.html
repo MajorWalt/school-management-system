@@ -54,7 +54,7 @@
 									<select name="student_{{ student.id }}_form"
 											class="form-input text-sm rounded border border-gray-300 w-full px-2 py-1"
 											onchange="updateHomerooms({{ student.id }})">
-										<option value="">— Select Form —</option>
+										<option value="">- Select Form -</option>
 										{% for form in forms_list %}
 										<option value="{{ form.id }}" {% if student.form.id == form.id %}selected{% endif %}>
 											{{ form.name }}
@@ -66,7 +66,7 @@
 									<select name="student_{{ student.id }}_placement"
 											class="form-input text-sm rounded border border-gray-300 w-full px-2 py-1 homeroom-select"
 											id="homerooms_{{ student.id }}">
-										<option value="">— Select Homeroom —</option>
+										<option value="">- Select Homeroom -</option>
 									</select>
 								</td>
 								<td class="px-5 py-3">
@@ -120,7 +120,7 @@
 			const homeroomSelect = document.getElementById(`homerooms_${studentId}`);
 			const formId = parseInt(formSelect.value);
 
-			homeroomSelect.innerHTML = '<option value="">— Select Homeroom —</option>';
+			homeroomSelect.innerHTML = '<option value="">- Select Homeroom -</option>';
 			if (formId && formsData[formId]) {
 				formsData[formId].forEach(hr => {
 					const opt = document.createElement('option');
