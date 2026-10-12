@@ -147,16 +147,30 @@ class Course(models.Model):
     ]
 
     SUBJECT_AREA_CHOICES = [
-        ("mathematics", "Mathematics"),
-        ("sciences", "Sciences"),
-        ("languages", "Languages"),
-        ("social_studies", "Social Studies"),
-        ("technology", "Technology"),
-        ("arts", "Arts"),
-        ("physical_ed", "Physical Education"),
-        ("other", "Other"),
-    ]
-
+            ("agricultural_science", "Agricultural Science"),
+            ("art_and_craft", "Art and Craft"),
+            ("biology", "Biology"),
+            ("building_technology", "Building Technology"),
+            ("caribbean_history", "Caribbean History"),
+            ("chemistry", "Chemistry"),
+            ("english", "English"),
+            ("french", "French"),
+            ("geography", "Geography"),
+            ("hfle", "Health and Family Life Education"),
+            ("human_social_biology", "Human and Social Biology"),
+            ("information_technology", "Information Technology"),
+            ("integrated_science", "Integrated Science"),
+            ("literature", "Literature"),
+            ("mathematics", "Mathematics"),
+            ("music", "Music"),
+            ("physical_education", "Physical Education"),
+            ("physics", "Physics"),
+            ("principles_of_accounts", "Principles of Accounts"),
+            ("principles_of_business", "Principles of Business"),
+            ("religion", "Religion"),
+            ("spanish", "Spanish"),
+            ("technical_drawing", "Technical Drawing"),
+        ]
     school = models.ForeignKey(School, on_delete=models.CASCADE, related_name="courses")
     name = models.CharField(max_length=100)
     code = models.CharField(max_length=20, blank=True)

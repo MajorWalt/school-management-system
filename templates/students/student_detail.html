@@ -369,6 +369,115 @@
 	</div>
 	{% endif %}
 
+	<!-- Grade History (staff + admin only) -->
+	{% if is_staff_member and grade_history %}
+	<div class="bg-white rounded-xl shadow overflow-hidden">
+		<div class="px-5 py-3 bg-gray-50 border-b flex items-center justify-between flex-wrap gap-3">
+			<span class="font-semibold text-gray-700 text-sm uppercase tracking-wide">Grade History</span>
+			{% if grade_history.has_data %}
+			<div class="flex items-center gap-3">
+				<label for="grade-history-select" class="text-xs text-gray-500">Show</label>
+				<select id="grade-history-select"
+					class="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+					<option value="overall">Overall Average</option>
+					{% for opt in grade_history.subject_options %}
+					<option value="{{ opt.key }}">{{ opt.name }}</option>
+					{% endfor %}
+				</select>
+			</div>
+			{% endif %}
+		</div>
+
+		{% if grade_history.has_data %}
+		<div class="p-5 space-y-6">
+
+			<!-- Summary -->
+			<div class="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+				<div class="rounded-lg border border-gray-100 px-4 py-3">
+					<span class="text-gray-400 block text-xs">Showing</span>
+					<p class="font-medium" id="gh-label">Overall Average</p>
+				</div>
+				<div class="rounded-lg border border-gray-100 px-4 py-3">
+					<span class="text-gray-400 block text-xs">Cumulative Average</span>
+					<p class="font-bold text-lg" id="gh-cumulative">-</p>
+				</div>
+				<div class="rounded-lg border border-gray-100 px-4 py-3">
+					<span class="text-gray-400 block text-xs">Latest Year</span>
+					<p class="font-bold text-lg" id="gh-latest">-</p>
+				</div>
+			</div>
+
+			<!-- Bar chart: yearly averages -->
+			<div>
+				<p class="text-xs uppercase font-semibold text-gray-400 mb-2">Average by School Year</p>
+				<div class="relative h-64">
+					<canvas id="gh-bar"></canvas>
+				</div>
+			</div>
+
+			<!-- Line chart: term-by-term trend vs class average -->
+			<div>
+				<p class="text-xs uppercase font-semibold text-gray-400 mb-2">Term-by-Term Trend vs Class Average</p>
+				<div class="relative h-64">
+					<canvas id="gh-line"></canvas>
+				</div>
+			</div>
+
+			<!-- Year x subject area table (horizontal scroll, uniform columns, sticky subject column) -->
+			<div>
+				<p class="text-xs uppercase font-semibold text-gray-400 mb-2">Subject Averages by Year</p>
+				<div class="overflow-x-auto border border-gray-100 rounded-lg">
+					<table class="table-fixed min-w-max w-full text-sm">
+						<thead>
+							<tr class="text-gray-400 uppercase text-xs bg-gray-50 border-b border-gray-100">
+								<th class="sticky left-0 z-10 bg-gray-50 text-left py-2 px-3 w-56 min-w-[14rem] border-r border-gray-100">Subject</th>
+								{% for y in grade_history.year_names %}
+								<th class="text-center py-2 px-3 w-32 min-w-[8rem] whitespace-nowrap">{{ y }}</th>
+								{% endfor %}
+							</tr>
+						</thead>
+						<tbody class="divide-y divide-gray-100">
+							{% for row in grade_history.table_rows %}
+							<tr class="hover:bg-gray-50">
+								<td class="sticky left-0 z-10 bg-white py-2 px-3 text-gray-700 whitespace-nowrap border-r border-gray-100">{{ row.name }}</td>
+								{% for cell in row.cells %}
+								<td class="py-2 px-3 text-center whitespace-nowrap" {% if cell.title %}title="{{ cell.title }}"{% endif %}>
+									{% if cell.value is None %}
+									<span class="text-gray-300">-</span>
+									{% else %}
+									<span class="cursor-help {% if cell.value >= 70 %}text-green-600{% elif cell.value >= 50 %}text-yellow-600{% else %}text-red-600{% endif %}">{{ cell.value|floatformat:1 }}%</span>
+									{% endif %}
+								</td>
+								{% endfor %}
+							</tr>
+							{% endfor %}
+						</tbody>
+						<tfoot class="border-t-2 border-gray-200 bg-gray-50">
+							<tr>
+								<td class="sticky left-0 z-10 bg-gray-50 py-2 px-3 font-semibold text-gray-700 whitespace-nowrap border-r border-gray-100">Final Average</td>
+								{% for cell in grade_history.overall_cells %}
+								<td class="py-2 px-3 text-center font-bold whitespace-nowrap">
+									{% if cell is None %}
+									<span class="text-gray-300">-</span>
+									{% else %}
+									<span class="{% if cell >= 70 %}text-green-600{% elif cell >= 50 %}text-yellow-600{% else %}text-red-600{% endif %}">{{ cell|floatformat:1 }}%</span>
+									{% endif %}
+								</td>
+								{% endfor %}
+							</tr>
+						</tfoot>
+					</table>
+				</div>
+			</div>
+		</div>
+
+		{{ grade_history.chart|json_script:"grade-history-data" }}
+		{% else %}
+		<p class="px-5 py-4 text-sm text-gray-400">No grades recorded for this student yet.</p>
+		{% endif %}
+	</div>
+	{% endif %}
+
 	<!-- Enrolled Subjects -->
 	<div class="bg-white rounded-xl shadow overflow-hidden">
 		<div class="px-5 py-3 bg-gray-50 border-b font-semibold text-gray-700 text-sm uppercase tracking-wide flex items-center justify-between">
@@ -440,4 +549,182 @@
 		document.getElementById('note-edit-' + id).style.display = 'none';
 	}
 </script>
+
+{% if is_staff_member and grade_history and grade_history.has_data %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+	(function () {
+		var dataEl = document.getElementById('grade-history-data');
+		if (!dataEl || typeof Chart === 'undefined') { return; }
+
+		var data = JSON.parse(dataEl.textContent);
+		var select = document.getElementById('grade-history-select');
+		var labelEl = document.getElementById('gh-label');
+		var cumEl = document.getElementById('gh-cumulative');
+		var latestEl = document.getElementById('gh-latest');
+		var barChart = null;
+		var lineChart = null;
+
+		function colorFor(v) {
+			if (v === null || v === undefined) { return '#d1d5db'; }
+			if (v >= 70) { return '#16a34a'; }
+			if (v >= 50) { return '#ca8a04'; }
+			return '#dc2626';
+		}
+
+		function textClassFor(v) {
+			if (v === null || v === undefined) { return 'text-gray-300'; }
+			if (v >= 70) { return 'text-green-600'; }
+			if (v >= 50) { return 'text-yellow-600'; }
+			return 'text-red-600';
+		}
+
+		function mean(values) {
+			var vals = values.filter(function (v) { return v !== null && v !== undefined; });
+			if (!vals.length) { return null; }
+			var sum = vals.reduce(function (a, b) { return a + b; }, 0);
+			return Math.round((sum / vals.length) * 10) / 10;
+		}
+
+		function lastValue(values) {
+			for (var i = values.length - 1; i >= 0; i--) {
+				if (values[i] !== null && values[i] !== undefined) { return values[i]; }
+			}
+			return null;
+		}
+
+		function getSeries(key) {
+			var s = key === 'overall' ? data.overall : data.subjects[key];
+			return {
+				label: key === 'overall' ? 'Overall Average' : s.name,
+				isOverall: key === 'overall',
+				yearly: s.yearly,
+				yearlyMeta: s.yearly_meta,
+				termLabels: s.term_labels,
+				termValues: s.term_values,
+				termMeta: s.term_meta,
+				termClass: s.term_class || []
+			};
+		}
+
+		var pctAxis = {
+			min: 0,
+			max: 100,
+			ticks: { callback: function (v) { return v + '%'; } }
+		};
+
+		function buildTooltip(series) {
+			return {
+				bodyFont: { size: 11 },
+				callbacks: {
+					label: function (ctx) {
+						var v = ctx.parsed.y;
+						var prefix;
+						if (ctx.dataset.isClass) {
+							prefix = 'Class average';
+						} else {
+							prefix = series.isOverall ? 'Student' : series.label;
+						}
+						return v === null ? prefix + ': No grades' : prefix + ': ' + v.toFixed(1) + '%';
+					},
+					afterLabel: function (ctx) {
+						var meta = ctx.dataset.meta;
+						return (meta && meta[ctx.dataIndex]) ? meta[ctx.dataIndex] : [];
+					}
+				}
+			};
+		}
+
+		function render(key) {
+			var s = getSeries(key);
+
+			labelEl.textContent = s.label;
+			var cum = mean(s.yearly);
+			var latest = lastValue(s.yearly);
+			cumEl.textContent = cum === null ? '-' : cum.toFixed(1) + '%';
+			cumEl.className = 'font-bold text-lg ' + textClassFor(cum);
+			latestEl.textContent = latest === null ? '-' : latest.toFixed(1) + '%';
+			latestEl.className = 'font-bold text-lg ' + textClassFor(latest);
+
+			if (barChart) { barChart.destroy(); }
+			if (lineChart) { lineChart.destroy(); }
+
+			barChart = new Chart(document.getElementById('gh-bar'), {
+				type: 'bar',
+				data: {
+					labels: data.years,
+					datasets: [{
+						label: s.label,
+						data: s.yearly,
+						meta: s.yearlyMeta,
+						backgroundColor: s.yearly.map(colorFor),
+						borderRadius: 6,
+						maxBarThickness: 60
+					}]
+				},
+				options: {
+					responsive: true,
+					maintainAspectRatio: false,
+					plugins: { legend: { display: false }, tooltip: buildTooltip(s) },
+					scales: { y: pctAxis }
+				}
+			});
+
+			lineChart = new Chart(document.getElementById('gh-line'), {
+				type: 'line',
+				data: {
+					labels: s.termLabels,
+					datasets: [
+						{
+							label: s.isOverall ? 'Student' : s.label,
+							data: s.termValues,
+							meta: s.termMeta,
+							borderColor: '#2563eb',
+							backgroundColor: 'rgba(37, 99, 235, 0.08)',
+							pointBackgroundColor: s.termValues.map(colorFor),
+							pointRadius: 5,
+							pointHoverRadius: 7,
+							tension: 0.3,
+							fill: true,
+							spanGaps: true
+						},
+						{
+							label: 'Class average',
+							isClass: true,
+							data: s.termClass,
+							borderColor: '#9ca3af',
+							backgroundColor: '#9ca3af',
+							borderDash: [6, 4],
+							borderWidth: 2,
+							pointRadius: 3,
+							pointHoverRadius: 5,
+							pointBackgroundColor: '#9ca3af',
+							tension: 0.3,
+							fill: false,
+							spanGaps: true
+						}
+					]
+				},
+				options: {
+					responsive: true,
+					maintainAspectRatio: false,
+					interaction: { mode: 'index', intersect: false },
+					plugins: {
+						legend: {
+							display: true,
+							position: 'bottom',
+							labels: { boxWidth: 24, font: { size: 11 } }
+						},
+						tooltip: buildTooltip(s)
+					},
+					scales: { y: pctAxis }
+				}
+			});
+		}
+
+		select.addEventListener('change', function () { render(this.value); });
+		render('overall');
+	})();
+</script>
+{% endif %}
 {% endblock %}

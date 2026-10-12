@@ -5,6 +5,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from core.decorators import tenant_required, admin_required
 from core.activity import log_activity
 from accounts.utils import is_admin
+from grades.student_history import build_grade_history
 from scheduling.models import AcademicYear, Enrolment, Form, Homeroom, TermConfig
 from .forms import BulkEnrolForm, GuardianForm, StudentForm, StudentGuardianForm, StudentStatusForm
 from .models import Student, StudentStatusLog
@@ -130,6 +131,11 @@ def student_detail(request, pk):
     # Staff notes thread (teachers + admin only).
     staff_notes = StudentNote.objects.filter(school=request.school, student=student).select_related("author").order_by("-created_at")
 
+    is_staff_member = _is_staff(request.user, request.school)
+
+    # Grade history (staff + admin only).
+    grade_history = build_grade_history(request.school, student) if is_staff_member else None
+
     return render(
         request,
         "students/student_detail.html",
@@ -138,11 +144,12 @@ def student_detail(request, pk):
             "logs": logs,
             "guardians": guardians,
             "is_admin": _is_admin(request.user, request.school),
-            "is_staff_member": _is_staff(request.user, request.school),
+            "is_staff_member": is_staff_member,
             "current_user_id": request.user.id,
             "current_year": current_year,
             "enrolment_terms": enrolment_terms,
             "staff_notes": staff_notes,
+            "grade_history": grade_history,
         },
     )
     pass
