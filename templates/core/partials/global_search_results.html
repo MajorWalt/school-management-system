@@ -1,0 +1,24 @@
+{% if query %}
+	{% for group in groups %}
+		<p class="app-search-group-label">{{ group.label }}</p>
+		{% for item in group.items %}
+			{% if item.url %}
+			<a href="{{ item.url }}" class="app-search-item" data-search-item role="option">
+			{% else %}
+			<div class="app-search-item" role="option">
+			{% endif %}
+				<span class="app-search-avatar app-search-avatar-{{ item.kind }}">{{ item.initials }}</span>
+				<span class="app-search-text">
+					<span class="app-search-name">{{ item.name }}</span>
+					{% if item.subtitle %}<span class="app-search-sub">{{ item.subtitle }}</span>{% endif %}
+				</span>
+			{% if item.url %}
+			</a>
+			{% else %}
+			</div>
+			{% endif %}
+		{% endfor %}
+	{% empty %}
+		<p class="app-search-empty">No matches for “{{ query }}”</p>
+	{% endfor %}
+{% endif %}

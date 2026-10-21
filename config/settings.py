@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     "crispy_tailwind",
     "django_extensions",
     "debug_toolbar",
+    "watson",
     # Local apps
     "core",
     "branding",
