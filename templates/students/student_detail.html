@@ -3,6 +3,7 @@
 {% block page_title %}Student Record{% endblock %}
 
 {% block content %}
+<style>[x-cloak]{display:none!important}</style>
 <div class="max-w-4xl mx-auto space-y-6">
 
 	<!-- Header -->
@@ -113,6 +114,27 @@
 			<div class="col-span-2"><span class="text-gray-400 block text-xs">Address</span><p class="font-medium">{{ student.address|default:"-" }}</p></div>
 		</div>
 	</div>
+
+	<!-- Login Account (admin only) -->
+	{% if is_admin %}
+	<div class="bg-white rounded-xl shadow overflow-hidden">
+		<div class="px-5 py-3 bg-gray-50 border-b font-semibold text-gray-700 text-sm uppercase tracking-wide">
+			Login Account
+		</div>
+		{% if student.user %}
+		<div class="p-5 space-y-4 text-sm">
+			<div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+				<div><span class="text-gray-400 block text-xs">Username</span><p class="font-medium font-mono">{{ student.user.get_username }}</p></div>
+				<div><span class="text-gray-400 block text-xs">Login Email</span><p class="font-medium">{{ student.user.email|default:"-" }}</p></div>
+				<div><span class="text-gray-400 block text-xs">Last Login</span><p class="font-medium">{{ student.user.last_login|date:"d M Y, g:i A"|default:"Never" }}</p></div>
+			</div>
+			{% include "accounts/_set_password_panel.html" with target_user=student.user %}
+		</div>
+		{% else %}
+		<p class="px-5 py-4 text-sm text-gray-400">This student has no login account.</p>
+		{% endif %}
+	</div>
+	{% endif %}
 
 	<!-- Academic -->
 	<div class="bg-white rounded-xl shadow overflow-hidden">
