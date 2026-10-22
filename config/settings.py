@@ -63,6 +63,7 @@ INSTALLED_APPS = [
     "portals",
     "backups",
     "reports",
+    "analytics",
 ]
 
 MIDDLEWARE = [

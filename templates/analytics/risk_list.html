@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}Students to check in with{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+	<div class="flex flex-wrap items-end justify-between gap-4 mb-6">
+		<div>
+			<h1 class="text-2xl font-bold text-gray-800">Students to check in with</h1>
+			<p class="text-sm text-gray-500 mt-1">
+				{% if latest %}Scores from {{ latest|date:"l, F j, Y" }}. Based on grades, failing subjects, merits and demerits compared with each student's form.{% else %}No scores yet.{% endif %}
+			</p>
+		</div>
+		{% if is_admin %}
+		<form method="post" action="{% url 'analytics:risk_recalculate' %}">
+			{% csrf_token %}
+			<button type="submit" class="btn-primary px-5 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition">Recalculate now</button>
+		</form>
+		{% endif %}
+	</div>
+
+	{% if latest %}
+	<div class="flex flex-wrap gap-3 mb-4 text-sm">
+		<span class="px-3 py-1 rounded-full bg-red-50 text-red-700 border border-red-200">High: {{ counts.high }}</span>
+		<span class="px-3 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200">Watch: {{ counts.watch }}</span>
+		<span class="px-3 py-1 rounded-full bg-gray-50 text-gray-600 border border-gray-200">Low: {{ counts.low }}</span>
+	</div>
+	{% endif %}
+
+	<form method="get" class="bg-white rounded-xl shadow p-4 mb-4 flex flex-wrap gap-3 items-end">
+		<div>
+			<label class="block text-xs font-medium text-gray-600 mb-1">Band</label>
+			<select name="band" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+				<option value="">All</option>
+				{% for value, label in band_choices %}
+				<option value="{{ value }}" {% if band == value %}selected{% endif %}>{{ label }}</option>
+				{% endfor %}
+			</select>
+		</div>
+		<div>
+			<label class="block text-xs font-medium text-gray-600 mb-1">Form</label>
+			<select name="form" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+				<option value="">All</option>
+				{% for f in forms %}
+				<option value="{{ f.pk }}" {% if form_pk == f.pk|stringformat:"s" %}selected{% endif %}>{{ f.name }}</option>
+				{% endfor %}
+			</select>
+		</div>
+		<button type="submit" class="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 text-gray-700 hover:bg-gray-50 transition">Filter</button>
+	</form>
+
+	<div class="bg-white rounded-xl shadow overflow-x-auto">
+		{% if scores %}
+		<table class="min-w-full text-sm">
+			<thead class="bg-gray-50 text-gray-600 text-left">
+				<tr>
+					<th class="px-4 py-3 font-medium">Student</th>
+					<th class="px-4 py-3 font-medium">Homeroom</th>
+					<th class="px-4 py-3 font-medium text-right">Score</th>
+					<th class="px-4 py-3 font-medium">Band</th>
+					<th class="px-4 py-3 font-medium">Main reasons</th>
+				</tr>
+			</thead>
+			<tbody class="divide-y divide-gray-100">
+				{% for s in scores %}
+				<tr class="align-top">
+					<td class="px-4 py-3 font-medium text-gray-800">{{ s.student.get_full_name }}</td>
+					<td class="px-4 py-3 text-gray-600">{{ s.student.homeroom|default:"-" }}</td>
+					<td class="px-4 py-3 text-right font-semibold">{{ s.score }}</td>
+					<td class="px-4 py-3">
+						{% if s.band == "high" %}<span class="px-2 py-0.5 rounded bg-red-100 text-red-700 text-xs font-medium">High</span>
+						{% elif s.band == "watch" %}<span class="px-2 py-0.5 rounded bg-amber-100 text-amber-700 text-xs font-medium">Watch</span>
+						{% else %}<span class="px-2 py-0.5 rounded bg-gray-100 text-gray-600 text-xs font-medium">Low</span>{% endif %}
+					</td>
+					<td class="px-4 py-3 text-gray-600">
+						{% for f in s.top_factors %}<div>{{ f }}</div>{% empty %}<span class="text-gray-400">At or above form average</span>{% endfor %}
+					</td>
+				</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+		{% else %}
+		<p class="p-6 text-sm text-gray-500">
+			{% if latest %}No students match these filters.{% elif is_admin %}Click Recalculate now to score students for the current term.{% else %}Scores appear here once the school runs its first calculation.{% endif %}
+		</p>
+		{% endif %}
+	</div>
+</div>
+{% endblock %}
