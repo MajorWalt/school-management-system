@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     "attendance",
     "grades",
     "merits",
+    "behaviour",
     "portals",
     "backups",
     "reports",
@@ -186,4 +187,4 @@ SESSION_COOKIE_AGE = 24 * 60 * 60
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SECURE = False
-SESSION_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_SAMESITE = "Lax"

@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} - {{ school.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+	<h1 class="text-2xl font-bold text-gray-800 mb-6">{{ title }}</h1>
+	<div class="bg-white rounded-xl shadow p-6 border-t-4 border-blue-500">
+		<form method="post" novalidate x-data="{{ alpine_state }}" @submit="$el.submit()">
+			{% csrf_token %}
+
+			<!-- Incident Type (locked on edit) -->
+			<div class="mb-6">
+				<label class="block text-sm font-medium text-gray-600 mb-2">
+					Incident Type
+					<span class="text-red-500">*</span>
+				</label>
+				<div class="relative">
+					{{ form.incident_type }}
+					<script>
+						document.querySelector('[name="incident_type"]').x-model = 'type';
+						document.querySelector('[name="incident_type"]').setAttribute('x-model', 'type');
+						document.querySelector('[name="incident_type"]').setAttribute('@change', '$watch("type", () => {})');
+					</script>
+				</div>
+				{% if form.incident_type.errors %}
+				<p class="text-red-500 text-sm mt-1">{{ form.incident_type.errors.0 }}</p>
+				{% endif %}
+			</div>
+
+			<!-- Student and Academic Year -->
+			<div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+				<div>
+					<label class="block text-sm font-medium text-gray-600 mb-2">
+						Student
+						<span class="text-red-500">*</span>
+					</label>
+					{{ form.student }}
+					{% if form.student.errors %}
+					<p class="text-red-500 text-xs mt-1">{{ form.student.errors.0 }}</p>
+					{% endif %}
+				</div>
+				<div>
+					<label class="block text-sm font-medium text-gray-600 mb-2">
+						Academic Year
+						<span class="text-red-500">*</span>
+					</label>
+					{{ form.academic_year }}
+					{% if form.academic_year.errors %}
+					<p class="text-red-500 text-xs mt-1">{{ form.academic_year.errors.0 }}</p>
+					{% endif %}
+				</div>
+			</div>
+
+			<!-- Common Fields -->
+			<div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+				<div>
+					<label class="block text-sm font-medium text-gray-600 mb-2">
+						Incident Date
+						<span class="text-red-500">*</span>
+					</label>
+					{{ form.incident_date }}
+					{% if form.incident_date.errors %}
+					<p class="text-red-500 text-xs mt-1">{{ form.incident_date.errors.0 }}</p>
+					{% endif %}
+				</div>
+				<div>
+					<label class="block text-sm font-medium text-gray-600 mb-2">Term (Optional)</label>
+					{{ form.term_number }}
+					{% if form.term_number.errors %}
+					<p class="text-red-500 text-xs mt-1">{{ form.term_number.errors.0 }}</p>
+					{% endif %}
+				</div>
+			</div>
+
+			<!-- Reason -->
+			<div class="mb-6">
+				<label class="block text-sm font-medium text-gray-600 mb-2">
+					Reason
+					<span class="text-red-500">*</span>
+				</label>
+				{{ form.reason }}
+				{% if form.reason.errors %}
+				<p class="text-red-500 text-xs mt-1">{{ form.reason.errors.0 }}</p>
+				{% endif %}
+			</div>
+
+
+
+			<!-- Suspension Fields -->
+			<fieldset class="mb-6" x-show="type === 'suspension'" x-cloak>
+				<legend class="text-sm font-semibold text-gray-700 mb-4">Suspension Details</legend>
+				<div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+					<div>
+						<label class="block text-sm font-medium text-gray-600 mb-2">
+							Start Date
+							<span class="text-red-500" :hidden="type !== 'suspension'">*</span>
+						</label>
+						{{ form.start_date }}
+						{% if form.start_date.errors %}
+						<p class="text-red-500 text-xs mt-1">{{ form.start_date.errors.0 }}</p>
+						{% endif %}
+					</div>
+					<div>
+						<label class="block text-sm font-medium text-gray-600 mb-2">
+							End Date
+							<span class="text-red-500" :hidden="type !== 'suspension'">*</span>
+						</label>
+						{{ form.end_date }}
+						{% if form.end_date.errors %}
+						<p class="text-red-500 text-xs mt-1">{{ form.end_date.errors.0 }}</p>
+						{% endif %}
+					</div>
+					<div>
+						<label class="block text-sm font-medium text-gray-600 mb-2">
+							Suspension Type
+							<span class="text-red-500" :hidden="type !== 'suspension'">*</span>
+						</label>
+						{{ form.suspension_type }}
+						{% if form.suspension_type.errors %}
+						<p class="text-red-500 text-xs mt-1">{{ form.suspension_type.errors.0 }}</p>
+						{% endif %}
+					</div>
+				</div>
+			</fieldset>
+
+			<!-- Form Actions -->
+			<div class="flex gap-3">
+				<button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg text-sm font-medium transition">
+					{% if is_create %}Save Incident{% else %}Update Incident{% endif %}
+				</button>
+				<a href="{% url 'behaviour:incident_list' %}"
+				   class="px-5 py-2 rounded-lg text-sm font-medium border border-gray-300 text-gray-600 hover:bg-gray-50 transition">
+					Cancel
+				</a>
+			</div>
+		</form>
+	</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+<style>[x-cloak] { display: none !important; }</style>
+{% endblock %}

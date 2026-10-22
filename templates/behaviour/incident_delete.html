@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Confirm Delete - {{ school.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-lg mx-auto mt-12">
+	<div class="bg-white rounded-xl shadow p-8 border-t-4 border-red-500">
+		<h1 class="text-2xl font-bold text-gray-800 mb-2">Delete Behaviour Incident?</h1>
+		<p class="text-gray-600 mb-6">
+			Are you sure you want to delete the {% if incident.is_detention %}detention{% else %}suspension{% endif %} incident for 
+			<strong>{{ incident.student.get_full_name }}</strong> recorded on <strong>{{ incident.incident_date }}</strong>?
+		</p>
+
+		<!-- Incident Summary -->
+		<div class="bg-gray-50 rounded-lg p-4 mb-6 border-l-4 border-red-500">
+			<div class="grid grid-cols-2 gap-4 text-sm">
+				<div>
+					<p class="text-xs text-gray-600 mb-1">Student</p>
+					<p class="font-medium text-gray-800">{{ incident.student.get_full_name }}</p>
+				</div>
+				<div>
+					<p class="text-xs text-gray-600 mb-1">Type</p>
+					<p class="font-medium text-gray-800">{{ incident.get_incident_type_display }}</p>
+				</div>
+				<div>
+					<p class="text-xs text-gray-600 mb-1">Incident Date</p>
+					<p class="font-medium text-gray-800">{{ incident.incident_date }}</p>
+				</div>
+				<div>
+					<p class="text-xs text-gray-600 mb-1">Year</p>
+					<p class="font-medium text-gray-800">{{ incident.academic_year.name }}</p>
+				</div>
+			</div>
+		</div>
+
+		<p class="text-sm text-gray-600 mb-6">
+			<strong>Warning:</strong> This action cannot be undone. The incident will be permanently deleted from the system.
+		</p>
+
+		<!-- Form -->
+		<form method="post">
+			{% csrf_token %}
+			<div class="flex gap-3">
+				<button type="submit" class="flex-1 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
+					Yes, Delete Incident
+				</button>
+				<a href="{% url 'behaviour:incident_detail' incident.pk %}"
+				   class="flex-1 px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 text-gray-600 hover:bg-gray-50 transition text-center">
+					Cancel
+				</a>
+			</div>
+		</form>
+	</div>
+</div>
+{% endblock %}

@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% block title %}Incident Details - {{ school.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+	<div class="flex items-center justify-between mb-6">
+		<h1 class="text-2xl font-bold text-gray-800">
+			{{ incident.student.get_full_name }} - 
+			{% if incident.is_detention %}
+			<span class="text-yellow-600">Detention</span>
+			{% else %}
+			<span class="text-red-600">Suspension</span>
+			{% endif %}
+		</h1>
+		<div class="flex gap-2">
+			<a href="{% url 'behaviour:incident_edit' incident.pk %}"
+			   class="bg-gray-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-700 transition">
+				Edit
+			</a>
+			<a href="{% url 'behaviour:incident_delete' incident.pk %}"
+			   class="bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-700 transition"
+			   onclick="return confirm('Delete this incident?')">
+				Delete
+			</a>
+		</div>
+	</div>
+
+	<!-- Main Details -->
+	<div class="bg-white rounded-xl shadow p-6 mb-6">
+		<div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
+			<div>
+				<p class="text-xs text-gray-600 mb-1">Student</p>
+				<p class="text-lg font-medium text-gray-800">{{ incident.student.get_full_name }}</p>
+			</div>
+			<div>
+				<p class="text-xs text-gray-600 mb-1">Form</p>
+				<p class="text-lg font-medium text-gray-800">{{ incident.student.homeroom.form.name|default:"-" }}</p>
+			</div>
+			<div>
+				<p class="text-xs text-gray-600 mb-1">Incident Type</p>
+				<p class="text-lg font-medium text-gray-800">{{ incident.get_incident_type_display }}</p>
+			</div>
+			<div>
+				<p class="text-xs text-gray-600 mb-1">Academic Year</p>
+				<p class="text-lg font-medium text-gray-800">{{ incident.academic_year.name }}</p>
+			</div>
+			<div>
+				<p class="text-xs text-gray-600 mb-1">Incident Date</p>
+				<p class="text-lg font-medium text-gray-800">{{ incident.incident_date }}</p>
+			</div>
+			<div>
+				<p class="text-xs text-gray-600 mb-1">Term (if applicable)</p>
+				<p class="text-lg font-medium text-gray-800">{{ incident.get_term_number_display|default:"-" }}</p>
+			</div>
+		</div>
+
+		<div class="mb-6">
+			<p class="text-xs text-gray-600 mb-1">Reason</p>
+			<p class="text-gray-800 whitespace-pre-wrap">{{ incident.reason }}</p>
+		</div>
+	</div>
+
+	<!-- Suspension Details (if applicable) -->
+	{% if incident.is_suspension %}
+	<div class="bg-red-50 rounded-xl shadow p-6 mb-6 border-l-4 border-red-500">
+		<h2 class="text-lg font-semibold text-red-800 mb-4">Suspension Details</h2>
+		<div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+			<div>
+				<p class="text-xs text-red-600 mb-1">Start Date</p>
+				<p class="text-lg font-medium text-gray-800">{{ incident.start_date }}</p>
+			</div>
+			<div>
+				<p class="text-xs text-red-600 mb-1">End Date</p>
+				<p class="text-lg font-medium text-gray-800">{{ incident.end_date }}</p>
+			</div>
+			<div class="sm:col-span-2">
+				<p class="text-xs text-red-600 mb-1">Suspension Type</p>
+				<p class="text-lg font-medium text-gray-800">{{ incident.get_suspension_type_display }}</p>
+			</div>
+		</div>
+	</div>
+	{% endif %}
+
+	<!-- Audit Trail -->
+	<div class="bg-gray-50 rounded-xl shadow p-6">
+		<h2 class="text-lg font-semibold text-gray-800 mb-4">Audit Information</h2>
+		<div class="grid grid-cols-1 sm:grid-cols-2 gap-6 text-sm">
+			<div>
+				<p class="text-xs text-gray-600 mb-1">Logged By</p>
+				<p class="font-medium text-gray-800">{{ incident.logged_by.email|default:"-" }}</p>
+			</div>
+			<div>
+				<p class="text-xs text-gray-600 mb-1">Created At</p>
+				<p class="font-medium text-gray-800">{{ incident.created_at|date:"Y-m-d H:i" }}</p>
+			</div>
+			<div>
+				<p class="text-xs text-gray-600 mb-1">Last Updated</p>
+				<p class="font-medium text-gray-800">{{ incident.updated_at|date:"Y-m-d H:i" }}</p>
+			</div>
+		</div>
+	</div>
+
+	<!-- Back Link -->
+	<div class="mt-6">
+		<a href="{% url 'behaviour:incident_list' %}"
+		   class="text-blue-600 hover:underline text-sm">
+			← Back to Incidents
+		</a>
+	</div>
+</div>
+{% endblock %}

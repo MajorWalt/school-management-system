@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+{% block title %}Behaviour Incidents - {{ school.name }}{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+	<h1 class="text-2xl font-bold text-gray-800">Behaviour Incidents</h1>
+	<a href="{% url 'behaviour:incident_create' %}"
+	   class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition">
+		+ Log Incident
+	</a>
+</div>
+
+<!-- Search and Filter Form -->
+<form method="get" class="mb-6 bg-white rounded-lg shadow p-4">
+	<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+		<div>
+			<label class="block text-xs font-medium text-gray-600 mb-1">Student Name</label>
+			<input type="text" name="q" value="{{ query }}"
+				   placeholder="First or last name..."
+				   class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+		</div>
+
+		<div>
+			<label class="block text-xs font-medium text-gray-600 mb-1">Type</label>
+			<select name="type" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+				<option value="">All Types</option>
+				<option value="detention" {% if incident_type == 'detention' %}selected{% endif %}>Detention</option>
+				<option value="suspension" {% if incident_type == 'suspension' %}selected{% endif %}>Suspension</option>
+			</select>
+		</div>
+		<div>
+			<label class="block text-xs font-medium text-gray-600 mb-1">Form</label>
+			<select name="form" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+				<option value="">All Forms</option>
+				{% for form in available_forms %}
+				<option value="{{ form }}" {% if form_filter == form %}selected{% endif %}>{{ form }}</option>
+				{% endfor %}
+			</select>
+		</div>
+		<div>
+			<label class="block text-xs font-medium text-gray-600 mb-1">Year</label>
+			<select name="year" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+				<option value="">All Years</option>
+				{% for year in available_years %}
+				<option value="{{ year }}" {% if year_filter == year %}selected{% endif %}>{{ year }}</option>
+				{% endfor %}
+			</select>
+		</div>
+		<div class="flex items-end gap-2">
+			<button type="submit" class="flex-1 bg-gray-600 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-gray-700 transition">
+				Filter
+			</button>
+			{% if has_filters %}
+			<a href="{% url 'behaviour:incident_list' %}" class="flex-1 px-3 py-2 rounded-lg text-sm font-medium border border-gray-300 text-gray-600 hover:bg-gray-50 transition text-center">
+				Clear
+			</a>
+			{% endif %}
+		</div>
+	</div>
+	<div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+		<div>
+			<label class="block text-xs font-medium text-gray-600 mb-1">From Date</label>
+			<input type="date" name="date_from" value="{{ date_from }}"
+				   class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+		</div>
+		<div>
+			<label class="block text-xs font-medium text-gray-600 mb-1">To Date</label>
+			<input type="date" name="date_to" value="{{ date_to }}"
+				   class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+		</div>
+	</div>
+</form>
+
+<!-- Results Table -->
+<div class="bg-white rounded-xl shadow overflow-hidden">
+	<table class="min-w-full text-sm">
+		<thead class="bg-gray-50 text-gray-400 uppercase text-xs">
+			<tr>
+				<th class="px-4 py-3 text-left">Student</th>
+				<th class="px-4 py-3 text-left">Form</th>
+				<th class="px-4 py-3 text-left">Type</th>
+				<th class="px-4 py-3 text-left">Incident Date</th>
+				<th class="px-4 py-3 text-left">Details</th>
+				<th class="px-4 py-3 text-left">Logged By</th>
+				<th class="px-4 py-3"></th>
+			</tr>
+		</thead>
+		<tbody class="divide-y divide-gray-100">
+			{% for incident in page_obj %}
+			<tr class="hover:bg-gray-50">
+				<td class="px-4 py-3 font-medium text-gray-800">
+					<a href="{% url 'behaviour:incident_detail' incident.pk %}" class="hover:underline">
+						{{ incident.student.get_full_name }}
+					</a>
+				</td>
+				<td class="px-4 py-3 text-gray-600 text-xs">
+					{{ incident.student.homeroom.form.name|default:"-" }}
+				</td>
+				<td class="px-4 py-3">
+					{% if incident.is_detention %}
+					<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+						Detention
+					</span>
+					{% else %}
+					<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+						Suspension
+					</span>
+					{% endif %}
+				</td>
+				<td class="px-4 py-3 text-gray-600 text-xs">{{ incident.incident_date }}</td>
+				<td class="px-4 py-3 text-gray-600 text-xs">
+					{% if incident.is_detention %}
+					—
+					{% else %}
+					{{ incident.start_date }} to {{ incident.end_date }}
+					{% endif %}
+				</td>
+				<td class="px-4 py-3 text-gray-600 text-xs">
+					{{ incident.logged_by.email|default:"-" }}
+				</td>
+				<td class="px-4 py-3 text-right space-x-2">
+					<a href="{% url 'behaviour:incident_detail' incident.pk %}"
+					   class="text-blue-400 hover:underline text-xs">View</a>
+					<a href="{% url 'behaviour:incident_edit' incident.pk %}"
+					   class="text-gray-400 hover:underline text-xs">Edit</a>
+					<a href="{% url 'behaviour:incident_delete' incident.pk %}"
+					   class="text-red-400 hover:underline text-xs"
+					   onclick="return confirm('Delete this incident?')">Delete</a>
+				</td>
+			</tr>
+			{% empty %}
+			<tr>
+				<td colspan="7" class="px-4 py-8 text-center text-gray-400">
+					{% if has_filters %}
+					No incidents match your filters.
+					{% else %}
+					No behaviour incidents recorded yet.
+					{% endif %}
+				</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+</div>
+
+<!-- Pagination -->
+{% if page_obj.has_other_pages %}
+<div class="mt-6 flex items-center justify-between">
+	<div class="text-sm text-gray-600">
+		Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+		({{ page_obj.paginator.count }} total)
+	</div>
+	<div class="flex gap-2">
+		{% if page_obj.has_previous %}
+		<a href="?page=1{{ querystring }}" class="px-3 py-1 rounded border border-gray-300 hover:bg-gray-50 text-sm">First</a>
+		<a href="?page={{ page_obj.previous_page_number }}{{ querystring }}" class="px-3 py-1 rounded border border-gray-300 hover:bg-gray-50 text-sm">Previous</a>
+		{% endif %}
+		{% if page_obj.has_next %}
+		<a href="?page={{ page_obj.next_page_number }}{{ querystring }}" class="px-3 py-1 rounded border border-gray-300 hover:bg-gray-50 text-sm">Next</a>
+		<a href="?page={{ page_obj.paginator.num_pages }}{{ querystring }}" class="px-3 py-1 rounded border border-gray-300 hover:bg-gray-50 text-sm">Last</a>
+		{% endif %}
+	</div>
+</div>
+{% endif %}
+{% endblock %}

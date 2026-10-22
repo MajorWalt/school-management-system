@@ -45,6 +45,10 @@ class ActivityLog(models.Model):
         ("demerit_issued", "Issued Demerit"),
         ("merit_deleted", "Deleted Merit"),
         ("demerit_deleted", "Deleted Demerit"),
+        # Behaviour
+        ("behaviour_incident_created", "Created Behaviour Incident"),
+        ("behaviour_incident_updated", "Updated Behaviour Incident"),
+        ("behaviour_incident_deleted", "Deleted Behaviour Incident"),
         # Backup
         ("backup_run", "Ran Database Backup"),
         # Scheduling

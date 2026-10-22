@@ -9,17 +9,15 @@ from django.shortcuts import render
 # Custom 404 Error Handler
 @requires_csrf_token
 def custom_404(request, exception=None):
-    
-    return render(request, '404.html', {'status_code': 404}, status=404)
- 
+
+    return render(request, "404.html", {"status_code": 404}, status=404)
 
 
 # Custom 500 Error Handler
 @requires_csrf_token
 def custom_500(request):
-   
-    return render(request, '500.html', status=500)
 
+    return render(request, "500.html", status=500)
 
 
 # URL Patterns
@@ -34,6 +32,7 @@ urlpatterns = [
     path("attendance/", include("attendance.urls")),
     path("grades/", include("grades.urls")),
     path("merits/", include("merits.urls")),
+    path("behaviour/", include("behaviour.urls")),
     path("backups/", include("backups.urls")),
     path("reports/", include("reports.urls")),
     path("analytics/", include("analytics.urls")),
@@ -42,6 +41,7 @@ urlpatterns = [
 
 if settings.DEBUG:
     import debug_toolbar
+
     urlpatterns += [
         path("__debug__/", include(debug_toolbar.urls)),
     ]

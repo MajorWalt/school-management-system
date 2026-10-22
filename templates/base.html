@@ -549,9 +549,17 @@
 			<a href="{% url 'merits:list' %}"
 			class="app-sidebar-link {% if 'merits' in request.path %}active{% endif %}">
 				<svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-					<path stroke-linecap="round" stroke-linejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.１１８l-3.976-2.888c-.784-.57-.38-１．８１.588-１．８１h4．９１４a１ １ ０ ００．９５１-.６９l１．５１９-４．６７４z"/>
+					<path stroke-linecap="round" stroke-linejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.１１８l-3.976-2.888c-.784-.57-.38-１．８１.588-１．８１h4．９१४a१ १ ०००．९५१-.६९l१．५१९-४．६७४z"/>
 				</svg>
 				Merits & Demerits
+			</a>
+
+			<a href="{% url 'behaviour:incident_list' %}"
+			class="app-sidebar-link {% if 'behaviour' in request.path %}active{% endif %}">
+				<svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+					<path stroke-linecap="round" stroke-linejoin="round" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"/>
+				</svg>
+				Detentions and Suspensions
 			</a>
 
 			<p class="app-nav-group-label">System</p>
