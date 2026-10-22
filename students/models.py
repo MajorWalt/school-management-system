@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Q
 from core.models import School
 from accounts.models import User
 
@@ -284,6 +285,63 @@ class StudentNote(models.Model):
 
     def __str__(self):
         return f"Note on {self.student} by {self.author}"
+        pass
+
+    pass
+
+
+HEALTH_CATEGORY_CHOICES = [
+    ("allergy", "Allergy"),
+    ("condition", "Medical Condition"),
+    ("medication", "Medication"),
+    ("disability", "Disability"),
+    ("dietary", "Dietary"),
+    ("other", "Other"),
+]
+HEALTH_SEVERITY_CHOICES = [
+    ("low", "Low"),
+    ("medium", "Medium"),
+    ("high", "High"),
+]
+
+
+class StudentHealthRecord(models.Model):
+    """Health issues or concerns for a student. Visible to teachers + admins; admins edit."""
+
+    CATEGORY_CHOICES = HEALTH_CATEGORY_CHOICES
+    SEVERITY_CHOICES = HEALTH_SEVERITY_CHOICES
+
+    school = models.ForeignKey(School, on_delete=models.CASCADE, related_name="student_health_records")
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name="health_records")
+    category = models.CharField(max_length=20, choices=HEALTH_CATEGORY_CHOICES)
+    title = models.CharField(max_length=200)
+    severity = models.CharField(max_length=10, choices=HEALTH_SEVERITY_CHOICES, default="low")
+    details = models.TextField(blank=True)
+    action_plan = models.TextField("What staff should do", blank=True)
+    is_active = models.BooleanField("Current", default=True)
+    recorded_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="health_records_recorded")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "student_health_records"
+        ordering = ["-is_active", "-created_at"]
+        indexes = [
+            models.Index(fields=["school", "student"], name="health_school_student"),
+        ]
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(category__in=[c[0] for c in HEALTH_CATEGORY_CHOICES]),
+                name="health_category_valid",
+            ),
+            models.CheckConstraint(
+                condition=Q(severity__in=[c[0] for c in HEALTH_SEVERITY_CHOICES]),
+                name="health_severity_valid",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.get_category_display()}: {self.title} ({self.student})"
         pass
 
     pass

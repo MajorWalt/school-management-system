@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}{% if event %}Edit Event{% else %}Add Event{% endif %}{% endblock %}
+{% block page_title %}School Calendar{% endblock %}
+
+{% block content %}
+<div class="max-w-xl mx-auto space-y-6">
+
+	<div class="flex items-center justify-between">
+		<h1 class="text-2xl font-bold text-gray-800">{% if event %}Edit event{% else %}Add event{% endif %}</h1>
+		<a href="{% url 'scheduling:event_calendar' %}{% if event %}?year={{ event.date.year }}&month={{ event.date.month }}{% endif %}"
+		class="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 text-gray-600 hover:bg-gray-50 transition">Back</a>
+	</div>
+
+	<form method="post" class="bg-white rounded-xl shadow p-6 space-y-4">
+		{% csrf_token %}
+
+		{% if form.non_field_errors %}
+		<div class="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
+			{% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+		</div>
+		{% endif %}
+
+		<div>
+			<label for="{{ form.name.id_for_label }}" class="block text-xs text-gray-500">{{ form.name.label }} *</label>
+			{{ form.name }}
+			{% for error in form.name.errors %}<p class="text-xs text-red-600 mt-1">{{ error }}</p>{% endfor %}
+		</div>
+
+		<div>
+			<label for="{{ form.date.id_for_label }}" class="block text-xs text-gray-500">{{ form.date.label }} *</label>
+			{{ form.date }}
+			{% for error in form.date.errors %}<p class="text-xs text-red-600 mt-1">{{ error }}</p>{% endfor %}
+		</div>
+
+		<fieldset>
+			<legend class="block text-xs text-gray-500 mb-2">{{ form.is_school_day.label }} *</legend>
+			<div class="flex flex-wrap gap-3">
+				{% for choice in form.is_school_day %}
+				<label for="{{ choice.id_for_label }}" class="flex items-center gap-2 rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 cursor-pointer hover:bg-gray-50">
+					{{ choice.tag }}
+					{{ choice.choice_label }}
+				</label>
+				{% endfor %}
+			</div>
+			<p class="text-xs text-gray-400 mt-1">{{ form.is_school_day.help_text }}</p>
+			{% for error in form.is_school_day.errors %}<p class="text-xs text-red-600 mt-1">{{ error }}</p>{% endfor %}
+		</fieldset>
+
+		<div class="flex justify-end gap-2 pt-2 border-t border-gray-100">
+			<a href="{% url 'scheduling:event_calendar' %}{% if event %}?year={{ event.date.year }}&month={{ event.date.month }}{% endif %}"
+			class="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 text-gray-600 hover:bg-gray-50 transition">Cancel</a>
+			<button type="submit" class="btn-primary px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition">
+				{% if event %}Save changes{% else %}Add event{% endif %}
+			</button>
+		</div>
+	</form>
+
+	{% if event %}
+	<form method="post" action="{% url 'scheduling:event_delete' event.pk %}"
+		onsubmit="return confirm('Delete {{ event.name|escapejs }}?');" class="text-right">
+		{% csrf_token %}
+		<button type="submit" class="text-sm text-red-600 hover:underline">Delete this event</button>
+	</form>
+	{% endif %}
+</div>
+{% endblock %}

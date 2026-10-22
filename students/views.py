@@ -89,7 +89,7 @@ def student_list(request):
 @login_required
 @tenant_required
 def student_detail(request, pk):
-    from .models import StudentNote
+    from .models import StudentHealthRecord, StudentNote
     from .note_views import _is_staff, _is_admin
 
     student = get_object_or_404(Student, pk=pk, school=request.school)
@@ -133,6 +133,9 @@ def student_detail(request, pk):
 
     is_staff_member = _is_staff(request.user, request.school)
 
+    # Health records (teachers + admin only).
+    health_records = StudentHealthRecord.objects.filter(school=request.school, student=student).select_related("recorded_by") if is_staff_member else []
+
     # Grade history (staff + admin only).
     grade_history = build_grade_history(request.school, student) if is_staff_member else None
 
@@ -149,6 +152,7 @@ def student_detail(request, pk):
             "current_year": current_year,
             "enrolment_terms": enrolment_terms,
             "staff_notes": staff_notes,
+            "health_records": health_records,
             "grade_history": grade_history,
         },
     )

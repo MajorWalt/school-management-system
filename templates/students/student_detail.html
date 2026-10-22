@@ -208,6 +208,68 @@
 		</div>
 	</div>
 
+	<!-- Health (teachers + admin only) -->
+	{% if is_staff_member %}
+	<div class="bg-white rounded-xl shadow overflow-hidden">
+		<div class="px-5 py-4 border-b bg-gray-50 flex items-center justify-between">
+			<div>
+				<h2 class="font-semibold text-gray-700">Health</h2>
+				<p class="text-xs text-gray-400">Visible to teachers and admins only.</p>
+			</div>
+			{% if is_admin %}
+			<a href="{% url 'students:health_add' student.pk %}" class="text-sm text-blue-600 hover:underline">+ Add health record</a>
+			{% endif %}
+		</div>
+		{% if health_records %}
+		<div class="divide-y divide-gray-100">
+			{% for record in health_records %}
+			<div class="px-5 py-4 {% if not record.is_active %}opacity-60{% endif %}">
+				<div class="flex items-start justify-between gap-3 flex-wrap">
+					<div class="flex items-center gap-2 flex-wrap">
+						<span class="font-medium text-gray-800">{{ record.title }}</span>
+						<span class="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">{{ record.get_category_display }}</span>
+						<span class="text-xs px-2 py-0.5 rounded-full
+							{% if record.severity == 'high' %}bg-red-100 text-red-700
+							{% elif record.severity == 'medium' %}bg-yellow-100 text-yellow-700
+							{% else %}bg-green-100 text-green-700{% endif %}">
+							{{ record.get_severity_display }} severity
+						</span>
+						{% if not record.is_active %}<span class="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">No longer applies</span>{% endif %}
+					</div>
+					{% if is_admin %}
+					<div class="flex gap-3 items-center">
+						<a href="{% url 'students:health_edit' record.pk %}" class="text-xs text-blue-600 hover:underline">Edit</a>
+						<form method="post" action="{% url 'students:health_delete' record.pk %}" class="inline"
+							onsubmit="return confirm('Delete this health record permanently?');">
+							{% csrf_token %}
+							<button type="submit" class="text-xs text-red-600 hover:underline">Delete</button>
+						</form>
+					</div>
+					{% endif %}
+				</div>
+				{% if record.details %}
+				<p class="text-sm text-gray-600 whitespace-pre-line mt-2">{{ record.details }}</p>
+				{% endif %}
+				{% if record.action_plan %}
+				<div class="mt-2 rounded-lg bg-red-50 border border-red-100 px-3 py-2">
+					<p class="text-xs font-semibold text-red-700">What staff should do</p>
+					<p class="text-sm text-red-700 whitespace-pre-line">{{ record.action_plan }}</p>
+				</div>
+				{% endif %}
+				<p class="text-xs text-gray-400 mt-1.5">
+					Recorded by {% if record.recorded_by %}{{ record.recorded_by.get_full_name|default:record.recorded_by.email }}{% else %}Unknown{% endif %}
+					<span class="text-gray-300">·</span>
+					{{ record.created_at|date:"d M Y" }}
+				</p>
+			</div>
+			{% endfor %}
+		</div>
+		{% else %}
+		<p class="px-5 py-4 text-sm text-gray-400">No health issues recorded.</p>
+		{% endif %}
+	</div>
+	{% endif %}
+
 	<!-- Birth Parents -->
 	<div class="bg-white rounded-xl shadow overflow-hidden">
 		<div class="px-5 py-3 bg-gray-50 border-b font-semibold text-gray-700 text-sm uppercase tracking-wide">

@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}{% if record %}Edit{% else %}Add{% endif %} Health Record - {{ student.get_full_name }}{% endblock %}
+{% block page_title %}Health Record{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto space-y-6">
+
+	<div class="flex items-center justify-between">
+		<div>
+			<h1 class="text-2xl font-bold text-gray-800">{% if record %}Edit health record{% else %}Add health record{% endif %}</h1>
+			<p class="text-sm text-gray-500">{{ student.get_full_name }} &bull; {{ student.student_id }}</p>
+		</div>
+		<a href="{% url 'students:detail' student.pk %}"
+		class="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 text-gray-600 hover:bg-gray-50 transition">Back</a>
+	</div>
+
+	<form method="post" class="bg-white rounded-xl shadow p-6 space-y-4">
+		{% csrf_token %}
+
+		{% if form.non_field_errors %}
+		<div class="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
+			{% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+		</div>
+		{% endif %}
+
+		<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+			{% for field in form %}
+			{% if field.name == "is_active" %}
+			<div class="md:col-span-2 flex items-center gap-2">
+				{{ field }}
+				<label for="{{ field.id_for_label }}" class="text-sm text-gray-700">{{ field.label }}</label>
+				{% if field.help_text %}<span class="text-xs text-gray-400">{{ field.help_text }}</span>{% endif %}
+			</div>
+			{% else %}
+			<div class="{% if field.name == 'title' or field.name == 'details' or field.name == 'action_plan' %}md:col-span-2{% endif %}">
+				<label for="{{ field.id_for_label }}" class="block text-xs text-gray-500 mb-1">{{ field.label }}{% if field.field.required %} *{% endif %}</label>
+				{{ field }}
+				{% if field.help_text %}<p class="text-xs text-gray-400 mt-1">{{ field.help_text }}</p>{% endif %}
+				{% for error in field.errors %}<p class="text-xs text-red-600 mt-1">{{ error }}</p>{% endfor %}
+			</div>
+			{% endif %}
+			{% endfor %}
+		</div>
+
+		<div class="flex justify-end gap-2 pt-2 border-t border-gray-100">
+			<a href="{% url 'students:detail' student.pk %}"
+			class="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 text-gray-600 hover:bg-gray-50 transition">Cancel</a>
+			<button type="submit" class="btn-primary px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition">
+				{% if record %}Save changes{% else %}Add health record{% endif %}
+			</button>
+		</div>
+	</form>
+</div>
+{% endblock %}

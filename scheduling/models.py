@@ -136,6 +136,49 @@ class NonSchoolDay(models.Model):
         return f"{self.label} ({self.date})"
 
 
+class SchoolEvent(models.Model):
+    """A dated school event shown on the calendar. Everyone views; admins manage."""
+
+    DAY_TYPE_CHOICES = [
+        (True, "School day"),
+        (False, "Non-school day"),
+    ]
+
+    school = models.ForeignKey(School, on_delete=models.CASCADE, related_name="school_events")
+    name = models.CharField("Event name", max_length=150)
+    date = models.DateField()
+    is_school_day = models.BooleanField(
+        "Day type",
+        choices=DAY_TYPE_CHOICES,
+        default=True,
+        help_text="Non-school days are skipped in the timetable cycle and attendance.",
+    )
+    non_school_day = models.OneToOneField(
+        NonSchoolDay,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="school_event",
+        help_text="Non-school day record created for this event, if any.",
+    )
+    created_by = models.ForeignKey("accounts.User", on_delete=models.SET_NULL, null=True, blank=True, related_name="school_events_created")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "school_events"
+        ordering = ["date", "name"]
+        indexes = [
+            models.Index(fields=["school", "date"], name="school_event_school_date"),
+        ]
+
+    def __str__(self):
+        return f"{self.name} ({self.date})"
+        pass
+
+    pass
+
+
 class Course(models.Model):
     INSTRUCTIONAL_MODE_CHOICES = [
         ("lecture", "Lecture"),

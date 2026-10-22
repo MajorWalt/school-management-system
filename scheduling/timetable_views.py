@@ -1,12 +1,8 @@
-import calendar as pycal
-from datetime import date, timedelta
-
 from django import forms
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
-from django.utils import timezone
 
 from .models import (
     TimetableSettings,
@@ -84,64 +80,6 @@ def manage_periods(request):
         pass
     periods = TimetablePeriod.objects.filter(school=school)
     return render(request, "scheduling/manage_periods.html", {"form": form, "periods": periods})
-    pass
-
-
-# ---------------------------------------------------------------------------
-#  Cycle calendar (school-wide - the cycle is the same for every form)
-# ---------------------------------------------------------------------------
-@login_required
-def cycle_calendar(request):
-    school = request.school
-    settings = tt.get_settings(school)
-    today = timezone.localdate()
-    year = int(request.GET.get("year", today.year))
-    month = int(request.GET.get("month", today.month))
-
-    cal = pycal.Calendar(firstweekday=6)  # Sunday first
-    month_weeks = cal.monthdatescalendar(year, month)
-    start, end = month_weeks[0][0], month_weeks[-1][-1]
-
-    cmap = tt.get_cycle_map(school, start, end, settings)
-    non_school = tt._non_school_set(school, start, end)
-
-    weeks = []
-    for week in month_weeks:
-        row = []
-        for d in week:
-            row.append(
-                {
-                    "date": d,
-                    "in_month": d.month == month,
-                    "is_today": d == today,
-                    "cycle_day": cmap.get(d),
-                    "label": tt.day_label(cmap.get(d), settings),
-                    "is_nonschool": d in non_school,
-                }
-            )
-            pass
-        weeks.append(row)
-        pass
-
-    prev_m = date(year, month, 1) - timedelta(days=1)
-    next_m = (date(year, month, 28) + timedelta(days=10)).replace(day=1)
-
-    return render(
-        request,
-        "scheduling/cycle_calendar.html",
-        {
-            "weeks": weeks,
-            "month_name": pycal.month_name[month],
-            "year": year,
-            "month": month,
-            "prev_year": prev_m.year,
-            "prev_month": prev_m.month,
-            "next_year": next_m.year,
-            "next_month": next_m.month,
-            "settings": settings,
-            "today_day": tt.day_label(tt.get_cycle_day(school, today, settings), settings),
-        },
-    )
     pass
 
 

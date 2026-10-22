@@ -1,5 +1,6 @@
 from django.urls import path
 
+from students.health_views import health_add, health_delete, health_edit
 from students.note_views import note_add, note_delete, note_edit
 from . import views
 
@@ -17,4 +18,7 @@ urlpatterns = [
     path("<int:student_pk>/notes/add/", note_add, name="note_add"),
     path("notes/<int:pk>/edit/", note_edit, name="note_edit"),
     path("notes/<int:pk>/delete/", note_delete, name="note_delete"),
+    path("<int:student_pk>/health/add/", health_add, name="health_add"),
+    path("health/<int:pk>/edit/", health_edit, name="health_edit"),
+    path("health/<int:pk>/delete/", health_delete, name="health_delete"),
 ]

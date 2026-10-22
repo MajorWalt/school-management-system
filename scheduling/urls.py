@@ -1,6 +1,7 @@
 from django.urls import path
 
 from scheduling.calendar_settings import calendar_settings
+from scheduling.event_views import event_add, event_calendar, event_delete, event_edit
 from scheduling.roster_views import section_roster
 from . import views
 from . import timetable_views as tv
@@ -24,6 +25,11 @@ urlpatterns = [
     path("non-school-days/", views.non_school_day_list, name="nsd_list"),
     path("non-school-days/add/", views.non_school_day_add, name="nsd_add"),
     path("non-school-days/<int:pk>/delete/", views.non_school_day_delete, name="nsd_delete"),
+    # School events calendar
+    path("events/", event_calendar, name="event_calendar"),
+    path("events/add/", event_add, name="event_add"),
+    path("events/<int:pk>/edit/", event_edit, name="event_edit"),
+    path("events/<int:pk>/delete/", event_delete, name="event_delete"),
     # Courses
     path("courses/", views.course_list, name="course_list"),
     path("courses/add/", views.course_add, name="course_add"),
@@ -42,10 +48,8 @@ urlpatterns = [
     # Timetable
     path("timetable/settings/", tv.timetable_settings, name="timetable_settings"),
     path("timetable/periods/", tv.manage_periods, name="manage_periods"),
-    path("timetable/calendar/", tv.cycle_calendar, name="cycle_calendar"),
-    path("timetable/builder/", tv.timetable_grid, name="timetable_grid"),
     path("timetable/builder/", tv.timetable_grid, name="timetable_grid"),
     path("timetable/<int:pk>/copy/", tv.timetable_copy, name="timetable_copy"),
-    # Timetable slots
+    # Academic calendar dates
     path("settings/calendar/", calendar_settings, name="calendar_settings"),
 ]
