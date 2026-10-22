@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}{{ form_obj.name }} criteria{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+	<p class="text-sm text-gray-500 mb-2"><a href="{% url 'analytics:criteria_list' %}" class="underline">Promotion criteria</a></p>
+	<h1 class="text-2xl font-bold text-gray-800 mb-6">{{ form_obj.name }}</h1>
+
+	<form method="post" novalidate class="space-y-6">
+		{% csrf_token %}
+
+		<div class="bg-white rounded-xl shadow p-6">
+			<h2 class="text-lg font-semibold text-gray-800 mb-4">General rules</h2>
+			{% if cform.non_field_errors %}
+			<div class="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3">
+				{% for error in cform.non_field_errors %}<p class="text-red-600 text-sm">{{ error }}</p>{% endfor %}
+			</div>
+			{% endif %}
+			<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+				{% for field in cform %}
+				{% if field.name == "active" %}
+				<div class="flex items-center gap-2 md:col-span-2">
+					{{ field }} <label for="{{ field.id_for_label }}" class="text-sm text-gray-700">Criteria in use</label>
+				</div>
+				{% else %}
+				<div class="{% if field.name == 'notes' %}md:col-span-2{% endif %}">
+					<label for="{{ field.id_for_label }}" class="block text-xs font-medium text-gray-600 mb-1">{{ field.label }}</label>
+					{{ field }}
+					{% if field.help_text %}<p class="text-xs text-gray-400 mt-1">{{ field.help_text }}</p>{% endif %}
+					{% if field.errors %}<p class="text-red-500 text-xs mt-1">{{ field.errors.0 }}</p>{% endif %}
+				</div>
+				{% endif %}
+				{% endfor %}
+			</div>
+		</div>
+
+		<div class="bg-white rounded-xl shadow p-6">
+			<h2 class="text-lg font-semibold text-gray-800 mb-1">Subject requirements</h2>
+			<p class="text-sm text-gray-500 mb-4">Tick the subjects that count for each requirement. "Pass at least" sets how many of the ticked subjects must reach the pass mark, e.g. tick French and Spanish with 1 for "one foreign language". Three blank rows are added each time you save.</p>
+			{{ formset.management_form }}
+			{% if formset.non_form_errors %}
+			<div class="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3">
+				{% for error in formset.non_form_errors %}<p class="text-red-600 text-sm">{{ error }}</p>{% endfor %}
+			</div>
+			{% endif %}
+
+			<div class="space-y-4">
+				{% for rf in formset %}
+				<div class="border border-gray-200 rounded-lg p-4">
+					{% for hidden in rf.hidden_fields %}{{ hidden }}{% endfor %}
+					{% if rf.non_field_errors %}<p class="text-red-600 text-sm mb-2">{{ rf.non_field_errors.0 }}</p>{% endif %}
+					<div class="grid grid-cols-1 md:grid-cols-6 gap-3 mb-3">
+						<div class="md:col-span-4">
+							<label for="{{ rf.label.id_for_label }}" class="block text-xs font-medium text-gray-600 mb-1">Requirement</label>
+							{{ rf.label }}
+							{% if rf.label.errors %}<p class="text-red-500 text-xs mt-1">{{ rf.label.errors.0 }}</p>{% endif %}
+						</div>
+						<div>
+							<label for="{{ rf.min_to_pass.id_for_label }}" class="block text-xs font-medium text-gray-600 mb-1">Pass at least</label>
+							{{ rf.min_to_pass }}
+							{% if rf.min_to_pass.errors %}<p class="text-red-500 text-xs mt-1">{{ rf.min_to_pass.errors.0 }}</p>{% endif %}
+						</div>
+						<div>
+							<label for="{{ rf.order.id_for_label }}" class="block text-xs font-medium text-gray-600 mb-1">Order</label>
+							{{ rf.order }}
+						</div>
+					</div>
+					<div class="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-1 text-sm text-gray-700">
+						{% for cb in rf.subject_areas %}
+						<label class="flex items-center gap-2">{{ cb.tag }} {{ cb.choice_label }}</label>
+						{% endfor %}
+					</div>
+					{% if rf.subject_areas.errors %}<p class="text-red-500 text-xs mt-1">{{ rf.subject_areas.errors.0 }}</p>{% endif %}
+					{% if rf.instance.pk %}
+					<label class="flex items-center gap-2 mt-3 text-sm text-red-600">{{ rf.DELETE }} Remove this requirement</label>
+					{% endif %}
+				</div>
+				{% endfor %}
+			</div>
+		</div>
+
+		<div class="flex gap-3">
+			<button type="submit" class="btn-primary px-5 py-2 rounded-lg text-sm font-medium">Save criteria</button>
+			<a href="{% url 'analytics:criteria_list' %}" class="px-5 py-2 rounded-lg text-sm font-medium border border-gray-300 text-gray-600 hover:bg-gray-50 transition">Cancel</a>
+		</div>
+	</form>
+
+	{% if criteria.pk %}
+	<form method="post" action="{% url 'analytics:criteria_delete' form_obj.pk %}" class="mt-8" onsubmit="return confirm('Remove all criteria for {{ form_obj.name }}? Students in this form will no longer be checked.');">
+		{% csrf_token %}
+		<button type="submit" class="text-sm text-red-600 underline">Remove criteria for {{ form_obj.name }}</button>
+	</form>
+	{% endif %}
+</div>
+{% endblock %}

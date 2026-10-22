@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block title %}Promotion watch{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+	<div class="flex flex-wrap items-end justify-between gap-4 mb-6">
+		<div>
+			<h1 class="text-2xl font-bold text-gray-800">Promotion watch</h1>
+			<p class="text-sm text-gray-500 mt-1">
+				{% if result.year %}Students who do not yet meet their form's promotion or graduation criteria, based on {{ result.year.name }} year-to-date averages.{% else %}{{ result.error }}{% endif %}
+			</p>
+		</div>
+		<div class="flex flex-wrap gap-3">
+			{% if rows %}
+			<a href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}excel=1" class="px-5 py-2 rounded-lg text-sm font-medium border border-gray-300 text-gray-700 hover:bg-gray-50 transition">Export to Excel</a>
+			{% endif %}
+			{% if is_admin %}
+			<a href="{% url 'analytics:criteria_list' %}" class="btn-primary px-5 py-2 rounded-lg text-sm font-medium">Edit criteria</a>
+			{% endif %}
+		</div>
+	</div>
+
+	{% if is_admin and result.forms_without_criteria %}
+	<div class="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+		No criteria set for:
+		{% for f in result.forms_without_criteria %}<a href="{% url 'analytics:criteria_edit' f.pk %}" class="underline">{{ f.name }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}.
+		Students in these forms are not checked.
+	</div>
+	{% endif %}
+
+	{% if result.year %}
+	<div class="flex flex-wrap gap-3 mb-4 text-sm">
+		<span class="px-3 py-1 rounded-full bg-red-50 text-red-700 border border-red-200">Not meeting criteria: {{ rows|length }}</span>
+		<span class="px-3 py-1 rounded-full bg-gray-50 text-gray-600 border border-gray-200">Students checked: {{ result.checked }}</span>
+		{% if result.no_grades %}<span class="px-3 py-1 rounded-full bg-gray-50 text-gray-600 border border-gray-200">No grades yet: {{ result.no_grades }}</span>{% endif %}
+		{% for name, n in form_counts.items %}<span class="px-3 py-1 rounded-full bg-white text-gray-700 border border-gray-200">{{ name }}: {{ n }}</span>{% endfor %}
+	</div>
+	{% endif %}
+
+	<form method="get" class="bg-white rounded-xl shadow p-4 mb-4 flex flex-wrap gap-3 items-end">
+		<div>
+			<label class="block text-xs font-medium text-gray-600 mb-1">Form</label>
+			<select name="form" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+				<option value="">All</option>
+				{% for f in forms %}
+				<option value="{{ f.pk }}" {% if form_pk == f.pk|stringformat:"s" %}selected{% endif %}>{{ f.name }}</option>
+				{% endfor %}
+			</select>
+		</div>
+		<div>
+			<label class="block text-xs font-medium text-gray-600 mb-1">Outcome</label>
+			<select name="outcome" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+				<option value="">All</option>
+				{% for value, label in outcome_choices %}
+				<option value="{{ value }}" {% if outcome == value %}selected{% endif %}>{{ label }}</option>
+				{% endfor %}
+			</select>
+		</div>
+		<button type="submit" class="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 text-gray-700 hover:bg-gray-50 transition">Filter</button>
+	</form>
+
+	<div class="bg-white rounded-xl shadow overflow-x-auto">
+		{% if rows %}
+		<table class="min-w-full text-sm">
+			<thead class="bg-gray-50 text-gray-600 text-left">
+				<tr>
+					<th class="px-4 py-3 font-medium">Student</th>
+					<th class="px-4 py-3 font-medium">Homeroom</th>
+					<th class="px-4 py-3 font-medium">Status</th>
+					<th class="px-4 py-3 font-medium">Requirements not met</th>
+					<th class="px-4 py-3 font-medium text-right">Overall</th>
+					<th class="px-4 py-3 font-medium">Subjects below pass mark</th>
+				</tr>
+			</thead>
+			<tbody class="divide-y divide-gray-100">
+				{% for r in rows %}
+				<tr class="align-top">
+					<td class="px-4 py-3 font-medium text-gray-800">{{ r.student.get_full_name }}</td>
+					<td class="px-4 py-3 text-gray-600">{{ r.homeroom|default:"-" }}</td>
+					<td class="px-4 py-3">
+						{% if r.outcome == "graduation" %}
+						<span class="px-2 py-0.5 rounded bg-red-100 text-red-700 text-xs font-medium whitespace-nowrap">{{ r.outcome_label }}</span>
+						{% else %}
+						<span class="px-2 py-0.5 rounded bg-amber-100 text-amber-700 text-xs font-medium whitespace-nowrap">{{ r.outcome_label }}</span>
+						{% endif %}
+					</td>
+					<td class="px-4 py-3 text-gray-700">
+						{% for u in r.unmet %}
+						<div class="mb-1">
+							<span class="font-medium">{{ u.label }}</span> <span class="text-gray-500">({{ u.need }})</span>
+							<div class="text-xs text-gray-500">{{ u.detail }}</div>
+						</div>
+						{% endfor %}
+					</td>
+					<td class="px-4 py-3 text-right font-semibold">{% if r.overall is not None %}{{ r.overall|floatformat:1 }}%{% else %}-{% endif %}</td>
+					<td class="px-4 py-3 text-gray-600">
+						{% for name, avg in r.failed %}<div>{{ name }}: {{ avg|floatformat:1 }}%</div>{% empty %}<span class="text-gray-400">None</span>{% endfor %}
+					</td>
+				</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+		{% else %}
+		<p class="p-6 text-sm text-gray-500">
+			{% if not result.year %}Set an active academic year to run this check.
+			{% elif result.checked %}Every student checked meets their form's criteria.
+			{% elif is_admin %}No students checked yet. Set criteria for each form, then come back here once grades are entered.
+			{% else %}No students to show yet.{% endif %}
+		</p>
+		{% endif %}
+	</div>
+</div>
+{% endblock %}

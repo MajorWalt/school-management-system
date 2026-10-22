@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Promotion criteria{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto">
+	<div class="flex flex-wrap items-end justify-between gap-4 mb-6">
+		<div>
+			<h1 class="text-2xl font-bold text-gray-800">Promotion criteria</h1>
+			<p class="text-sm text-gray-500 mt-1">What each form must achieve by year end to move up, or in the final form, to graduate.</p>
+		</div>
+		<a href="{% url 'analytics:promotion_report' %}" class="px-5 py-2 rounded-lg text-sm font-medium border border-gray-300 text-gray-600 hover:bg-gray-50 transition">View promotion watch</a>
+	</div>
+
+	<div class="space-y-4">
+		{% for row in rows %}
+		<div class="bg-white rounded-xl shadow p-5">
+			<div class="flex flex-wrap items-start justify-between gap-3">
+				<div>
+					<h2 class="text-lg font-semibold text-gray-800">{{ row.form.name }}</h2>
+					{% if row.criteria %}
+					<p class="text-sm text-gray-500">
+						{{ row.criteria.get_outcome_display }}, pass mark {{ row.criteria.pass_mark }}%
+						{% if row.criteria.min_overall_average is not None %}, overall at least {{ row.criteria.min_overall_average }}%{% endif %}
+						{% if row.criteria.max_failed_subjects is not None %}, fail no more than {{ row.criteria.max_failed_subjects }}{% endif %}
+						{% if not row.criteria.active %}, <span class="text-amber-700">inactive</span>{% endif %}
+					</p>
+					{% else %}
+					<p class="text-sm text-amber-700">No criteria set. Students in this form are not checked.</p>
+					{% endif %}
+				</div>
+				<a href="{% url 'analytics:criteria_edit' row.form.pk %}" class="btn-primary px-4 py-2 rounded-lg text-sm font-medium">{% if row.criteria %}Edit{% else %}Set criteria{% endif %}</a>
+			</div>
+			{% if row.requirements %}
+			<ul class="mt-3 space-y-1 text-sm text-gray-700">
+				{% for req in row.requirements %}
+				<li>
+					<span class="font-medium">{{ req.label }}:</span>
+					{% if req.count > 1 %}pass {{ req.min_to_pass }} of {{ req.subjects }}{% else %}pass {{ req.subjects }}{% endif %}
+				</li>
+				{% endfor %}
+			</ul>
+			{% elif row.criteria %}
+			<p class="mt-3 text-sm text-gray-500">No subject requirements yet.</p>
+			{% endif %}
+		</div>
+		{% empty %}
+		<p class="text-sm text-gray-500">Add forms under Scheduling first.</p>
+		{% endfor %}
+	</div>
+</div>
+{% endblock %}
