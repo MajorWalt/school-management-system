@@ -2,8 +2,8 @@ import calendar as pycal
 import datetime
 from django.db.models import Sum
 
-from .models import Evaluation, GradeComment, GradeEntry
-from .utils import compute_student_average
+from .models import GradeComment
+from .term_grades import DEFAULT_WEIGHTS, combine_term_grade, load_section_grades, section_components
 
 
 def _fmt(v):
@@ -23,18 +23,12 @@ def _mean(values):
 
 def _section_grades(school, student, section):
     """(term_value, exam_value) for one section - coursework avg and final-exam mark."""
-    evals = list(Evaluation.objects.filter(school=school, section=section))
+    evals_by_section, gmap = load_section_grades(school, [section.pk], [student.pk])
+    evals = evals_by_section.get(section.pk, [])
     if not evals:
         return None, None
 
-    entries = GradeEntry.objects.filter(school=school, student=student, evaluation__in=evals)
-    gmap = {(e.evaluation_id, e.student_id): e for e in entries}
-
-    course_evals = [e for e in evals if not e.is_final_exam]
-    exam_evals = [e for e in evals if e.is_final_exam]
-
-    term_val = compute_student_average(student, course_evals, gmap)
-    exam_val = compute_student_average(student, exam_evals, gmap)
+    term_val, exam_val = section_components(student, evals, gmap)
 
     term_val = float(term_val) if term_val is not None else None
     exam_val = float(exam_val) if exam_val is not None else None
@@ -66,6 +60,9 @@ def build_report_card(school, student, academic_year, up_to_term):
 
     exam_terms = {t.term_number for t in terms if getattr(t, "has_final_exam", False)}
 
+    # Admin-set coursework/exam weights per term (Scheduling > Academic Years > Term)
+    term_weight_map = {t.term_number: (t.coursework_weight, t.exam_weight) for t in terms if hasattr(t, "coursework_weight")}
+
     columns = []
     for t in terms:
         columns.append({"label": f"Term {t.term_number}", "kind": "term", "term": t.term_number})
@@ -89,6 +86,7 @@ def build_report_card(school, student, academic_year, up_to_term):
     raw_rows = []
     for rec in sorted(by_course.values(), key=lambda r: r["course"].name.lower()):
         cells = []
+        components = {}
         teacher_for_course = None
         for col in columns:
             sec = rec["sections"].get(col["term"])
@@ -97,13 +95,18 @@ def build_report_card(school, student, academic_year, up_to_term):
                 if teacher_for_course is None and sec.teacher:
                     teacher_for_course = sec.teacher
                     pass
-                tval, eval_ = _section_grades(school, student, sec)
+                if col["term"] not in components:
+                    components[col["term"]] = _section_grades(school, student, sec)
+                    pass
+                tval, eval_ = components[col["term"]]
                 val = tval if col["kind"] == "term" else eval_
                 pass
             cells.append(val)
             pass
 
-        avg = _mean(cells)
+        # Subject average = mean of weighted term grades, same rule as the report card page and grade history
+        term_grades = [combine_term_grade(tval, eval_, term_weight_map.get(tn, DEFAULT_WEIGHTS)) for tn, (tval, eval_) in components.items()]
+        avg = _mean(term_grades)
         raw_rows.append(cells)
 
         # Pull the teacher comment from the section matching the reported

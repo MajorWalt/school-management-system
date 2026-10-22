@@ -12,6 +12,7 @@ from scheduling.models import AcademicYear, Enrolment, Section
 from students.models import Student
 from .forms import BulkGradeUploadForm, EvaluationForm, GradeVisibilityForm
 from .models import Evaluation, GradeComment, GradeEntry, GradeWindow, ReportCard
+from .term_grades import combine_term_grade, load_section_grades, section_components, term_weights
 from .utils import compute_student_average, grade_window_is_open
 
 
@@ -838,29 +839,26 @@ def report_card_list(request):
 @tenant_required
 def report_card_detail(request, pk):
     rc = get_object_or_404(ReportCard, pk=pk, school=request.school)
-    enrolments = Enrolment.objects.filter(
-        student=rc.student,
-        section__academic_year=rc.academic_year,
-        section__term_number=rc.term_number,
-        section__school=request.school,
-    ).select_related("section__course")
+    enrolments = list(
+        Enrolment.objects.filter(
+            student=rc.student,
+            section__academic_year=rc.academic_year,
+            section__term_number=rc.term_number,
+            section__school=request.school,
+        ).select_related("section__course")
+    )
+
+    evals_by_section, gmap = load_section_grades(request.school, [e.section_id for e in enrolments], [rc.student_id])
+    weights = term_weights(request.school, rc.academic_year_id, rc.term_number)
 
     rows = []
     for enrolment in enrolments:
         section = enrolment.section
-        evs = Evaluation.objects.filter(school=request.school, section=section)
-        ents = GradeEntry.objects.filter(evaluation__section=section, student=rc.student)
-        gmap = {(e.evaluation_id, e.student_id): e for e in ents}
+        evs = evals_by_section.get(section.pk, [])
 
-        course_evs = [e for e in evs if not e.is_final_exam]
-        exam_evs = [e for e in evs if e.is_final_exam]
-
-        coursework_avg = compute_student_average(rc.student, course_evs, gmap)
-        exam_mark = compute_student_average(rc.student, exam_evs, gmap) if exam_evs else None
-        has_exam = bool(exam_evs)
-
-        parts = [v for v in (coursework_avg, exam_mark) if v is not None]
-        term_grade = round(sum(parts) / len(parts), 1) if parts else None
+        coursework_avg, exam_mark = section_components(rc.student, evs, gmap)
+        has_exam = any(e.is_final_exam for e in evs)
+        term_grade = combine_term_grade(coursework_avg, exam_mark, weights)
 
         result = None
         if coursework_avg is not None or exam_mark is not None:

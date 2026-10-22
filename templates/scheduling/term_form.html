@@ -8,6 +8,13 @@
 	<div class="bg-white rounded-xl shadow p-6">
 		<form method="post" novalidate>
 			{% csrf_token %}
+			{% if form.non_field_errors %}
+			<div class="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3">
+				{% for error in form.non_field_errors %}
+				<p class="text-red-600 text-sm">{{ error }}</p>
+				{% endfor %}
+			</div>
+			{% endif %}
 			<div class="space-y-4">
 				{% for field in form %}
 				<div>

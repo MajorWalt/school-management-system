@@ -9,6 +9,7 @@ from staff.models import Staff
 from scheduling.models import AcademicYear, Enrolment, Form, Homeroom, Section
 from merits.models import MeritRecord, DemeritRecord
 from grades.models import Evaluation, GradeEntry
+from grades.term_grades import load_section_grades, load_term_weights, section_term_grade, weights_for
 from grades.utils import compute_student_average
 from attendance.models import Attendance
 import datetime
@@ -871,6 +872,10 @@ def grade_by_student(request):
         if term:
             enrolments = enrolments.filter(section__term_number=term)
 
+        enrolments = list(enrolments)
+        # Admin-set coursework/exam weights per term, one query
+        term_weights_map = load_term_weights(school, [e.section for e in enrolments])
+
         for enrolment in enrolments:
             section = enrolment.section
             evaluations = Evaluation.objects.filter(school=school, section=section).order_by("date", "created_at")
@@ -889,7 +894,8 @@ def grade_by_student(request):
                         "absent": entry.is_absent if entry else False,
                     }
                 )
-            avg = compute_student_average(selected_student, evaluations, grade_map)
+            # Weighted term grade (shared rule: report card, PDF, grade history, grade overview)
+            avg = section_term_grade(selected_student, list(evaluations), grade_map, weights_for(term_weights_map, section))
             course_rows.append(
                 {
                     "section": section,
@@ -1093,59 +1099,35 @@ def grade_overview(request):
         if term:
             section_filter = section_filter.filter(term_number=term)
 
-        section_filter = section_filter.select_related("course").order_by("course__sequence", "course__name")
+        sections = list(section_filter.select_related("course").order_by("course__sequence", "course__name"))
 
         # Unique courses in order
         seen = {}
-        for sec in section_filter:
+        for sec in sections:
             cname = sec.course.name
             if cname not in seen:
                 seen[cname] = sec.course
         courses = list(seen.keys())
 
-        # Pre-fetch all evaluations and grade entries
-        all_evals = Evaluation.objects.filter(school=school, section__in=section_filter).select_related("section__course")
-
-        all_entries = GradeEntry.objects.filter(
-            school=school,
-            evaluation__section__in=section_filter,
-            student__in=students_list,
-        ).select_related("evaluation", "student")
-
-        from collections import defaultdict
-
-        ev_by_section_course = defaultdict(list)
-        for ev in all_evals:
-            ev_by_section_course[(ev.section_id, ev.section.course.name)].append(ev)
-
-        entries_map = {}
-        for ent in all_entries:
-            entries_map[(ent.evaluation_id, ent.student_id)] = ent
+        # Evaluations, grade entries and admin-set term weights, all pre-fetched
+        evals_by_section, gmap = load_section_grades(school, [s.pk for s in sections], [s.pk for s in students_list])
+        term_weights_map = load_term_weights(school, sections)
 
         for student in students_list:
-            course_avgs = {}
-
-            for sec in section_filter:
-                cname = sec.course.name
-                evs = ev_by_section_course.get((sec.pk, cname), [])
+            # Weighted term grade per section (shared rule: report card, PDF, grade history)
+            term_grades_by_course = {cname: [] for cname in courses}
+            for sec in sections:
+                evs = evals_by_section.get(sec.pk, [])
                 if not evs:
-                    if cname not in course_avgs:
-                        course_avgs[cname] = None
                     continue
+                grade = section_term_grade(student, evs, gmap, weights_for(term_weights_map, sec))
+                if grade is not None:
+                    term_grades_by_course[sec.course.name].append(grade)
 
-                gmap = {}
-                for ev in evs:
-                    ent = entries_map.get((ev.pk, student.pk))
-                    if ent:
-                        gmap[(ev.pk, student.pk)] = ent
-
-                avg = compute_student_average(student, evs, gmap)
-
-                # If same course appears across multiple terms, average them
-                if cname in course_avgs and course_avgs[cname] is not None and avg is not None:
-                    course_avgs[cname] = round((course_avgs[cname] + avg) / 2, 1)
-                else:
-                    course_avgs[cname] = avg
+            # Single term: that term's grade. Year-to-date: equal-weight mean of the term grades.
+            course_avgs = {}
+            for cname, grades in term_grades_by_course.items():
+                course_avgs[cname] = round(sum(grades) / len(grades), 1) if grades else None
 
             valid_avgs = [v for v in course_avgs.values() if v is not None]
             overall = round(sum(valid_avgs) / len(valid_avgs), 1) if valid_avgs else None

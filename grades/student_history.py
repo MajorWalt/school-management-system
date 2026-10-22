@@ -1,19 +1,7 @@
 from collections import OrderedDict
 
-from grades.models import Evaluation, GradeEntry
-from grades.utils import compute_student_average
+from grades.term_grades import load_section_grades, load_term_weights, section_term_grade, weights_for
 from scheduling.models import Enrolment
-
-
-def _to_float(v):
-    if v is None or v == "" or v == "-":
-        return None
-    try:
-        return round(float(v), 1)
-    except (TypeError, ValueError):
-        return None
-    pass
-
 
 def _mean(values):
     vals = [v for v in values if v is not None]
@@ -47,16 +35,6 @@ def _area_key(course):
     if area and area != "other":
         return area, course.get_subject_area_display()
     return f"course_{course.pk}", course.name
-    pass
-
-
-def _section_term_grade(student, evs, gmap):
-    """Term grade for one section: mean of coursework avg and final-exam avg (same as report_card_detail)."""
-    course_evs = [e for e in evs if not e.is_final_exam]
-    exam_evs = [e for e in evs if e.is_final_exam]
-    cw = _to_float(compute_student_average(student, course_evs, gmap)) if course_evs else None
-    ex = _to_float(compute_student_average(student, exam_evs, gmap)) if exam_evs else None
-    return _mean([cw, ex])
     pass
 
 
@@ -132,14 +110,11 @@ def build_grade_history(school, student):
     sections = [e.section for e in enrolments]
     section_pks = [s.pk for s in sections]
 
-    evals = list(Evaluation.objects.filter(school=school, section_id__in=section_pks))
-    evals_by_section = {}
-    for ev in evals:
-        evals_by_section.setdefault(ev.section_id, []).append(ev)
+    # Evaluations + grade entries for these sections (this student + classmates) in two queries
+    evals_by_section, gmap = load_section_grades(school, section_pks)
 
-    # All grade entries for these sections (this student + classmates) in one query
-    entries = GradeEntry.objects.filter(school=school, evaluation__in=evals)
-    gmap = {(e.evaluation_id, e.student_id): e for e in entries}
+    # Coursework/exam weights per term from TermConfig, one query
+    term_weights_map = load_term_weights(school, sections)
 
     # Classmates per section
     students_by_section = {}
@@ -147,16 +122,16 @@ def build_grade_history(school, student):
     for ce in class_enrolments:
         students_by_section.setdefault(ce.section_id, []).append(ce.student)
 
-    # Class average per section (same term-grade logic, students with no grades skipped)
+    # Class average per section (shared term-grade logic, students with no grades skipped)
     class_avg_by_section = {}
     for sec in sections:
         evs = evals_by_section.get(sec.pk, [])
-        class_avg_by_section[sec.pk] = _mean([_section_term_grade(s, evs, gmap) for s in students_by_section.get(sec.pk, [])]) if evs else None
+        class_avg_by_section[sec.pk] = _mean([section_term_grade(s, evs, gmap, weights_for(term_weights_map, sec)) for s in students_by_section.get(sec.pk, [])]) if evs else None
 
     # years[year_pk] = {"name", "terms": set, "subjects": {area_key: {"name", "terms": {term: [{grade, class_avg, course, teacher}]}}}}
     years = OrderedDict()
     for sec in sections:
-        grade = _section_term_grade(student, evals_by_section.get(sec.pk, []), gmap)
+        grade = section_term_grade(student, evals_by_section.get(sec.pk, []), gmap, weights_for(term_weights_map, sec))
         year = years.setdefault(
             sec.academic_year_id,
             {"name": sec.academic_year.name, "terms": set(), "subjects": {}},
