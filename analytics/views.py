@@ -37,6 +37,14 @@ def risk_list(request):
         messages.error(request, "Access denied.")
         return redirect("portals:dashboard")
 
+    # Teachers see only students in homerooms they are assigned to
+    homerooms = None
+    if not admin:
+        homerooms = Homeroom.objects.filter(school=school, staff_members=staff) if staff else Homeroom.objects.none()
+        if not homerooms.exists():
+            messages.error(request, "Student Check-ins are only available to homeroom teachers.")
+            return redirect("portals:dashboard")
+
     band = request.GET.get("band", "")
     form_pk = request.GET.get("form", "")
 
@@ -45,9 +53,7 @@ def risk_list(request):
     if latest:
         scores = AtRiskScore.objects.filter(school=school, computed_on=latest).select_related("student", "student__form", "student__homeroom")
 
-    # Teachers see only students in homerooms they are assigned to
-    if not admin:
-        homerooms = Homeroom.objects.filter(school=school, staff_members=staff) if staff else Homeroom.objects.none()
+    if homerooms is not None:
         scores = scores.filter(student__homeroom__in=homerooms)
 
     if band:
@@ -104,26 +110,18 @@ def risk_recalculate(request):
 # ── Promotion / graduation watch ──────────────────────────────────────────────
 
 
-@admin_or_teacher_required
+@admin_required
 @tenant_required
 def promotion_report(request):
     school = request.school
-    admin = is_admin(request.user, school)
-    staff = get_staff_profile(request.user)
-    roles = get_roles(request.user, school)
-
-    if not admin and "teacher" not in roles:
+    if not is_admin(request.user, school):
         messages.error(request, "Access denied.")
         return redirect("portals:dashboard")
 
     form_pk = request.GET.get("form", "")
     outcome = request.GET.get("outcome", "")
 
-    homerooms = None
-    if not admin:
-        homerooms = Homeroom.objects.filter(school=school, staff_members=staff) if staff else Homeroom.objects.none()
-
-    result = evaluate_school(school, form_id=form_pk or None, homerooms=homerooms)
+    result = evaluate_school(school, form_id=form_pk or None, homerooms=None)
     rows = result["rows"]
     if outcome:
         rows = [r for r in rows if r["outcome"] == outcome]
@@ -146,7 +144,7 @@ def promotion_report(request):
             "form_pk": form_pk,
             "outcome": outcome,
             "outcome_choices": PromotionCriteria.OUTCOME_CHOICES,
-            "is_admin": admin,
+            "is_admin": True,
         },
     )
 
