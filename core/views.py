@@ -1,9 +1,13 @@
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from django.core.paginator import Paginator
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404, redirect
+from django.views.decorators.http import require_http_methods
 from core.decorators import tenant_required, admin_required
-from core.models import ActivityLog
+from core.models import ActivityLog, SchoolSettings
+from core.settings_utils import invalidate_school_settings_cache
 from accounts.models import UserRole
+from ai.models import SchoolAISettings
 
 
 @login_required
@@ -46,3 +50,54 @@ def activity_log(request):
             "action_choices": ActivityLog.ACTION_CHOICES,
         },
     )
+
+
+@login_required
+@tenant_required
+@admin_required
+@require_http_methods(["GET", "POST"])
+def admin_settings(request):
+    """Admin settings page for managing school-wide configuration."""
+    school = request.school
+
+    # Get or create settings for this school
+    settings, created = SchoolSettings.objects.get_or_create(school=school)
+    ai_settings, ai_created = SchoolAISettings.objects.get_or_create(school=school)
+
+    if request.method == "POST":
+        try:
+            # Update settings from POST data
+            settings.pass_mark = int(request.POST.get("pass_mark", settings.pass_mark))
+            settings.honours_1st_class = int(request.POST.get("honours_1st_class", settings.honours_1st_class))
+            settings.honours_2nd_class = int(request.POST.get("honours_2nd_class", settings.honours_2nd_class))
+            settings.failing_override = int(request.POST.get("failing_override", settings.failing_override))
+            settings.high_threshold = int(request.POST.get("high_threshold", settings.high_threshold))
+            settings.watch_threshold = int(request.POST.get("watch_threshold", settings.watch_threshold))
+            settings.coursework_weight = int(request.POST.get("coursework_weight", settings.coursework_weight))
+            settings.exam_weight = int(request.POST.get("exam_weight", settings.exam_weight))
+            settings.min_peers = int(request.POST.get("min_peers", settings.min_peers))
+            settings.min_merits = int(request.POST.get("min_merits", settings.min_merits))
+            settings.min_demerits = int(request.POST.get("min_demerits", settings.min_demerits))
+
+            # Update AI settings
+            ai_settings.enabled = request.POST.get("ai_enabled") == "on"
+            ai_settings.save()
+
+            settings.save()
+            invalidate_school_settings_cache(school)
+            messages.success(request, "Settings updated successfully!")
+            return redirect("core:admin_settings")
+        except (ValueError, TypeError) as e:
+            messages.error(request, f"Invalid input: {str(e)}")
+        except Exception as e:
+            messages.error(request, f"Error saving settings: {str(e)}")
+
+    return render(
+        request,
+        "core/admin_settings.html",
+        {
+            "settings": settings,
+            "ai_settings": ai_settings,
+        },
+    )
+    pass

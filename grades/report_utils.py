@@ -2,6 +2,7 @@ import calendar as pycal
 import datetime
 from django.db.models import Sum
 
+from core.settings_utils import get_school_settings
 from .models import GradeComment
 from .term_grades import DEFAULT_WEIGHTS, combine_term_grade, load_section_grades, section_components
 
@@ -254,16 +255,20 @@ def conduct_by_term(school, student, terms):
     pass
 
 
-def honours_label(overall, rows):
+def honours_label(school, overall, rows):
     if overall is None:
         return ""
+
+    # Get settings from database
+    settings = get_school_settings(school)
+    pass_mark = settings.pass_mark
+    honours_1st = settings.honours_1st_class
+    honours_2nd = settings.honours_2nd_class
+
     graded = [r["avg"] for r in rows if r["avg"] is not None]
-    passed_all = all(a >= 55 for a in graded) if graded else False
-    if overall >= 85 and passed_all:
+    passed_all = all(a >= pass_mark for a in graded) if graded else False
+    if overall >= honours_1st and passed_all:
         return "1st Class Honours"
-        pass
-    if overall >= 75 and passed_all:
+    if overall >= honours_2nd and passed_all:
         return "2nd Class Honours"
-        pass
     return ""
-    pass

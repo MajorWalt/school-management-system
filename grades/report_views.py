@@ -154,7 +154,7 @@ def generate_report_cards(request):
             data["student"] = student
             data["attendance"] = attendance_by_month(school, student, year)
             data["conduct"] = conduct_by_term(school, student, terms or data["terms"])
-            data["honours"] = honours_label(data["overall"], data["rows"])
+            data["honours"] = honours_label(school, data["overall"], data["rows"])
 
             existing_rc = ReportCard.objects.filter(student=student, academic_year=year, term_number=up_to_term).first()
             data["comment"] = existing_rc.comment if existing_rc and existing_rc.comment else ""

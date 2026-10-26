@@ -2,7 +2,7 @@
 AtRiskScore rules-v1.
 
 Inputs per student, for the current term:
-  - average    : mean of the student's weighted term grades 
+  - average    : mean of the student's weighted term grades
   - change     : current term average minus previous term average (same academic year)
   - failing    : number of subjects with a term grade below PASS_MARK
   - behaviour  : demerits minus merits during the term
@@ -18,6 +18,7 @@ from django.db import transaction
 from django.db.models import Max, Sum
 
 from attendance.utils import get_active_academic_year
+from core.settings_utils import get_school_settings
 from grades.models import Evaluation
 from grades.term_grades import load_section_grades, load_term_weights, section_term_grade, weights_for
 from merits.models import DemeritRecord, MeritRecord
@@ -29,11 +30,12 @@ from .models import AtRiskScore
 
 MODEL_VERSION = "rules-v1"
 
-PASS_MARK = 55          # term grade below this counts as a failing subject
-MIN_PEERS = 5           # forms with fewer scored students are skipped (z-scores unreliable)
-FAILING_OVERRIDE = 3    # this many failing subjects is always High
-HIGH_THRESHOLD = 70
-WATCH_THRESHOLD = 60
+# Default constants (settings can be overridden per school in SchoolSettings)
+DEFAULT_PASS_MARK = 55
+DEFAULT_MIN_PEERS = 5
+DEFAULT_FAILING_OVERRIDE = 3
+DEFAULT_HIGH_THRESHOLD = 70
+DEFAULT_WATCH_THRESHOLD = 60
 
 # Relative importance of each input. Missing inputs (e.g. no previous term) are dropped and the rest re-normalised.
 WEIGHTS = {
@@ -56,6 +58,18 @@ def _mean(values):
     vals = [v for v in values if v is not None]
     return sum(vals) / len(vals) if vals else None
     pass
+
+
+def _get_school_thresholds(school):
+    """Get school-specific thresholds from settings."""
+    settings = get_school_settings(school)
+    return {
+        "pass_mark": settings.pass_mark,
+        "min_peers": settings.min_peers,
+        "failing_override": settings.failing_override,
+        "high_threshold": settings.high_threshold,
+        "watch_threshold": settings.watch_threshold,
+    }
 
 
 def _resolve_term(school, year, today):
@@ -106,6 +120,7 @@ def _term_grades(school, year, students, term_numbers):
 
 def _behaviour_totals(school, students, start, end):
     """({student_id: merits}, {student_id: demerits}) between start and end."""
+
     def totals(model):
         qs = model.objects.filter(school=school, student__in=students, date__lte=end)
         if start:
@@ -116,13 +131,13 @@ def _behaviour_totals(school, students, start, end):
     pass
 
 
-def _factor_label(key, value, form_mean, features, prev_term):
+def _factor_label(key, value, form_mean, features, prev_term, pass_mark):
     if key == "average":
         return f"Average {value:.1f}% (form {form_mean:.1f}%)"
     if key == "change":
         return f"{value:+.1f} pts since Term {prev_term} (form {form_mean:+.1f})"
     if key == "failing":
-        return f"{value} subject{'s' if value != 1 else ''} below {PASS_MARK}%"
+        return f"{value} subject{'s' if value != 1 else ''} below {pass_mark}%"
     if key == "behaviour":
         return f"{features['demerits']} demerits, {features['merits']} merits this term"
     return key
@@ -137,6 +152,14 @@ def compute_school(school, on_date=None):
     """
     today = on_date or datetime.date.today()
     summary = {"scored": 0, "skipped_no_grades": 0, "skipped_small_form": 0, "term": None, "year": None, "error": ""}
+
+    # Get school-specific thresholds
+    thresholds = _get_school_thresholds(school)
+    pass_mark = thresholds["pass_mark"]
+    min_peers = thresholds["min_peers"]
+    failing_override = thresholds["failing_override"]
+    high_threshold = thresholds["high_threshold"]
+    watch_threshold = thresholds["watch_threshold"]
 
     year = get_active_academic_year(school)
     if not year:
@@ -180,7 +203,7 @@ def compute_school(school, on_date=None):
             "average": round(avg, 1),
             "previous_average": round(prev_avg, 1) if prev_avg is not None else None,
             "change": round(avg - prev_avg, 1) if prev_avg is not None else None,
-            "failing": sum(1 for g in current if g < PASS_MARK),
+            "failing": sum(1 for g in current if g < pass_mark),
             "subjects": len(current),
             "merits": m,
             "demerits": d,
@@ -194,7 +217,7 @@ def compute_school(school, on_date=None):
 
     results = []
     for form_id, group in by_form.items():
-        if len(group) < MIN_PEERS:
+        if len(group) < min_peers:
             summary["skipped_small_form"] += len(group)
             continue
 
@@ -221,22 +244,22 @@ def compute_school(school, on_date=None):
             combined = sum(contributions.values()) / used_weight if used_weight else 0.0
             score = round(max(0.0, min(100.0, 50 + 20 * combined)), 1)
 
-            override = f["failing"] >= FAILING_OVERRIDE
-            if score >= HIGH_THRESHOLD or override:
+            override = f["failing"] >= failing_override
+            if score >= high_threshold or override:
                 band = "high"
-            elif score >= WATCH_THRESHOLD:
+            elif score >= watch_threshold:
                 band = "watch"
             else:
                 band = "low"
 
             ranked = sorted(((k, c) for k, c in contributions.items() if c > 0), key=lambda kc: kc[1], reverse=True)[:3]
-            top_factors = [_factor_label(k, f[k], stats[k][0], f, prev_term) for k, _ in ranked]
+            top_factors = [_factor_label(k, f[k], stats[k][0], f, prev_term, pass_mark) for k, _ in ranked]
 
             snapshot = {
                 "model_version": MODEL_VERSION,
                 "term": term_number,
                 "previous_term": prev_term,
-                "pass_mark": PASS_MARK,
+                "pass_mark": pass_mark,
                 "inputs": {k: f[k] for k in ("average", "previous_average", "change", "failing", "subjects", "merits", "demerits", "behaviour")},
                 "form_means": {k: round(stats[k][0], 2) for k in stats},
                 "form_size": len(group),

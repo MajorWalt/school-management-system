@@ -92,6 +92,24 @@ class TermConfig(models.Model):
         self.full_clean()
         super().save(*args, **kwargs)
 
+    def get_coursework_weight(self):
+        """Get coursework weight, with school-wide setting as fallback."""
+        from core.settings_utils import get_school_settings
+
+        if self.coursework_weight is not None:
+            return self.coursework_weight
+        settings = get_school_settings(self.academic_year.school)
+        return settings.coursework_weight
+
+    def get_exam_weight(self):
+        """Get exam weight, with school-wide setting as fallback."""
+        from core.settings_utils import get_school_settings
+
+        if self.exam_weight is not None:
+            return self.exam_weight
+        settings = get_school_settings(self.academic_year.school)
+        return settings.exam_weight
+
 
 class FormTermRule(models.Model):
     """
@@ -190,30 +208,30 @@ class Course(models.Model):
     ]
 
     SUBJECT_AREA_CHOICES = [
-            ("agricultural_science", "Agricultural Science"),
-            ("art_and_craft", "Art and Craft"),
-            ("biology", "Biology"),
-            ("building_technology", "Building Technology"),
-            ("caribbean_history", "Caribbean History"),
-            ("chemistry", "Chemistry"),
-            ("english", "English"),
-            ("french", "French"),
-            ("geography", "Geography"),
-            ("hfle", "Health and Family Life Education"),
-            ("human_social_biology", "Human and Social Biology"),
-            ("information_technology", "Information Technology"),
-            ("integrated_science", "Integrated Science"),
-            ("literature", "Literature"),
-            ("mathematics", "Mathematics"),
-            ("music", "Music"),
-            ("physical_education", "Physical Education"),
-            ("physics", "Physics"),
-            ("principles_of_accounts", "Principles of Accounts"),
-            ("principles_of_business", "Principles of Business"),
-            ("religion", "Religion"),
-            ("spanish", "Spanish"),
-            ("technical_drawing", "Technical Drawing"),
-        ]
+        ("agricultural_science", "Agricultural Science"),
+        ("art_and_craft", "Art and Craft"),
+        ("biology", "Biology"),
+        ("building_technology", "Building Technology"),
+        ("caribbean_history", "Caribbean History"),
+        ("chemistry", "Chemistry"),
+        ("english", "English"),
+        ("french", "French"),
+        ("geography", "Geography"),
+        ("hfle", "Health and Family Life Education"),
+        ("human_social_biology", "Human and Social Biology"),
+        ("information_technology", "Information Technology"),
+        ("integrated_science", "Integrated Science"),
+        ("literature", "Literature"),
+        ("mathematics", "Mathematics"),
+        ("music", "Music"),
+        ("physical_education", "Physical Education"),
+        ("physics", "Physics"),
+        ("principles_of_accounts", "Principles of Accounts"),
+        ("principles_of_business", "Principles of Business"),
+        ("religion", "Religion"),
+        ("spanish", "Spanish"),
+        ("technical_drawing", "Technical Drawing"),
+    ]
     school = models.ForeignKey(School, on_delete=models.CASCADE, related_name="courses")
     name = models.CharField(max_length=100)
     code = models.CharField(max_length=20, blank=True)

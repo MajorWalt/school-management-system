@@ -1,0 +1,358 @@
+{% extends "base.html" %}
+{% block title %}Admin Settings - {{ school.name }}{% endblock %}
+{% block page_title %}Admin Settings{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl">
+	<!-- Header -->
+	<div class="mb-8">
+		<h1 class="text-3xl font-bold text-gray-900 mb-2">Admin Settings</h1>
+		<p class="text-gray-600">Configure school-wide academic and behavioral thresholds</p>
+	</div>
+
+	<form method="post" class="space-y-6">
+		{% csrf_token %}
+
+		<!-- High Priority Section -->
+		<div class="app-card p-6">
+			<div class="mb-6 pb-6 border-b border-gray-200">
+				<h2 class="text-xl font-bold text-gray-900">Core Academic Settings</h2>
+				<p class="text-sm text-gray-600 mt-1">These settings directly impact grading and student assessment</p>
+			</div>
+
+			<div class="space-y-5">
+				<!-- Pass Mark -->
+				<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+					<div>
+						<label for="pass_mark" class="block text-sm font-medium text-gray-700 mb-2">
+							Pass Mark
+							<span class="text-red-500">*</span>
+						</label>
+						<div class="flex items-center gap-2">
+							<input
+								type="number"
+								id="pass_mark"
+								name="pass_mark"
+								value="{{ settings.pass_mark }}"
+								min="0"
+								max="100"
+								required
+								class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+							/>
+							<span class="text-gray-500 font-medium">/ 100</span>
+						</div>
+						<p class="text-xs text-gray-500 mt-2">Pass/fail threshold for all subjects</p>
+					</div>
+
+					<!-- Honours 1st Class -->
+					<div>
+						<label for="honours_1st_class" class="block text-sm font-medium text-gray-700 mb-2">
+							1st Class Honours Threshold
+							<span class="text-red-500">*</span>
+						</label>
+						<div class="flex items-center gap-2">
+							<input
+								type="number"
+								id="honours_1st_class"
+								name="honours_1st_class"
+								value="{{ settings.honours_1st_class }}"
+								min="0"
+								max="100"
+								required
+								class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+							/>
+							<span class="text-gray-500 font-medium">/ 100</span>
+						</div>
+						<p class="text-xs text-gray-500 mt-2">Requires all subjects &gt;= Pass Mark</p>
+					</div>
+				</div>
+
+				<!-- Honours 2nd Class -->
+				<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+					<div>
+						<label for="honours_2nd_class" class="block text-sm font-medium text-gray-700 mb-2">
+							2nd Class Honours Threshold
+							<span class="text-red-500">*</span>
+						</label>
+						<div class="flex items-center gap-2">
+							<input
+								type="number"
+								id="honours_2nd_class"
+								name="honours_2nd_class"
+								value="{{ settings.honours_2nd_class }}"
+								min="0"
+								max="100"
+								required
+								class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+							/>
+							<span class="text-gray-500 font-medium">/ 100</span>
+						</div>
+						<p class="text-xs text-gray-500 mt-2">Requires all subjects &gt;= Pass Mark</p>
+					</div>
+
+					<!-- Failing Override -->
+					<div>
+						<label for="failing_override" class="block text-sm font-medium text-gray-700 mb-2">
+							High Risk Failing Override
+							<span class="text-red-500">*</span>
+						</label>
+						<input
+							type="number"
+							id="failing_override"
+							name="failing_override"
+							value="{{ settings.failing_override }}"
+							min="1"
+							max="20"
+							required
+							class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+						/>
+						<p class="text-xs text-gray-500 mt-2">Auto-flag as "High risk" if this many subjects failed</p>
+					</div>
+				</div>
+
+				<!-- Risk Thresholds -->
+				<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+					<div>
+						<label for="high_threshold" class="block text-sm font-medium text-gray-700 mb-2">
+							High Risk Score Threshold
+							<span class="text-red-500">*</span>
+						</label>
+						<div class="flex items-center gap-2">
+							<input
+								type="number"
+								id="high_threshold"
+								name="high_threshold"
+								value="{{ settings.high_threshold }}"
+								min="0"
+								max="100"
+								required
+								class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+							/>
+							<span class="text-gray-500 font-medium">/ 100</span>
+						</div>
+						<p class="text-xs text-gray-500 mt-2">Score threshold for "High risk" band</p>
+					</div>
+
+					<div>
+						<label for="watch_threshold" class="block text-sm font-medium text-gray-700 mb-2">
+							Watch Risk Score Threshold
+							<span class="text-red-500">*</span>
+						</label>
+						<div class="flex items-center gap-2">
+							<input
+								type="number"
+								id="watch_threshold"
+								name="watch_threshold"
+								value="{{ settings.watch_threshold }}"
+								min="0"
+								max="100"
+								required
+								class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+							/>
+							<span class="text-gray-500 font-medium">/ 100</span>
+						</div>
+						<p class="text-xs text-gray-500 mt-2">Score threshold for "Watch" risk band</p>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- AI Settings Section -->
+		<div class="app-card p-6">
+			<div class="mb-6 pb-6 border-b border-gray-200">
+				<h2 class="text-xl font-bold text-gray-900">AI Features</h2>
+				<p class="text-sm text-gray-600 mt-1">Enable or disable AI-powered features across the platform</p>
+			</div>
+
+			<div class="space-y-4">
+				<div class="flex items-start">
+					<div class="flex items-center h-5">
+						<input
+							type="checkbox"
+							id="ai_enabled"
+							name="ai_enabled"
+							{% if ai_settings.enabled %}checked{% endif %}
+							class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+						/>
+					</div>
+					<div class="ml-3">
+						<label for="ai_enabled" class="font-medium text-gray-900">Enable AI Features</label>
+						<p class="text-sm text-gray-600 mt-1">
+							When enabled, AI-powered features will be available throughout the platform.
+							This includes intelligent analytics, automated insights, and AI-assisted workflows.
+						</p>
+						<p class="text-xs text-gray-500 mt-2">
+							<a href="{% url 'ai:settings' %}" class="text-blue-600 hover:text-blue-800 underline">
+								View detailed AI settings and usage →
+							</a>
+						</p>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Medium Priority Section -->
+		<div class="app-card p-6">
+			<div class="mb-6 pb-6 border-b border-gray-200">
+				<h2 class="text-xl font-bold text-gray-900">Academic Configuration</h2>
+				<p class="text-sm text-gray-600 mt-1">Configure grading weights and report filters</p>
+			</div>
+
+			<div class="space-y-5">
+				<!-- Grade Weights -->
+				<div>
+					<h3 class="text-sm font-medium text-gray-900 mb-4">Final Grade Weights</h3>
+					<p class="text-xs text-gray-600 mb-4">These weights must sum to exactly 100%</p>
+
+					<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+						<div>
+							<label for="coursework_weight" class="block text-sm font-medium text-gray-700 mb-2">
+								Coursework Weight
+								<span class="text-red-500">*</span>
+							</label>
+							<div class="flex items-center gap-2">
+								<input
+									type="number"
+									id="coursework_weight"
+									name="coursework_weight"
+									value="{{ settings.coursework_weight }}"
+									min="0"
+									max="100"
+									required
+									class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+									onchange="validateWeights()"
+								/>
+								<span class="text-gray-500 font-medium">%</span>
+							</div>
+							<p class="text-xs text-gray-500 mt-2">Weight of coursework in final grade</p>
+						</div>
+
+						<div>
+							<label for="exam_weight" class="block text-sm font-medium text-gray-700 mb-2">
+								Exam Weight
+								<span class="text-red-500">*</span>
+							</label>
+							<div class="flex items-center gap-2">
+								<input
+									type="number"
+									id="exam_weight"
+									name="exam_weight"
+									value="{{ settings.exam_weight }}"
+									min="0"
+									max="100"
+									required
+									class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+									onchange="validateWeights()"
+								/>
+								<span class="text-gray-500 font-medium">%</span>
+							</div>
+							<p class="text-xs text-gray-500 mt-2">Weight of exam in final grade</p>
+						</div>
+					</div>
+
+					<div class="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+						<p class="text-sm text-blue-900">
+							Total: <span id="totalWeight" class="font-semibold">100</span>%
+						</p>
+					</div>
+				</div>
+
+				<!-- Report Filters -->
+				<div>
+					<h3 class="text-sm font-medium text-gray-900 mb-4">Report Filters</h3>
+
+					<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+						<div>
+							<label for="min_peers" class="block text-sm font-medium text-gray-700 mb-2">
+								Minimum Peers
+								<span class="text-red-500">*</span>
+							</label>
+							<input
+								type="number"
+								id="min_peers"
+								name="min_peers"
+								value="{{ settings.min_peers }}"
+								min="1"
+								max="50"
+								required
+								class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+							/>
+							<p class="text-xs text-gray-500 mt-2">Min students per form for statistics</p>
+						</div>
+
+						<div>
+							<label for="min_merits" class="block text-sm font-medium text-gray-700 mb-2">
+								Minimum Merits Threshold
+								<span class="text-red-500">*</span>
+							</label>
+							<input
+								type="number"
+								id="min_merits"
+								name="min_merits"
+								value="{{ settings.min_merits }}"
+								min="1"
+								max="100"
+								required
+								class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+							/>
+							<p class="text-xs text-gray-500 mt-2">For top merits list</p>
+						</div>
+
+						<div>
+							<label for="min_demerits" class="block text-sm font-medium text-gray-700 mb-2">
+								Minimum Demerits Threshold
+								<span class="text-red-500">*</span>
+							</label>
+							<input
+								type="number"
+								id="min_demerits"
+								name="min_demerits"
+								value="{{ settings.min_demerits }}"
+								min="1"
+								max="100"
+								required
+								class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+							/>
+							<p class="text-xs text-gray-500 mt-2">For top demerits list</p>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Actions -->
+		<div class="flex gap-3 justify-end">
+			<a href="{% url 'portals:admin_dashboard' %}"
+				class="px-6 py-2.5 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 transition">
+				Cancel
+			</a>
+			<button type="submit"
+				class="btn-primary px-6 py-2.5 rounded-lg font-medium">
+				Save Settings
+			</button>
+		</div>
+	</form>
+</div>
+
+<script>
+	function validateWeights() {
+		const coursework = parseInt(document.getElementById('coursework_weight').value) || 0;
+		const exam = parseInt(document.getElementById('exam_weight').value) || 0;
+		const total = coursework + exam;
+		
+		const totalDisplay = document.getElementById('totalWeight');
+		totalDisplay.textContent = total;
+		
+		if (total !== 100) {
+			totalDisplay.parentElement.classList.remove('bg-blue-50', 'border-blue-200', 'text-blue-900');
+			totalDisplay.parentElement.classList.add('bg-red-50', 'border-red-200', 'text-red-900');
+		} else {
+			totalDisplay.parentElement.classList.remove('bg-red-50', 'border-red-200', 'text-red-900');
+			totalDisplay.parentElement.classList.add('bg-blue-50', 'border-blue-200', 'text-blue-900');
+		}
+	}
+
+	// Validate on page load
+	document.addEventListener('DOMContentLoaded', validateWeights);
+</script>
+{% endblock %}

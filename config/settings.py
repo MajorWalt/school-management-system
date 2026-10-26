@@ -65,6 +65,7 @@ INSTALLED_APPS = [
     "backups",
     "reports",
     "analytics",
+    "ai",
 ]
 
 MIDDLEWARE = [
@@ -188,3 +189,19 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SECURE = False
 SESSION_COOKIE_SAMESITE = "Lax"
+
+# AI Settings
+ANTHROPIC_API_KEY = config("ANTHROPIC_API_KEY", default="")
+AI_MODEL = config("AI_MODEL", default="claude-haiku-5-5")
+AI_DEFAULT_MAX_TOKENS = config("AI_DEFAULT_MAX_TOKENS", default=1024, cast=int)
+AI_REQUEST_TIMEOUT = config("AI_REQUEST_TIMEOUT", default=60, cast=int)
+
+# Celery Settings
+CELERY_BROKER_URL = config("CELERY_BROKER_URL", default="redis://localhost:6379/0")
+CELERY_TASK_ALWAYS_EAGER = config("CELERY_TASK_ALWAYS_EAGER", default=True, cast=bool)
+CELERY_TASK_EAGER_PROPAGATES = True
+CELERY_TIMEZONE = TIME_ZONE
+CELERY_TASK_TIME_LIMIT = 300
+CELERY_TASK_SOFT_TIME_LIMIT = 270
+CELERY_WORKER_PREFETCH_MULTIPLIER = 1
+CELERY_TASK_ACKS_LATE = True

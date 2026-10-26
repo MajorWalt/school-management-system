@@ -36,6 +36,7 @@ urlpatterns = [
     path("backups/", include("backups.urls")),
     path("reports/", include("reports.urls")),
     path("analytics/", include("analytics.urls")),
+    path("ai/", include("ai.urls")),
     path("", include("portals.urls")),
 ]
 

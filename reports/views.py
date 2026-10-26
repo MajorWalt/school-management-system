@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from core.decorators import tenant_required, admin_required, admin_or_teacher_required
+from core.settings_utils import get_school_settings
 from accounts.utils import get_roles, is_admin
 from students.models import Student
 from staff.models import Staff
@@ -565,8 +566,10 @@ def merit_demerit_report(request):
     last_day = datetime.date(year, month, calendar.monthrange(year, month)[1])
     month_name = first_day.strftime("%B %Y")
 
-    MIN_MERITS = 10
-    MIN_DEMERITS = 5
+    # Get settings from database
+    settings = get_school_settings(school)
+    min_merits = settings.min_merits
+    min_demerits = settings.min_demerits
 
     from django.db.models import Sum
     from collections import OrderedDict
@@ -579,8 +582,8 @@ def merit_demerit_report(request):
         for rec in records_qs.order_by("student__last_name", "date"):
             student_records.setdefault(rec.student_id, []).append(rec)
 
-        threshold = MIN_MERITS
-        threshold_label = f"{MIN_MERITS}+ merits"
+        threshold = min_merits
+        threshold_label = f"{min_merits}+ merits"
 
     else:
         records_qs = DemeritRecord.objects.filter(school=school, date__gte=first_day, date__lte=last_day).select_related("student", "awarded_by")
@@ -590,8 +593,8 @@ def merit_demerit_report(request):
         for rec in records_qs.order_by("student__last_name", "date"):
             student_records.setdefault(rec.student_id, []).append(rec)
 
-        threshold = MIN_DEMERITS
-        threshold_label = f"{MIN_DEMERITS}+ demerits"
+        threshold = min_demerits
+        threshold_label = f"{min_demerits}+ demerits"
 
     # Determine academic year for the selected month/year
     academic_year = get_academic_year_for_date(school, first_day)
@@ -655,8 +658,8 @@ def merit_demerit_report(request):
         "grand_students": grand_students,
         "month_choices": month_choices,
         "year_choices": year_choices,
-        "min_merits": MIN_MERITS,
-        "min_demerits": MIN_DEMERITS,
+        "min_merits": min_merits,
+        "min_demerits": min_demerits,
         "is_admin": True,
     }
 
