@@ -152,21 +152,4 @@
 		Award Demerit
 	</a>
 </div>
-
-{% if recent_logins %}
-<div class="bg-white rounded-xl shadow overflow-hidden">
-	<div class="px-5 py-4 border-b bg-gray-50">
-		<h2 class="font-semibold text-gray-700 text-sm">Your Recent Logins</h2>
-	</div>
-	<ul class="divide-y divide-gray-100">
-		{% for entry in recent_logins %}
-		<li class="px-5 py-2.5 flex items-center justify-between">
-			<span class="text-xs text-gray-500">{{ entry.ip_address|default:"-" }}</span>
-			<span class="text-xs text-gray-400 font-mono">{{ entry.created_at|date:"d M Y, H:i" }}</span>
-		</li>
-		{% endfor %}
-	</ul>
-</div>
-{% endif %}
-
 {% endblock %}

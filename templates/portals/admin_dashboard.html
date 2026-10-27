@@ -286,37 +286,6 @@
 
 				</div>
 			</div>
-
-			<!-- Recent logins -->
-			<div class="dashboard-panel">
-				<div class="dashboard-panel-header">
-					<div>
-						<h2 class="dashboard-panel-title">Recent Logins</h2>
-						<p class="dashboard-panel-subtitle">Latest user access activity</p>
-					</div>
-				</div>
-				{% if recent_logins %}
-				<ul class="divide-y divide-slate-50">
-					{% for entry in recent_logins %}
-					<li class="px-4 py-2.5 flex items-start justify-between gap-3">
-						<div class="min-w-0">
-							<p class="text-xs font-medium text-slate-700 truncate">
-								{{ entry.user.get_full_name }}
-							</p>
-							<p class="text-xs text-slate-400 truncate">{{ entry.ip_address|default:"-" }}</p>
-						</div>
-						<span class="text-xs text-slate-400 whitespace-nowrap flex-shrink-0 font-mono">
-							{{ entry.created_at|date:"d M, H:i" }}
-						</span>
-					</li>
-					{% endfor %}
-				</ul>
-				{% else %}
-				<div class="px-4 py-6 text-center">
-					<p class="text-xs text-slate-400">No login activity yet</p>
-				</div>
-				{% endif %}
-			</div>
 		</div>
 	</div>
 </div>
