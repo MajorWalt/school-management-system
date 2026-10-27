@@ -1,5 +1,5 @@
 from django import forms
-from .models import Staff
+from .models import Staff, StaffClockIn
 
 FIELD_CLASS = "w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
 
@@ -65,10 +65,12 @@ class StaffForm(forms.ModelForm):
             # Second department can only be picked once a primary department exists.
             "department_2": forms.Select(attrs={"x-bind:disabled": "!hasDept"}),
             # HOD is disabled (and force-unchecked) until a department is chosen.
-            "is_head_of_department": forms.CheckboxInput(attrs={
-                "x-bind:disabled": "!hasDept",
-                "x-effect": "if (!hasDept) $el.checked = false",
-            }),
+            "is_head_of_department": forms.CheckboxInput(
+                attrs={
+                    "x-bind:disabled": "!hasDept",
+                    "x-effect": "if (!hasDept) $el.checked = false",
+                }
+            ),
         }
 
     def __init__(self, *args, school=None, **kwargs):
@@ -79,4 +81,45 @@ class StaffForm(forms.ModelForm):
             if not isinstance(field.widget, forms.CheckboxInput):
                 existing = field.widget.attrs.get("class", "")
                 field.widget.attrs["class"] = FIELD_CLASS + " " + existing
+        pass
+
+
+class StaffClockInForm(forms.ModelForm):
+    class Meta:
+        model = StaffClockIn
+        fields = ["staff", "date", "status", "clock_in_time", "note"]
+        widgets = {
+            "date": forms.DateInput(attrs={"type": "date"}),
+            "clock_in_time": forms.TimeInput(attrs={"type": "time"}),
+            "note": forms.Textarea(attrs={"rows": 3, "placeholder": "Reason for sick/excused, or admin correction note"}),
+        }
+
+    def __init__(self, *args, school=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if school:
+            self.fields["staff"].queryset = Staff.objects.filter(school=school, active=True).order_by("last_name", "first_name")
+            pass
+
+        for name, field in self.fields.items():
+            if not isinstance(field.widget, forms.CheckboxInput):
+                existing = field.widget.attrs.get("class", "")
+                field.widget.attrs["class"] = FIELD_CLASS + " " + existing
+                pass
+        pass
+
+    def clean(self):
+        cleaned_data = super().clean()
+        status = cleaned_data.get("status")
+        clock_in_time = cleaned_data.get("clock_in_time")
+
+        # Validate status and time consistency
+        if status == "present" and not clock_in_time:
+            self.add_error("clock_in_time", "Clock-in time is required when status is Present.")
+            pass
+
+        if status in ("sick", "excused") and clock_in_time:
+            self.add_error("clock_in_time", "Clock-in time must be empty when status is Sick or Excused.")
+            pass
+
+        return cleaned_data
         pass

@@ -1,5 +1,7 @@
+import math
 from django.db import models
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 from core.models import School
 from accounts.models import User
 
@@ -66,7 +68,6 @@ class Staff(models.Model):
         ("Geography", "Geography"),
         ("History", "History"),
         ("Agriculture", "Agriculture"),
-
     ]
 
     # Core identity
@@ -162,4 +163,99 @@ class Staff(models.Model):
 
     def get_departments(self):
         return [d for d in [self.department, self.department_2] if d]
+        pass
+
+
+class StaffClockIn(models.Model):
+    STATUS_CHOICES = [
+        ("present", "Present"),
+        ("sick", "Sick"),
+        ("excused", "Excused"),
+    ]
+
+    school = models.ForeignKey(School, on_delete=models.CASCADE, related_name="staff_clock_ins")
+    staff = models.ForeignKey(Staff, on_delete=models.CASCADE, related_name="clock_ins")
+    date = models.DateField()
+    clock_in_time = models.TimeField(null=True, blank=True)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES)
+    note = models.TextField(blank=True)
+    recorded_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="recorded_clock_ins")
+
+    # Location tracking
+    latitude = models.DecimalField(max_digits=10, decimal_places=8, null=True, blank=True, help_text="Clock-in latitude")
+    longitude = models.DecimalField(max_digits=11, decimal_places=8, null=True, blank=True, help_text="Clock-in longitude")
+    distance_from_school = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True, help_text="Distance in meters")
+    within_radius = models.BooleanField(null=True, blank=True, help_text="Whether clock-in was within acceptable radius")
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "staff_clock_in"
+        ordering = ["-date", "-clock_in_time"]
+        constraints = [
+            models.UniqueConstraint(fields=["school", "staff", "date"], name="unique_staff_clockin_per_day"),
+            models.CheckConstraint(
+                condition=(models.Q(status="present", clock_in_time__isnull=False) | models.Q(status__in=["sick", "excused"], clock_in_time__isnull=True)),
+                name="clockin_status_time_consistency",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.staff.get_display_name()} - {self.date} ({self.get_status_display()})"
+        pass
+
+    def calculate_distance_and_status(self):
+        """Calculate distance from school and set within_radius status."""
+        if not self.latitude or not self.longitude:
+            self.distance_from_school = None
+            self.within_radius = None
+            return
+            pass
+
+        if not self.school.latitude or not self.school.longitude:
+            self.distance_from_school = None
+            self.within_radius = None
+            return
+            pass
+
+        # Haversine formula to calculate distance between two points on Earth
+        R = 6371000  # Earth radius in meters
+
+        lat1 = math.radians(float(self.school.latitude))
+        lat2 = math.radians(float(self.latitude))
+        delta_lat = math.radians(float(self.latitude) - float(self.school.latitude))
+        delta_lon = math.radians(float(self.longitude) - float(self.school.longitude))
+
+        a = math.sin(delta_lat / 2) ** 2 + math.cos(lat1) * math.cos(lat2) * math.sin(delta_lon / 2) ** 2
+        c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+
+        distance = R * c  # Distance in meters
+        self.distance_from_school = round(distance, 2)
+        self.within_radius = distance <= self.school.location_radius_meters
+        pass
+
+    def clean(self):
+        super().clean()
+
+        # Staff school must equal self.school
+        if self.staff and self.staff.school_id != self.school_id:
+            raise ValidationError({"staff": "Staff member must belong to the same school."})
+            pass
+
+        # Date not in the future
+        today = timezone.localtime().date()
+        if self.date and self.date > today:
+            raise ValidationError({"date": "Clock-in date cannot be in the future."})
+            pass
+
+        # Status="present" requires clock_in_time NOT NULL
+        if self.status == "present" and not self.clock_in_time:
+            raise ValidationError({"clock_in_time": "Clock-in time is required when status is Present."})
+            pass
+
+        # Status in (sick, excused) requires clock_in_time NULL
+        if self.status in ("sick", "excused") and self.clock_in_time:
+            raise ValidationError({"clock_in_time": "Clock-in time must be empty when status is Sick or Excused."})
+            pass
         pass

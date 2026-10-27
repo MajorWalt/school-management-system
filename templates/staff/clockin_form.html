@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} - {{ school.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl">
+    <h1 class="text-2xl font-bold text-gray-800 mb-6">{{ title }}</h1>
+
+    <div class="bg-white rounded-xl shadow p-6" x-data="{ status: '{{ form.status.value|default:"present" }}' }">
+        <form method="post">
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+            <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">
+                {{ form.non_field_errors }}
+            </div>
+            {% endif %}
+
+            <div class="space-y-4">
+                <!-- Staff -->
+                <div>
+                    <label for="{{ form.staff.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                        Staff Member <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.staff }}
+                    {% if form.staff.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ form.staff.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Date -->
+                <div>
+                    <label for="{{ form.date.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                        Date <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.date }}
+                    {% if form.date.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ form.date.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Status -->
+                <div>
+                    <label for="{{ form.status.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                        Status <span class="text-red-500">*</span>
+                    </label>
+                    <select name="status" id="{{ form.status.id_for_label }}" x-model="status"
+                            class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        {% for value, label in form.status.field.choices %}
+                        <option value="{{ value }}" {% if form.status.value == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                    {% if form.status.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ form.status.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Clock-In Time (conditionally shown) -->
+                <div x-show="status === 'present'">
+                    <label for="{{ form.clock_in_time.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                        Clock-In Time <span class="text-red-500">*</span>
+                    </label>
+                    <input type="time" name="clock_in_time" id="{{ form.clock_in_time.id_for_label }}"
+                           value="{% if form.clock_in_time.value %}{{ form.clock_in_time.value|time:'H:i' }}{% endif %}"
+                           class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                           x-bind:required="status === 'present'" />
+                    {% if form.clock_in_time.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ form.clock_in_time.errors.0 }}</p>
+                    {% endif %}
+                    <p class="text-xs text-gray-500 mt-1">Required when status is Present</p>
+                </div>
+
+                <!-- Note -->
+                <div>
+                    <label for="{{ form.note.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                        Note
+                    </label>
+                    {{ form.note }}
+                    {% if form.note.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ form.note.errors.0 }}</p>
+                    {% endif %}
+                    <p class="text-xs text-gray-500 mt-1">Reason for sick/excused, or admin correction note</p>
+                </div>
+            </div>
+
+            <div class="flex gap-3 mt-6">
+                <button type="submit"
+                        class="btn-primary px-6 py-2 rounded-lg font-medium">
+                    Save
+                </button>
+                <a href="{% url 'staff:clockin_list' %}"
+                   class="px-6 py-2 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 transition">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

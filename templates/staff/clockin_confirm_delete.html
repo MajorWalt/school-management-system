@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}Delete Clock-In - {{ school.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl">
+    <h1 class="text-2xl font-bold text-gray-800 mb-6">Delete Clock-In Record</h1>
+
+    <div class="bg-white rounded-xl shadow p-6">
+        <div class="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded-lg mb-6">
+            <p class="font-medium">Are you sure you want to delete this clock-in record?</p>
+            <p class="text-sm mt-1">This action cannot be undone.</p>
+        </div>
+
+        <div class="space-y-3 mb-6 text-sm">
+            <div class="flex">
+                <span class="text-gray-500 w-32">Staff:</span>
+                <span class="text-gray-900 font-medium">{{ clock_in.staff.get_display_name }}</span>
+            </div>
+            <div class="flex">
+                <span class="text-gray-500 w-32">Date:</span>
+                <span class="text-gray-900">{{ clock_in.date|date:"d M Y" }}</span>
+            </div>
+            <div class="flex">
+                <span class="text-gray-500 w-32">Time:</span>
+                <span class="text-gray-900">
+                    {% if clock_in.clock_in_time %}
+                        {{ clock_in.clock_in_time|time:"g:i A" }}
+                    {% else %}
+                        —
+                    {% endif %}
+                </span>
+            </div>
+            <div class="flex">
+                <span class="text-gray-500 w-32">Status:</span>
+                <span class="text-gray-900">{{ clock_in.get_status_display }}</span>
+            </div>
+            {% if clock_in.note %}
+            <div class="flex">
+                <span class="text-gray-500 w-32">Note:</span>
+                <span class="text-gray-900">{{ clock_in.note }}</span>
+            </div>
+            {% endif %}
+        </div>
+
+        <form method="post" class="flex gap-3">
+            {% csrf_token %}
+            <button type="submit"
+                    class="bg-red-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-red-700 transition">
+                Delete
+            </button>
+            <a href="{% url 'staff:clockin_list' %}"
+               class="px-6 py-2 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 transition">
+                Cancel
+            </a>
+        </form>
+    </div>
+</div>
+{% endblock %}

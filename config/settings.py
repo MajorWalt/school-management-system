@@ -144,7 +144,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = "UTC"
+TIME_ZONE = "America/St_Lucia"  # UTC-4 (Atlantic Time)
 
 USE_I18N = True
 

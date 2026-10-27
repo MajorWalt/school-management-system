@@ -6,6 +6,12 @@ class School(models.Model):
     name = models.CharField(max_length=200)
     slug = models.SlugField(unique=True)
     is_active = models.BooleanField(default=True)
+
+    # Location settings for clock-in validation
+    latitude = models.DecimalField(max_digits=10, decimal_places=8, null=True, blank=True, help_text="School latitude coordinate")
+    longitude = models.DecimalField(max_digits=11, decimal_places=8, null=True, blank=True, help_text="School longitude coordinate")
+    location_radius_meters = models.PositiveIntegerField(default=100, help_text="Acceptable clock-in radius in meters")
+
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -13,6 +19,7 @@ class School(models.Model):
 
     def __str__(self):
         return self.name
+        pass
 
 
 class ActivityLog(models.Model):

@@ -26,6 +26,13 @@
 	</div>
 </div>
 
+<!-- Clock-In Card -->
+{% if staff_profile %}
+<div class="mb-6">
+	{% include "staff/partials/clockin_card.html" %}
+</div>
+{% endif %}
+
 {% if homeroom_stats %}
 <div class="dashboard-panel teacher-panel mb-6">
 	<div class="dashboard-panel-header">

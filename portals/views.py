@@ -1,11 +1,12 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from django.db.models import Sum
+from django.utils import timezone
 from core.decorators import tenant_required, admin_required
 from accounts.models import UserRole
 from students.models import Student
-from staff.models import Staff
-from scheduling.models import AcademicYear, Section, Homeroom, Enrolment, TermConfig
+from staff.models import Staff, StaffClockIn
+from scheduling.models import AcademicYear, Section, Homeroom, Enrolment, TermConfig, SchoolEvent
 from attendance.models import Attendance
 from attendance.utils import student_attendance_summary
 from grades.models import ReportCard, Evaluation, GradeEntry
@@ -183,6 +184,20 @@ def admin_dashboard(request):
 
     recent_logins = ActivityLog.objects.filter(school=school, action="login").order_by("-created_at")[:10]
 
+    # Clock-in card context (for staff with Staff profile)
+    staff_profile = None
+    clock_in_today = None
+    is_school_day = False
+    try:
+        staff_profile = Staff.objects.get(school=school, user=request.user)
+        clock_in_today = StaffClockIn.objects.filter(school=school, staff=staff_profile, date=today).first()
+        # Check if today is a school day
+        if today.weekday() not in (5, 6):  # Not weekend
+            is_school_day = not SchoolEvent.objects.filter(school=school, date=today, is_school_day=False).exists()
+            pass
+    except Staff.DoesNotExist:
+        pass
+
     return render(
         request,
         "portals/admin_dashboard.html",
@@ -192,6 +207,9 @@ def admin_dashboard(request):
             "recent_absences": recent_absences,
             "today": today,
             "recent_logins": recent_logins,
+            "staff_profile": staff_profile,
+            "clock_in": clock_in_today,
+            "is_school_day": is_school_day,
         },
     )
     pass
@@ -200,19 +218,19 @@ def admin_dashboard(request):
 @login_required
 @tenant_required
 def teacher_dashboard(request):
-    roles = get_roles(request.user, request.school)
+    school = request.school
+    today = datetime.date.today()
+
+    roles = get_roles(request.user, school)
     if "teacher" not in roles and "admin" not in roles:
         return redirect("portals:dashboard")
         pass
 
     try:
-        staff_profile = request.user.staff_profile
+        staff_profile = Staff.objects.get(school=school, user=request.user)
     except Staff.DoesNotExist:
         staff_profile = None
         pass
-
-    today = datetime.date.today()
-    school = request.school
 
     # Get homerooms this teacher is assigned to
     homerooms = (
@@ -241,17 +259,33 @@ def teacher_dashboard(request):
         )
         pass
 
-    # Sections this teacher teaches
-    sections = (
-        Section.objects.filter(
-            school=school,
-            teacher=staff_profile,
+    # Get current academic year and term
+    current_year = AcademicYear.objects.filter(school=school, is_current=True).first()
+    current_term = None
+    if current_year:
+        current_term = TermConfig.objects.filter(academic_year=current_year, start_date__lte=today, end_date__gte=today).first()
+        pass
+
+    # Sections this teacher teaches (current term only)
+    sections = []
+    if staff_profile and current_year and current_term:
+        sections = Section.objects.filter(
+            school=school, teacher=staff_profile, academic_year=current_year, term_number=current_term.term_number
         ).select_related("course", "form", "academic_year")
-        if staff_profile
-        else []
-    )
+        pass
 
     recent_logins = ActivityLog.objects.filter(school=school, user=request.user, action="login").order_by("-created_at")[:5]
+
+    # Clock-in card context
+    clock_in_today = None
+    is_school_day = False
+    if staff_profile:
+        clock_in_today = StaffClockIn.objects.filter(school=school, staff=staff_profile, date=today).first()
+        # Check if today is a school day
+        if today.weekday() not in (5, 6):  # Not weekend
+            is_school_day = not SchoolEvent.objects.filter(school=school, date=today, is_school_day=False).exists()
+            pass
+        pass
 
     return render(
         request,
@@ -262,6 +296,8 @@ def teacher_dashboard(request):
             "sections": sections,
             "today": today,
             "recent_logins": recent_logins,
+            "clock_in": clock_in_today,
+            "is_school_day": is_school_day,
         },
     )
     pass
