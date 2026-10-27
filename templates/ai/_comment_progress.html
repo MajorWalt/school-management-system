@@ -1,0 +1,12 @@
+<div hx-get="{% url 'ai:comment_progress' section.pk %}"
+	 hx-trigger="every 3s"
+	 hx-swap="outerHTML"
+	 class="bg-white rounded-xl shadow px-5 py-3 mb-4">
+	<div class="flex items-center justify-between text-sm text-gray-600 mb-2">
+		<span>Drafting comments…</span>
+		<span>{{ batch.completed }} / {% if batch.total %}{{ batch.total }}{% else %}…{% endif %}</span>
+	</div>
+	<div class="h-1.5 bg-gray-100 rounded">
+		<div class="h-1.5 bg-gray-400 rounded" style="width: {{ batch.progress_pct }}%"></div>
+	</div>
+</div>

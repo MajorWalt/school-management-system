@@ -195,6 +195,8 @@ ANTHROPIC_API_KEY = config("ANTHROPIC_API_KEY", default="")
 AI_MODEL = config("AI_MODEL", default="claude-haiku-5-5")
 AI_DEFAULT_MAX_TOKENS = config("AI_DEFAULT_MAX_TOKENS", default=1024, cast=int)
 AI_REQUEST_TIMEOUT = config("AI_REQUEST_TIMEOUT", default=60, cast=int)
+AI_ASK_DAILY_LIMIT = config("AI_ASK_DAILY_LIMIT", default=200, cast=int)
+AI_ASK_HOURLY_LIMIT = config("AI_ASK_HOURLY_LIMIT", default=30, cast=int)
 
 # Celery Settings
 CELERY_BROKER_URL = config("CELERY_BROKER_URL", default="redis://localhost:6379/0")

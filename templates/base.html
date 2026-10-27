@@ -868,6 +868,11 @@
 	})();
 </script>
 
+<!-- Ask AI Widget 	-->
+{% if is_admin or is_teacher %}{% if request.school.ai_settings.enabled %}
+	{% include "ai/_ask_widget.html" %}
+{% endif %}{% endif %}
+
 {% load django_browser_reload %}
 {% django_browser_reload_script %}
 {% block extra_js %}{% endblock %}

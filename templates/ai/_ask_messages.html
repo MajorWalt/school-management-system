@@ -1,0 +1,17 @@
+{% load ai_tags %}
+{% if show_intro %}
+<p data-ask-intro class="text-xs text-gray-400 text-center py-6 px-4">
+	Ask about students, teachers, classes, grades or conduct records.
+</p>
+{% endif %}
+{% for m in chat_messages %}
+	{% if m.role == "user" %}
+	<div class="flex justify-end">
+		<div class="max-w-[85%] rounded-lg bg-gray-100 text-gray-800 px-3 py-2 text-sm">{{ m.content|linebreaksbr }}</div>
+	</div>
+	{% else %}
+	<div class="flex justify-start">
+		<div class="max-w-[95%] rounded-lg border border-gray-200 bg-white text-gray-700 px-3 py-2 text-sm">{{ m.content|render_answer }}</div>
+	</div>
+	{% endif %}
+{% endfor %}

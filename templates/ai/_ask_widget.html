@@ -1,0 +1,127 @@
+<div id="askAi" class="fixed bottom-5 right-5 z-50">
+
+	<div id="askAiPanel"
+		 class="hidden mb-3 w-[26rem] max-w-[calc(100vw-2.5rem)] h-[30rem] max-h-[75vh] flex-col bg-white border border-gray-200 rounded-xl shadow-lg">
+
+		<div class="flex items-center justify-between px-4 py-2.5 border-b border-gray-100">
+			<span class="text-sm font-semibold text-gray-700">Ask AI</span>
+			<div class="flex items-center gap-1">
+				<button type="button" title="New chat"
+						hx-post="{% url 'ai:ask_reset' %}"
+						hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+						hx-target="#askAiMessages"
+						hx-swap="innerHTML"
+						class="p-1.5 rounded text-gray-400 hover:bg-gray-50 hover:text-gray-600 transition">
+					<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
+					<span class="sr-only">New chat</span>
+				</button>
+				<button type="button" title="Close" data-ask-toggle
+						class="p-1.5 rounded text-gray-400 hover:bg-gray-50 hover:text-gray-600 transition">
+					<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+					<span class="sr-only">Close</span>
+				</button>
+			</div>
+		</div>
+
+		<div id="askAiMessages"
+			 class="flex-1 overflow-y-auto px-3 py-3 space-y-2"
+			 hx-get="{% url 'ai:ask_history' %}"
+			 hx-trigger="askaiopen once from:body"
+			 hx-swap="innerHTML"></div>
+
+		<form id="askAiForm"
+			  hx-post="{% url 'ai:ask_send' %}"
+			  hx-target="#askAiMessages"
+			  hx-swap="beforeend"
+			  hx-indicator="#askAiThinking"
+			  hx-disabled-elt="#askAiSend"
+			  class="border-t border-gray-100 p-2">
+			{% csrf_token %}
+			<div id="askAiThinking" class="htmx-indicator text-xs text-gray-400 px-1 pb-1">Thinking…</div>
+			<div class="flex items-end gap-2">
+				<textarea name="question" rows="1" maxlength="500"
+						  placeholder="Ask a question…"
+						  class="flex-1 resize-none text-sm rounded border border-gray-200 px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-gray-400"></textarea>
+				<button id="askAiSend" type="submit" title="Send"
+						class="p-2 rounded border border-gray-200 text-gray-500 hover:bg-gray-50 transition">
+					<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"/></svg>
+					<span class="sr-only">Send</span>
+				</button>
+			</div>
+		</form>
+	</div>
+
+	<div class="flex justify-end">
+		<button type="button" data-ask-toggle title="Ask AI"
+				class="w-11 h-11 rounded-full bg-white border border-gray-300 shadow text-gray-500 hover:bg-gray-50 flex items-center justify-center transition">
+			<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456Z"/></svg>
+			<span class="sr-only">Ask AI</span>
+		</button>
+	</div>
+</div>
+
+<script>
+	(function () {
+		const root = document.getElementById("askAi");
+		if (!root) return;
+		const panel = document.getElementById("askAiPanel");
+		const list = document.getElementById("askAiMessages");
+		const form = document.getElementById("askAiForm");
+		const input = form.querySelector("textarea");
+		let opened = false;
+
+		function scrollDown() {
+			list.scrollTop = list.scrollHeight;
+		}
+
+		function togglePanel() {
+			const show = panel.classList.contains("hidden");
+			panel.classList.toggle("hidden", !show);
+			panel.classList.toggle("flex", show);
+			if (show) {
+				if (!opened) {
+					opened = true;
+					document.body.dispatchEvent(new Event("askaiopen"));
+				}
+				input.focus();
+				scrollDown();
+			}
+		}
+
+		root.querySelectorAll("[data-ask-toggle]").forEach(function (btn) {
+			btn.addEventListener("click", togglePanel);
+		});
+
+		input.addEventListener("keydown", function (event) {
+			if (event.key === "Enter" && !event.shiftKey) {
+				event.preventDefault();
+				if (input.value.trim()) form.requestSubmit();
+			}
+		});
+
+		// Show the question immediately, then clear the box (values are already collected).
+		form.addEventListener("htmx:beforeRequest", function (event) {
+			if (event.detail.elt !== form) return;
+			const text = input.value.trim();
+			if (!text) {
+				event.preventDefault();
+				return;
+			}
+			const intro = list.querySelector("[data-ask-intro]");
+			if (intro) intro.remove();
+			const row = document.createElement("div");
+			row.className = "flex justify-end";
+			const bubble = document.createElement("div");
+			bubble.className = "max-w-[85%] rounded-lg bg-gray-100 text-gray-800 px-3 py-2 text-sm whitespace-pre-line";
+			bubble.textContent = text;
+			row.appendChild(bubble);
+			list.appendChild(row);
+			input.value = "";
+			scrollDown();
+		});
+
+		document.body.addEventListener("htmx:afterSwap", function (event) {
+			if (event.detail.target === list) scrollDown();
+		});
+	})();
+</script>
