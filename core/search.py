@@ -6,6 +6,7 @@ from django.urls import NoReverseMatch, reverse
 from django.views.decorators.http import require_GET
 from watson import search as watson
 
+from accounts.models import UserRole
 from core.constants import DEPARTMENT_CHOICES
 from staff.models import Staff
 from students.models import Student
@@ -50,9 +51,13 @@ def _get_staff(request):
 
 
 def _is_admin(request, staff):
-    # Mirror the is_admin check used by the sidebar context processor.
-    return request.user.is_superuser
-    pass
+       # Superusers, or users holding the "admin" role for this school.
+       if request.user.is_superuser:
+           return True
+       return UserRole.objects.filter(
+           user=request.user, school=request.school, role="admin"
+       ).exists()
+       pass
 
 
 def _staff_departments(staff):
