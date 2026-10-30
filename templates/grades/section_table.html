@@ -14,6 +14,7 @@
 		<p class="text-sm text-gray-500">
 			{{ section.academic_year.name }}
 			{% if section.teacher %}&bull; {{ section.teacher.get_full_name }}{% endif %}
+			{% if section_label %}&bull; {{ section_label }}{% endif %}
 		</p>
 	</div>
 	<div class="flex gap-2">
@@ -50,13 +51,13 @@
 </div>
 {% endif %}
 
-<!-- Term tabs -->
-<div class="flex gap-1 mb-4 bg-white rounded-xl shadow p-2 w-fit">
+<!-- Section tabs (term + homeroom) -->
+<div class="flex flex-wrap gap-1 mb-4 bg-white rounded-xl shadow p-2 w-fit">
 	{% for sec in all_sections %}
-	<a href="{% url 'grades:section_table' sec.pk %}?term={{ sec.term_number }}"
+	<a href="{% url 'grades:section_table' sec.pk %}"
 	   class="px-4 py-1.5 rounded-lg text-sm font-medium transition
 			  {% if sec.pk == section.pk %}btn-primary{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
-		Term {{ sec.term_number }}
+		Term {{ sec.term_number }}{% if sec.class_label %} &middot; {{ sec.class_label }}{% endif %}
 	</a>
 	{% endfor %}
 </div>

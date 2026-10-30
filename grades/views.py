@@ -110,37 +110,52 @@ def section_grade_table(request, section_pk):
         messages.error(request, "Access denied.")
         return redirect("grades:home")
 
-    term_filter = request.GET.get("term", str(section.term_number))
-    try:
-        term_filter = int(term_filter)
-    except ValueError:
-        term_filter = section.term_number
-
-    all_sections = Section.objects.filter(
+    # Sibling sections (same course/form/year) shown as tabs - only ones this user can open
+    sibling_sections = Section.objects.filter(
         school=school,
         course=section.course,
         form=section.form,
         academic_year=section.academic_year,
-    ).order_by("term_number")
+    )
+    if not admin:
+        visible = Q(teacher=staff)
+        if hod_departments:
+            visible |= Q(course__department__in=hod_departments)
+        sibling_sections = sibling_sections.filter(visible)
 
-    active_section = all_sections.filter(term_number=term_filter).first() or section
+    # Homeroom label per section, from homeroom-sourced enrolments; fall back to room
+    homeroom_names = {}
+    homeroom_rows = (
+        Enrolment.objects.filter(section__in=sibling_sections, source_homeroom__isnull=False)
+        .values_list("section_id", "source_homeroom__name")
+        .distinct()
+    )
+    for sec_id, name in homeroom_rows:
+        homeroom_names.setdefault(sec_id, set()).add(name)
 
-    window_open = grade_window_is_open(school, active_section.academic_year, active_section.term_number, active_section.form)
+    all_sections = list(sibling_sections)
+    for sec in all_sections:
+        sec.class_label = ", ".join(sorted(homeroom_names.get(sec.pk, ()))) or sec.room
+    all_sections.sort(key=lambda s: (s.term_number, s.class_label or "", s.pk))
+
+    section_label = next((s.class_label for s in all_sections if s.pk == section.pk), "")
+
+    window_open = grade_window_is_open(school, section.academic_year, section.term_number, section.form)
     can_edit = admin or (is_owner and window_open)
 
-    evaluations = Evaluation.objects.filter(school=school, section=active_section).order_by("date", "created_at")
+    evaluations = Evaluation.objects.filter(school=school, section=section).order_by("date", "created_at")
 
-    enrolments = active_section.enrolments.select_related("student").order_by("student__last_name", "student__first_name")
+    enrolments = section.enrolments.select_related("student").order_by("student__last_name", "student__first_name")
     students = [e.student for e in enrolments]
 
     entries = GradeEntry.objects.filter(
         school=school,
-        evaluation__section=active_section,
+        evaluation__section=section,
     ).select_related("evaluation", "student")
 
     grade_map = {(e.evaluation_id, e.student_id): e for e in entries}
 
-    comments = GradeComment.objects.filter(school=school, section=active_section)
+    comments = GradeComment.objects.filter(school=school, section=section)
     comment_map = {c.student_id: c.comment for c in comments}
 
     rows = []
@@ -168,15 +183,15 @@ def section_grade_table(request, section_pk):
 
     from scheduling.models import TermConfig
 
-    term_configs = TermConfig.objects.filter(academic_year=active_section.academic_year)
+    term_configs = TermConfig.objects.filter(academic_year=section.academic_year)
 
     return render(
         request,
         "grades/section_table.html",
         {
-            "section": active_section,
+            "section": section,
+            "section_label": section_label,
             "all_sections": all_sections,
-            "term_filter": term_filter,
             "evaluations": evaluations,
             "rows": rows,
             "students": students,
