@@ -1,5 +1,3 @@
- 
-
 import datetime
 import json
 import logging
@@ -27,6 +25,20 @@ logger = logging.getLogger(__name__)
 MAX_ROWS = 60
 PASS_MARK_NOTE = "Pass marks are the current per-form settings, applied to every year."
 ACTIVITY_DEFAULT_LIMIT = 25
+ORDINAL_WORDS = {
+    "first": 1,
+    "1st": 1,
+    "second": 2,
+    "2nd": 2,
+    "third": 3,
+    "3rd": 3,
+    "fourth": 4,
+    "4th": 4,
+    "fifth": 5,
+    "5th": 5,
+    "sixth": 6,
+    "6th": 6,
+}
 
 
 def _int(value):
@@ -134,7 +146,7 @@ class AskScope:
         pass
 
     def resolve_form(self, name):
-        """(Form, error). Exact name, then a single partial match, then a single form with that number."""
+        """(Form, error). Exact name, then a single partial match, then a single form with that number ('5', '5th', 'fifth')."""
         wanted = str(name or "").strip()
         lower = wanted.lower()
         exact = [f for f in self.forms if f.name.lower() == lower]
@@ -143,7 +155,9 @@ class AskScope:
         partial = [f for f in self.forms if lower in f.name.lower()]
         if len(partial) == 1:
             return partial[0], None
-        numbers = re.findall(r"\d+", wanted)
+        numbers = [str(ORDINAL_WORDS[w]) for w in re.findall(r"[a-z0-9]+", lower) if w in ORDINAL_WORDS]
+        if not numbers:
+            numbers = re.findall(r"\d+", wanted)
         if len(numbers) == 1:
             pattern = re.compile(rf"(?<!\d){numbers[0]}(?!\d)")
             by_number = [f for f in self.forms if pattern.search(f.name)]
